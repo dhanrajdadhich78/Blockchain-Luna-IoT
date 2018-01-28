@@ -4,17 +4,18 @@ package code
 import (
 	"bytes"
 	"crypto/sha256"
-	"time"
 	"encoding/gob"
+	"log"
+	"time"
 )
 
 type Block struct {
-	Timestamp     int64
+	Timestamp int64
 	//Data          []byte
 	Transactions  []*Transaction
 	PrevBlockHash []byte
 	Hash          []byte
-	Nonce int
+	Nonce         int
 }
 
 // HashTransactions returns a hash of the transactions in the block
@@ -23,14 +24,14 @@ func (b *Block) HashTransactions() []byte {
 	var txHash [32]byte
 
 	for _, tx := range b.Transactions {
-		txHashes = append(txHashes, tx.ID)
+		txHashes = append(txHashes, tx.Hash())
 	}
 	txHash = sha256.Sum256(bytes.Join(txHashes, []byte{}))
 
 	return txHash[:]
 }
 
-
+// NewBlock creates and returns Block
 func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
 	pow := NewProofOfWork(block)
@@ -51,7 +52,10 @@ func (b *Block) Serialize() []byte {
 	encoder := gob.NewEncoder(&result)
 
 	err := encoder.Encode(b)
-	if err!=nil{}
+	if err != nil {
+		log.Panic(err)
+	}
+
 	return result.Bytes()
 }
 
@@ -60,6 +64,7 @@ func DeserializeBlock(d []byte) *Block {
 
 	decoder := gob.NewDecoder(bytes.NewReader(d))
 	err := decoder.Decode(&block)
-	if err!=nil{}
+	if err != nil {
+	}
 	return &block
 }

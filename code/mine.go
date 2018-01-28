@@ -2,17 +2,17 @@
 package code
 
 import (
-	"math/big"
 	"bytes"
-	"strconv"
-	"fmt"
 	"crypto/sha256"
+	"fmt"
 	"math"
+	"math/big"
+	"wizeBlockchain/utils"
 )
 
 const (
 	targetBits = 18
-	maxNonce = math.MaxInt64
+	maxNonce   = math.MaxInt64
 )
 
 type ProofOfWork struct {
@@ -25,9 +25,9 @@ func (pow *ProofOfWork) prepareData(nonce int) []byte {
 		[][]byte{
 			pow.block.PrevBlockHash,
 			pow.block.HashTransactions(),
-			IntToHex(pow.block.Timestamp),
-			IntToHex(int64(targetBits)),
-			IntToHex(int64(nonce)),
+			utils.IntToHex(pow.block.Timestamp),
+			utils.IntToHex(int64(targetBits)),
+			utils.IntToHex(int64(nonce)),
 		},
 		[]byte{},
 	)
@@ -77,8 +77,4 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 	pow := &ProofOfWork{b, target}
 
 	return pow
-}
-
-func IntToHex(n int64) []byte {
-	return []byte(strconv.FormatInt(n, 16))
 }
