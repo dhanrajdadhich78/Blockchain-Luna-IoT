@@ -63,6 +63,7 @@ func (cli *CLI) printUsage() {
 	fmt.Println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS")
 	fmt.Println("  printchain - Print all the blocks of the blockchain")
 	fmt.Println("  send -from FROM -to TO -amount AMOUNT - Send AMOUNT of coins from FROM address to TO")
+	fmt.Println("  createwallet - Generates a new key-pair and saves it into the wallet file")
 }
 
 func (cli *CLI) validateArgs() {
