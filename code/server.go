@@ -17,7 +17,7 @@ const commandLength = 12
 
 var nodeAddress string
 var miningAddress string
-var knownNodes = []string{"localhost:4000"}
+var knownNodes = []string{"localhost:3000"}
 var blocksInTransit = [][]byte{}
 var mempool = make(map[string]Transaction)
 
