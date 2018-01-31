@@ -2,7 +2,7 @@ package message
 
 import (
 	"encoding/json"
-	b "wizeBlockchain/block"
+	b "wizeBlockchain/code_network/block"
 	"errors"
 )
 

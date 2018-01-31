@@ -10,7 +10,7 @@ import (
 	"sync"
 	"syscall"
 	"golang.org/x/net/websocket"
-	bc "wizeBlockchain/blockchain"
+	bc "wizeBlockchain/code_network/blockchain"
 )
 
 type ErrorResponse struct {

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"golang.org/x/net/websocket"
-	m "wizeBlockchain/message"
+	m "wizeBlockchain/code_network/message"
 )
 
 func (node *Node) blocksHandler(w http.ResponseWriter, r *http.Request) {

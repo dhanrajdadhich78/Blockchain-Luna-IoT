@@ -7,9 +7,9 @@ import (
 	"sort"
 
 	"golang.org/x/net/websocket"
-	m "wizeBlockchain/message"
-	b "wizeBlockchain/block"
-	bc "wizeBlockchain/blockchain"
+	m "wizeBlockchain/code_network/message"
+	b "wizeBlockchain/code_network/block"
+	bc "wizeBlockchain/code_network/blockchain"
 
 )
 
