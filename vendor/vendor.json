@@ -3,6 +3,12 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "a368813c5e648fee92e5f6c30e3944ff9d5e8895",
+			"revisionTime": "2017-06-26T11:06:00Z"
+		},
+		{
 			"checksumSHA1": "lbE4q2dpUgue10EEx8eutP36vzo=",
 			"path": "github.com/boltdb/bolt",
 			"revision": "9da31745363232bc1e27dbab3569e77383a51585",
@@ -14,6 +20,18 @@
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "87b1dfb5b2fa649f52695dd9eae19abe404a4308",
 			"revisionTime": "2017-12-31T12:27:32Z"
+		},
+		{
+			"checksumSHA1": "bVayBU8lTVHNDai7umD17bwyws0=",
+			"path": "github.com/gorilla/mux",
+			"revision": "5ab525f4fb1678e197ae59401e9050fa0b6cb5fd",
+			"revisionTime": "2017-12-08T16:08:15Z"
+		},
+		{
+			"checksumSHA1": "rUkZoa6HOwMVz1gnonWoPDXRynI=",
+			"path": "github.com/grrrben/golog",
+			"revision": "75841571e9e51569d34cebb88a3b2cc635255841",
+			"revisionTime": "2017-10-26T16:34:39Z"
 		},
 		{
 			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
@@ -33,6 +51,12 @@
 			"path": "golang.org/x/crypto/ripemd160",
 			"revision": "0efb9460aaf800c6376acf625be2853bceac2e06",
 			"revisionTime": "2018-01-24T03:37:23Z"
+		},
+		{
+			"checksumSHA1": "7EZyXN0EmZLgGxZxK01IJua4c8o=",
+			"path": "golang.org/x/net/websocket",
+			"revision": "d866cfc389cec985d6fda2859936a575a55a3ab6",
+			"revisionTime": "2017-12-11T20:45:21Z"
 		}
 	],
 	"rootPath": "wizeBlockchain"

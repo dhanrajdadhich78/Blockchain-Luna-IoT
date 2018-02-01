@@ -15,7 +15,7 @@ Usage: `-p=8001`
 
 ## API calls
 
-Postman [collection](wizeB.postman_collection.json in root of project) of the call's.
+Postman collection wizeB.postman_collection.json in root of project.
 
 ### Transactions
 
