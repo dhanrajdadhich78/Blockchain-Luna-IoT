@@ -16,6 +16,7 @@ type wallet struct {
 }
 
 // createWallet creates a wallet with a hash and 0 credits
+//TODO: rewrite to elliptic curve
 func createWallet() wallet {
 	var buf bytes.Buffer
 	err := binary.Write(&buf, binary.BigEndian, time.Now().Unix())

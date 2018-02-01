@@ -17,7 +17,6 @@ var cls *Clients
 
 const zerohash = "0000000000000000000000000000000000000000000000000000000000000000"
 
-
 type Server struct {
 	Server string
 	Port   int
@@ -118,4 +117,12 @@ func readConfig() {
 	if _, err := toml.DecodeFile(configfile, &config); err != nil {
 		log.Fatal(err)
 	}
+}
+// GetConfig test of the config needs to be loaded and returns the Config file.
+func GetConfig() Config {
+	var cf *Config
+	if cf == nil {
+		readConfig()
+	}
+	return config
 }

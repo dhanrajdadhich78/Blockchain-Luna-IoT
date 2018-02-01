@@ -15,6 +15,18 @@
 			"revisionTime": "2017-11-20T01:03:07Z"
 		},
 		{
+			"checksumSHA1": "xowWqSavv3sZfo4VZDpZTgql1lY=",
+			"path": "github.com/btcsuite/fastsha256",
+			"revision": "637e656429416087660c84436a2a035d69d54e2e",
+			"revisionTime": "2016-08-15T19:38:21Z"
+		},
+		{
+			"checksumSHA1": "ucHEnGdxN79GCReEZSKaYfyzlP8=",
+			"path": "github.com/coin-network/curve",
+			"revision": "db76e7a38345557ce3256bb78c6efc49cb87a33a",
+			"revisionTime": "2017-01-09T19:46:10Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",

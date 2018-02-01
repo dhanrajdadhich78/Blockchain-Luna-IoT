@@ -11,7 +11,7 @@ func TestInitClients(t *testing.T) {
 
 	typeof := fmt.Sprint(reflect.TypeOf(cls))
 
-	if typeof != "*main.Clients" {
+	if typeof != "*blockchain.Clients" {
 		t.Errorf("Wrong type, expected *main.Clients, got %s", typeof)
 	}
 }

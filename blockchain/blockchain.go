@@ -234,7 +234,7 @@ func initBlockchain() *Blockchain {
 		Transactions: make([]Transaction, 0),
 	}
 	golog.Infof("init Blockchain\n %v", newBlockchain)
-
+	//TODO: rewrite to different addresses not ports
 	if me.Port == 8000 {
 		// Mother node. Adding a first, Genesis, Block to the Chain
 		b := newBlockchain.newBlock(100)

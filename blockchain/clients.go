@@ -32,13 +32,15 @@ func (cls *Clients) addClient(cl Client) bool {
 }
 
 // syncClients contacts other Clients to fetch a full list of Clients
-// todo; how do I know which nodes are currently in the network
+// todo: how do I know which nodes are currently in the network
+
 func (cls *Clients) syncClients() bool {
 	// if I am the only node, ignore this
 	if me.Port == 8000 {
 		return true
 	}
 	// for now, just use the main parent node as an oracle.
+	// TODO: change method bring clients to random live node
 	url := "http://localhost:8000/client"
 
 	var externalCls Clients
