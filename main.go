@@ -38,7 +38,7 @@ func main() {
 
 	u, err := strconv.ParseUint(*prt, 10, 16) // always gives an uint64...
 	if err != nil {
-		golog.Errorf("Unable to cast Prt to uint: %s", err)
+		golog.Errorf("Unable to cast Port to uint: %s", err)
 	}
 	// different Clients can have different ports,
 	// used to connect multiple Clients in debug.

@@ -10,7 +10,7 @@ import (
 )
 
 func (a *App) index(w http.ResponseWriter, r *http.Request) {
-	respondWithJSON(w, http.StatusOK, "Hello world")
+	respondWithJSON(w, http.StatusOK, "Hello wize")
 }
 
 // wallet Shows some stats of a wallet, including the credits available

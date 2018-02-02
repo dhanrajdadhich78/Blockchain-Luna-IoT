@@ -14,10 +14,10 @@ import (
 )
 
 // how many zero's do we want in the hash
-const hashDifficulty int8 = 4
+const hashDifficulty int8 = 5
 
 // This should be the hash ending in the proof of work
-const hashEndsWith string = "0000"
+const hashEndsWith string = "00000"
 
 type Blockchain struct {
 	Chain        []Block

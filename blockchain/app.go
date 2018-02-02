@@ -36,7 +36,7 @@ type App struct {
 }
 
 func (a *App) Initialize() {
-	fmt.Println("Initialising the blockchain")
+	fmt.Println("Initializing the blockchain")
 	config = GetConfig()
 
 	name, err := os.Hostname()
