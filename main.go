@@ -4,6 +4,7 @@ import (
 	//"wizeBlockchain/code"
 	"flag"
 	//n "wizeBlockchain/network"
+	//s "wizeBlockchain/blockchain/services"
 
 	"github.com/grrrben/golog"
 	"path/filepath"
@@ -42,7 +43,7 @@ func main() {
 	// different Clients can have different ports,
 	// used to connect multiple Clients in debug.
 	ClientPort = uint16(u)
-
+	//s.MakeAddress()
 	a := b.App{}
 	a.ClientName = ClientName
 	a.ClientPort = ClientPort

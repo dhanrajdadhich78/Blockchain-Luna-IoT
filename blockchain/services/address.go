@@ -24,11 +24,16 @@ func MakeAddress() {
 
 	fmt.Println(" Public Key ")
 	pubkey := (privkey.PublicKey)
+	fmt.Println(pubkey.Curve)
 	fmt.Println(pubkey.X)
 	fmt.Println(pubkey.Y)
 
 	fmt.Println("-------")
 	fmt.Println(" New Address ")
 	address := privkey.PubKey().ToAddress()
+
 	fmt.Println(address)
-}
+
+
+
+	}
