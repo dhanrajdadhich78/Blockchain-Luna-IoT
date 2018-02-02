@@ -28,20 +28,44 @@
 			"response": []
 		},
 		{
-			"name": "client",
+			"name": "clients list",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:8000/",
+					"raw": "http://localhost:8000/client",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						""
+						"client"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "client add",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n \"ip\": \"192.168.10.10\", \n \"protocol\": \"http://\", \n \"port\": 8080,\n \"name\": \"This is me\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/client",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"client"
 					]
 				},
 				"description": ""
@@ -55,14 +79,15 @@
 				"header": [],
 				"body": {},
 				"url": {
-					"raw": "http://localhost:8000/",
+					"raw": "http://localhost:8000/wallet/1ALTQuSzK8JKxs4cENV2Ac3sTBpmhFwBoq",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8000",
 					"path": [
-						""
+						"wallet",
+						"1ALTQuSzK8JKxs4cENV2Ac3sTBpmhFwBoq"
 					]
 				},
 				"description": ""
@@ -70,7 +95,7 @@
 			"response": []
 		},
 		{
-			"name": "chain",
+			"name": "fetch chain",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -91,7 +116,28 @@
 			"response": []
 		},
 		{
-			"name": "new transaction",
+			"name": "fetch last block",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8000/block",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"block"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "make new transaction",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -115,7 +161,7 @@
 			"response": []
 		},
 		{
-			"name": "mine",
+			"name": "mine new block",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -136,7 +182,7 @@
 			"response": []
 		},
 		{
-			"name": "validate",
+			"name": "validate chain",
 			"request": {
 				"method": "GET",
 				"header": [],
