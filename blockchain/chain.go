@@ -1,5 +1,5 @@
 //blockchain logic
-package code
+package blockchain
 
 import (
 	"bytes"
@@ -78,7 +78,7 @@ func CreateBlockchain(address string, nodeID string) *Blockchain {
 
 // NewBlockchain creates a new Blockchain with genesis Block
 func NewBlockchain(nodeID string) *Blockchain {
-	dbFile:= fmt.Sprintf(dbFile, nodeID)
+	dbFile := fmt.Sprintf(dbFile, nodeID)
 	if utils.DbExists(dbFile) == false {
 		fmt.Println("No existing blockchain found. Create one first.")
 		os.Exit(1)
@@ -168,10 +168,11 @@ func (bc *Blockchain) GetBestHeight() int {
 		return nil
 	})
 	if err != nil {
-			log.Panic(err)
+		log.Panic(err)
 	}
 	return lastBlock.Height
 }
+
 // GetBlock finds a block by its hash and returns it
 func (bc *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 	var block Block
@@ -189,6 +190,7 @@ func (bc *Blockchain) GetBlock(blockHash []byte) (Block, error) {
 	}
 	return block, nil
 }
+
 // GetBlockHashes returns a list of hashes of all the blocks in the chain
 func (bc *Blockchain) GetBlockHashes() [][]byte {
 	var blocks [][]byte
@@ -226,14 +228,14 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 					}
 				}
 
-				outs:=UTXO[txID]
+				outs := UTXO[txID]
 				outs.Outputs = append(outs.Outputs, out)
 				UTXO[txID] = outs
 			}
 
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Vin {
-					inTxID:=hex.EncodeToString(in.Txid)
+					inTxID := hex.EncodeToString(in.Txid)
 					spentTXOs[inTxID] = append(spentTXOs[inTxID], in.Vout)
 				}
 			}
@@ -248,7 +250,7 @@ func (bc *Blockchain) FindUTXO() map[string]TXOutputs {
 }
 
 // MineBlock mines a new block with the provided transactions
-func (bc *Blockchain) MineBlock(transactions []*Transaction)  *Block{
+func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 	var lastHash []byte
 	var lastHeight int
 
@@ -263,8 +265,8 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction)  *Block{
 		b := tx.Bucket([]byte(blocksBucket))
 		lastHash = b.Get([]byte("l"))
 
-		blockData:=b.Get(lastHash)
-		block:= DeserializeBlock(blockData)
+		blockData := b.Get(lastHash)
+		block := DeserializeBlock(blockData)
 		lastHeight = block.Height
 		return nil
 	})
@@ -313,7 +315,7 @@ func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey)
 
 // VerifyTransaction verifies transaction input signatures
 func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
-	if tx.IsCoinbase(){
+	if tx.IsCoinbase() {
 		return true
 	}
 	prevTXs := make(map[string]Transaction)

@@ -1,9 +1,9 @@
-package code
+package blockchain
 
 import (
-	"log"
-	"github.com/boltdb/bolt"
 	"encoding/hex"
+	"github.com/boltdb/bolt"
+	"log"
 )
 
 const utxoBucket = "chainstate"

@@ -1,5 +1,5 @@
 // mining logic
-package code
+package blockchain
 
 import (
 	"bytes"

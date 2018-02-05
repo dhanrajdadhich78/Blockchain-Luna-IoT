@@ -1,61 +1,70 @@
+//block logic
 package blockchain
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
-	"github.com/grrrben/golog"
-	"net/http"
+	"encoding/gob"
+	"log"
+	"time"
+	"wizeBlockchain/services"
 )
 
 type Block struct {
-	Index        int64         `json:"index"`
-	Timestamp    int64         `json:"timestamp"`
-	Transactions []Transaction `json:"transactions"`
-	Proof        int64         `json:"proof"`
-	PreviousHash string        `json:"previousHash"`
+	Timestamp int64
+	//Data          []byte
+	Transactions  []*Transaction
+	PrevBlockHash []byte
+	Hash          []byte
+	Nonce         int
+	Height        int
 }
 
-// announceMinedBlock shares the block with other clients. It is done in a goroutine.
-// Other clients should check the validity of the new block on their chain and add it.
-func announceMinedBlock(cl Client, bl Block) {
-	url := fmt.Sprintf("%s/block/distributed", cl.getAddress())
+// HashTransactions returns a hash of the transactions in the block
+func (b *Block) HashTransactions() []byte {
+	var transactions [][]byte
 
-	blockAndSender := map[string]interface{}{"block": bl, "sender": me.getAddress()}
-	payload, err := json.Marshal(blockAndSender)
-	if err != nil {
-		golog.Errorf("Could not marshall block or client. Msg: %s", err)
-		panic(err)
+	for _, tx := range b.Transactions {
+		transactions = append(transactions, tx.Serialize())
 	}
+	mTree := services.NewMerkleTree(transactions)
 
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	if err != nil {
-		golog.Warningf("Request setup error: %s", err)
-		panic(err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		golog.Warningf("POST request error: %s", err)
-		// I don't want to panic here, but it might be a good idea to
-		// remove the client from the list
-	} else {
-		resp.Body.Close()
-	}
+	return mTree.RootNode.Data
 }
 
-// Block = {
-// 	'Index': 1,
-// 	'Timestamp': 1506057125.900785,
-// 	'Transactions': [
-// 	{
-// 		'Sender': "8527147fe1f5426f9dd545de4b27ee00",
-// 		'Recipient': "a77f5cdfa2934df3954a5c7c7da5df1f",
-// 		'Amount': 5,
-// 	}
-// 	],
-// 	'Proof': 324984774000,
-// 	'previous_hash': "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-// }
+// NewBlock creates and returns Block
+func NewBlock(transactions []*Transaction, prevBlockHash []byte, height int) *Block {
+	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0, height}
+	pow := NewProofOfWork(block)
+	nonce, hash := pow.Run()
+
+	block.Hash = hash[:]
+	block.Nonce = nonce
+
+	return block
+}
+
+func NewGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{}, 0)
+}
+
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+
+	err := encoder.Encode(b)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return result.Bytes()
+}
+
+func DeserializeBlock(d []byte) *Block {
+	var block Block
+
+	decoder := gob.NewDecoder(bytes.NewReader(d))
+	err := decoder.Decode(&block)
+	if err != nil {
+	}
+	return &block
+}

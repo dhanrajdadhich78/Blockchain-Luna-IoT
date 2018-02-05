@@ -1,9 +1,9 @@
 package services
 
 import (
-"github.com/coin-network/curve"
-"crypto/ecdsa"
-"fmt"
+	"crypto/ecdsa"
+	"fmt"
+	"github.com/coin-network/curve"
 )
 
 type PublicKey ecdsa.PublicKey
@@ -34,6 +34,4 @@ func MakeAddress() {
 
 	fmt.Println(address)
 
-
-
-	}
+}

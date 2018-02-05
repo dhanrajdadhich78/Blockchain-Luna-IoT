@@ -2,8 +2,8 @@ package message
 
 import (
 	"encoding/json"
-	b "wizeBlockchain/code_network/block"
 	"errors"
+	b "wizeBlockchain/code_network/block"
 )
 
 type MessageType int
@@ -15,7 +15,6 @@ const (
 )
 
 var (
-
 	ErrInvalidChain       = errors.New("invalid chain")
 	ErrInvalidBlock       = errors.New("invalid block")
 	ErrUnknownMessageType = errors.New("unknown message type")

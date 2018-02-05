@@ -3,13 +3,13 @@ package network
 import (
 	"context"
 	"encoding/json"
+	"golang.org/x/net/websocket"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
-	"golang.org/x/net/websocket"
 	bc "wizeBlockchain/code_network/blockchain"
 )
 

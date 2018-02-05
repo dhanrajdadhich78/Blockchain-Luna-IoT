@@ -1,4 +1,4 @@
-package blockchain
+package code_file
 
 import (
 	"database/sql"
@@ -29,10 +29,10 @@ type Config struct {
 var config Config
 
 type App struct {
-	ClientPort	uint16
-	ClientName	*string
-	Router *mux.Router
-	DB     *sql.DB
+	ClientPort uint16
+	ClientName *string
+	Router     *mux.Router
+	DB         *sql.DB
 }
 
 func (a *App) Initialize() {
@@ -118,6 +118,7 @@ func readConfig() {
 		log.Fatal(err)
 	}
 }
+
 // GetConfig test of the config needs to be loaded and returns the Config file.
 func GetConfig() Config {
 	var cf *Config

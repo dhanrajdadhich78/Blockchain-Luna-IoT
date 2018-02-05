@@ -5,6 +5,7 @@ import (
 	"math/big"
 	u "wizeBlockchain/utils"
 )
+
 var b58Alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
 
 // Base58Encode encodes a byte array to Base58
