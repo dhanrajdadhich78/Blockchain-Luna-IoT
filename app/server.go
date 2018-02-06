@@ -205,7 +205,7 @@ func handleBlock(request []byte, bc *b.Blockchain) {
 	bc.AddBlock(block)
 
 	fmt.Printf("Added block %x\n", block.Hash)
-
+	//TODO: add validation of block
 	if len(blocksInTransit) > 0 {
 		blockHash := blocksInTransit[0]
 		sendGetData(payload.AddrFrom, "block", blockHash)
@@ -213,6 +213,7 @@ func handleBlock(request []byte, bc *b.Blockchain) {
 		blocksInTransit = blocksInTransit[1:]
 	} else {
 		UTXOSet := b.UTXOSet{bc}
+		//TODO: use UTXOSet.Update() instead UTXOSet.Reindex
 		UTXOSet.Reindex()
 	}
 }
@@ -341,6 +342,7 @@ func handleTx(request []byte, bc *b.Blockchain) {
 
 			newBlock := bc.MineBlock(txs)
 			UTXOSet := b.UTXOSet{bc}
+			//TODO: use UTXOSet.Update() instead UTXOSet.Reindex
 			UTXOSet.Reindex()
 
 			fmt.Println("New block is mined!")
