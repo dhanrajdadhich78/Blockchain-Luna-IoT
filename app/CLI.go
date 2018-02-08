@@ -9,6 +9,7 @@ import (
 	b "wizeBlockchain/blockchain"
 	s "wizeBlockchain/services"
 	w "wizeBlockchain/wallet"
+	"time"
 )
 
 // CLI responsible for processing command line arguments
@@ -29,8 +30,10 @@ func (cli *CLI) createWallet(nodeID string) {
 	wallets, _ := w.NewWallets(nodeID)
 	address := wallets.CreateWallet()
 	wallets.SaveToFile(nodeID)
+	wallet:= wallets.GetWallet(address)
 
 	fmt.Printf("Your new address: %s\n", address)
+	fmt.Printf("Your new address: %s\n", wallet.PrivateKey.D)
 }
 func (cli *CLI) getBalance(address string, nodeID string) {
 	if !w.ValidateAddress(address) {
@@ -94,6 +97,7 @@ func (cli *CLI) printChain(nodeID string) {
 		fmt.Printf("============ Block %x ============\n", block.Hash)
 		fmt.Printf("Height: %d\n", block.Height)
 		fmt.Printf("Prev. block: %x\n", block.PrevBlockHash)
+		fmt.Printf("Created at: %s\n", time.Unix(block.Timestamp, 0))
 		pow := b.NewProofOfWork(block)
 		fmt.Printf("PoW: %s\n\n", strconv.FormatBool(pow.Validate()))
 		for _, tx := range block.Transactions {
@@ -149,7 +153,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string) {
 			log.Panic("Wrong miner address!")
 		}
 	}
-	//StartServer(nodeID, minerAddress)
+	StartServer(nodeID, minerAddress)
 }
 
 func (cli *CLI) reindexUTXO(nodeID string) {
