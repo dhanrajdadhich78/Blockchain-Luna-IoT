@@ -28,7 +28,7 @@ func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[s
 			outs := DeserializeOutputs(v)
 
 			for outIdx, out := range outs.Outputs {
-				if out.IsLockedWithKey(pubkeyHash) && accumulated < amount {//TODO: rewrite to smart choice of outputs
+				if out.IsLockedWithKey(pubkeyHash) && accumulated < amount { //TODO: rewrite to smart choice of outputs
 					accumulated += out.Value
 					unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
 				}

@@ -12,8 +12,8 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	w "wizeBlockchain/wallet"
 	s "wizeBlockchain/services"
+	w "wizeBlockchain/wallet"
 )
 
 const subsidy = 10
@@ -221,7 +221,7 @@ func NewUTXOTransaction(wallet *w.Wallet, to string, amount int, UTXOSet *UTXOSe
 	pubKeyHash := w.HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
-	fmt.Println("Sum of outputs %s", acc)//TODO: delete
+	fmt.Println("Sum of outputs %s", acc) //TODO: delete
 
 	if acc < amount {
 		log.Panic("ERROR: Not enough funds")

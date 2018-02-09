@@ -63,21 +63,21 @@ func Base58Decode(input []byte) []byte {
 	for _, b := range input {
 
 		if b == b58Alphabet[0] {
-				zeroBytes++
-			} else {
-					break
-			}
+			zeroBytes++
+		} else {
+			break
 		}
+	}
 
-		payload := input[zeroBytes:]
-		for _, b := range payload {
-			charIndex := bytes.IndexByte(b58Alphabet, b)
-			result.Mul(result, big.NewInt(58))
-			result.Add(result, big.NewInt(int64(charIndex)))
-		}
+	payload := input[zeroBytes:]
+	for _, b := range payload {
+		charIndex := bytes.IndexByte(b58Alphabet, b)
+		result.Mul(result, big.NewInt(58))
+		result.Add(result, big.NewInt(int64(charIndex)))
+	}
 
-		decoded := result.Bytes()
-		decoded = append(bytes.Repeat([]byte{byte(0x00)}, zeroBytes), decoded...)
+	decoded := result.Bytes()
+	decoded = append(bytes.Repeat([]byte{byte(0x00)}, zeroBytes), decoded...)
 
-		return decoded
+	return decoded
 }

@@ -1,6 +1,7 @@
 package app
 
 import (
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"log"
@@ -8,7 +9,6 @@ import (
 	b "wizeBlockchain/blockchain"
 	s "wizeBlockchain/services"
 	w "wizeBlockchain/wallet"
-	"encoding/hex"
 )
 
 // CLI responsible for processing command line arguments
@@ -29,7 +29,7 @@ func (cli *CLI) createWallet(nodeID string) {
 	wallets, _ := w.NewWallets(nodeID)
 	address := wallets.CreateWallet()
 	wallets.SaveToFile(nodeID)
-	wallet:= wallets.GetWallet(address)
+	wallet := wallets.GetWallet(address)
 
 	fmt.Printf("Your new address: %s\n", address)
 	fmt.Println("Private key: ", hex.EncodeToString(wallet.GetPrivateKey(wallet)))
@@ -55,7 +55,6 @@ func (cli *CLI) getBalance(address string, nodeID string) {
 
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
-
 
 func (cli *CLI) validateArgs() {
 	if len(os.Args) < 2 {
@@ -201,36 +200,36 @@ func (cli *CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
-		case "validateAddress":
-			err := validateAddrCmd.Parse(os.Args[2:])
-			if err != nil {
-					log.Panic(err)
-			}
-		case "generatePrivKey":
-			err := generatePrivKeyCmd.Parse(os.Args[2:])
-			if err != nil {
-				log.Panic(err)
-			}
-		case "getPubKey":
-			err := getPubKeyCmd.Parse(os.Args[2:])
-			if err != nil {
-					log.Panic(err)
-			}
-		case "getPubKeyHash":
-			err := getPubKeyHashCmd.Parse(os.Args[2:])
-			if err != nil {
-				log.Panic(err)
-			}
-		case "getAddress":
-			err := getAddressCmd.Parse(os.Args[2:])
-			if err != nil {
-				log.Panic(err)
-			}
-		case "getBlock":
-			err := getBlockCmd.Parse(os.Args[2:])
-			if err != nil {
-				log.Panic(err)
-			}
+	case "validateAddress":
+		err := validateAddrCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "generatePrivKey":
+		err := generatePrivKeyCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "getPubKey":
+		err := getPubKeyCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "getPubKeyHash":
+		err := getPubKeyHashCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "getAddress":
+		err := getAddressCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "getBlock":
+		err := getBlockCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
 	default:
 		cli.printUsage()
 		os.Exit(1)
@@ -286,7 +285,7 @@ func (cli *CLI) Run() {
 	}
 
 	if generatePrivKeyCmd.Parsed() {
-			cli.generatePrivKey()
+		cli.generatePrivKey()
 	}
 	if getPubKeyCmd.Parsed() {
 		if *privateKey == "" {
@@ -304,12 +303,12 @@ func (cli *CLI) Run() {
 	}
 
 	if getPubKeyHashCmd.Parsed() {
-			if *pubKeyAddress == "" {
-				getPubKeyHashCmd.Usage()
-				os.Exit(1)
-			}
+		if *pubKeyAddress == "" {
+			getPubKeyHashCmd.Usage()
+			os.Exit(1)
+		}
 
-			cli.getPubKeyHash(*pubKeyAddress)
+		cli.getPubKeyHash(*pubKeyAddress)
 	}
 
 	if validateAddrCmd.Parsed() {
@@ -321,11 +320,11 @@ func (cli *CLI) Run() {
 	}
 
 	if getBlockCmd.Parsed() {
-			if *blockHash == "" {
-				getBlockCmd.Usage()
-				os.Exit(1)
-			}
+		if *blockHash == "" {
+			getBlockCmd.Usage()
+			os.Exit(1)
+		}
 
-			cli.printBlock(*blockHash, nodeID)
+		cli.printBlock(*blockHash, nodeID)
 	}
 }

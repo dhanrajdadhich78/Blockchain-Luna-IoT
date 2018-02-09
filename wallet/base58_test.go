@@ -1,9 +1,9 @@
 package wallet
 
 import (
-"testing"
-s "wizeBlockchain/services"
-"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
+	"testing"
+	s "wizeBlockchain/services"
 )
 
 func TestBase58(t *testing.T) {

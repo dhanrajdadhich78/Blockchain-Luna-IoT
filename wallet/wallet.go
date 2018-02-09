@@ -48,6 +48,7 @@ func (w Wallet) GetPublicKey(wallet *Wallet) []byte {
 	pubKey := append(wallet.PrivateKey.X.Bytes(), wallet.PrivateKey.Y.Bytes()...)
 	return pubKey
 }
+
 // HashPubKey hashes public key
 func HashPubKey(pubKey []byte) []byte {
 	publicSHA256 := sha256.Sum256(pubKey)

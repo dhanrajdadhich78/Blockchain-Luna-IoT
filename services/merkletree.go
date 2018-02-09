@@ -23,7 +23,7 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 
 	//if len(data)%2 != 0 {
 	// append node until number is power of 2
-	if (len(data) & (len(data) - 1)) !=0 {
+	if (len(data) & (len(data) - 1)) != 0 {
 		data = append(data, data[len(data)-1])
 		fmt.Println(data)
 	}
@@ -36,7 +36,7 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 
 	//for i := 0; i < len(data)/2; i++ {
 	// up level until there is only 1 node
-	for len(nodes)>1 {
+	for len(nodes) > 1 {
 		var newLevel []MerkleNode
 
 		for j := 0; j < len(nodes); j += 2 {

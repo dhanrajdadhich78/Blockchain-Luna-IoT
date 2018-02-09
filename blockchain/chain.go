@@ -10,8 +10,8 @@ import (
 	"github.com/boltdb/bolt"
 	"log"
 	"os"
-	"wizeBlockchain/utils"
 	s "wizeBlockchain/services"
+	"wizeBlockchain/utils"
 )
 
 const dbFile = "wizebit_%s.db"

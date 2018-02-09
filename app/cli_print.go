@@ -2,13 +2,12 @@ package app
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 	"time"
 	b "wizeBlockchain/blockchain"
-	"strconv"
-	"log"
 	w "wizeBlockchain/wallet"
 )
-
 
 func (cli *CLI) printChain(nodeID string) {
 	bc := b.NewBlockchain(nodeID)
@@ -97,4 +96,3 @@ func (cli *CLI) printBlock(blockHash, nodeID string) {
 		}
 	}
 }
-
