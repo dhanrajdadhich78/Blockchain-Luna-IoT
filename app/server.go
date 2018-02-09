@@ -187,7 +187,7 @@ func handleAddr(request []byte) {
 	requestBlocks()
 }
 
-func handleBlock(request []byte, bc *b.Blockchain) {
+func handleBlock(request []byte, bc *b.Blockchain) { //TODO: проверять остаток на балансе с учетом незамайненых транзакций, во избежание двойного использования выходов
 	var buff bytes.Buffer
 	var payload block
 
@@ -346,6 +346,7 @@ func handleTx(request []byte, bc *b.Blockchain) {
 			UTXOSet.Reindex()
 
 			fmt.Println("New block is mined!")
+			fmt.Printf("New block with %d tx is mined!\n", len(txs))
 
 			for _, tx := range txs {
 				txID := hex.EncodeToString(tx.ID)
@@ -387,6 +388,7 @@ func handleVersion(request []byte, bc *b.Blockchain) {
 
 	// sendAddr(payload.AddrFrom)
 	if !nodeIsKnown(payload.AddrFrom) {
+		fmt.Printf("A new node %s is connected\n", payload.AddrFrom)
 		knownNodes = append(knownNodes, payload.AddrFrom)
 	}
 }

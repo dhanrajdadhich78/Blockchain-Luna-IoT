@@ -14,7 +14,7 @@ type UTXOSet struct {
 }
 
 // FindSpendableOutputs finds and returns unspent outputs to reference in inputs
-func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[string][]int) {
+func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[string][]int) { //TODO: rewrite for 2 transaction in one block include
 	unspentOutputs := make(map[string][]int)
 	accumulated := 0
 	db := u.Blockchain.Db
@@ -28,7 +28,7 @@ func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[s
 			outs := DeserializeOutputs(v)
 
 			for outIdx, out := range outs.Outputs {
-				if out.IsLockedWithKey(pubkeyHash) && accumulated < amount {
+				if out.IsLockedWithKey(pubkeyHash) && accumulated < amount {//TODO: rewrite to smart choice of outputs
 					accumulated += out.Value
 					unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
 				}

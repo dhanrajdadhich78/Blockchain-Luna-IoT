@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	b "wizeBlockchain/blockchain"
 	s "wizeBlockchain/services"
 	w "wizeBlockchain/wallet"
-	"time"
+	"encoding/hex"
 )
 
 // CLI responsible for processing command line arguments
@@ -33,7 +32,9 @@ func (cli *CLI) createWallet(nodeID string) {
 	wallet:= wallets.GetWallet(address)
 
 	fmt.Printf("Your new address: %s\n", address)
-	fmt.Printf("Your new address: %s\n", wallet.PrivateKey.D)
+	fmt.Println("Private key: ", hex.EncodeToString(wallet.GetPrivateKey(wallet)))
+	fmt.Println("Public key: ", hex.EncodeToString(wallet.GetPublicKey(wallet)))
+
 }
 func (cli *CLI) getBalance(address string, nodeID string) {
 	if !w.ValidateAddress(address) {
@@ -54,60 +55,12 @@ func (cli *CLI) getBalance(address string, nodeID string) {
 
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
-func (cli *CLI) listAddresses(nodeID string) {
-	wallets, err := w.NewWallets(nodeID)
-	if err != nil {
-		log.Panic(err)
-	}
-	addresses := wallets.GetAddresses()
 
-	for _, address := range addresses {
-		fmt.Println(address)
-	}
-}
-
-func (cli *CLI) printUsage() {
-	fmt.Println("Usage:")
-	fmt.Println("  getbalance -address ADDRESS - Get balance of ADDRESS")
-	fmt.Println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS")
-	fmt.Println("  printchain - Print all the blocks of the blockchain")
-	fmt.Println("  send -from FROM -to TO -amount AMOUNT - mine - Send AMOUNT of coins from FROM address to TO. Mine on the same node, when -mine is set.")
-	fmt.Println("  createwallet - Generates a new key-pair and saves it into the wallet file")
-	fmt.Println("  reindexutxo - Rebuilds the UTXO set")
-	fmt.Println("  startnode -miner ADDRESS - Start a node with ID specified in NODE_ID env. var. -miner enables mining")
-	fmt.Println("  listaddresses - Lists all addresses from the wallet file")
-}
 
 func (cli *CLI) validateArgs() {
 	if len(os.Args) < 2 {
 		cli.printUsage()
 		os.Exit(1)
-	}
-}
-
-func (cli *CLI) printChain(nodeID string) {
-	bc := b.NewBlockchain(nodeID)
-	defer bc.Db.Close()
-
-	bci := bc.Iterator()
-
-	for {
-		block := bci.Next()
-
-		fmt.Printf("============ Block %x ============\n", block.Hash)
-		fmt.Printf("Height: %d\n", block.Height)
-		fmt.Printf("Prev. block: %x\n", block.PrevBlockHash)
-		fmt.Printf("Created at: %s\n", time.Unix(block.Timestamp, 0))
-		pow := b.NewProofOfWork(block)
-		fmt.Printf("PoW: %s\n\n", strconv.FormatBool(pow.Validate()))
-		for _, tx := range block.Transactions {
-			fmt.Println(tx)
-		}
-		fmt.Printf("\n\n")
-
-		if len(block.PrevBlockHash) == 0 {
-			break
-		}
 	}
 }
 
@@ -129,7 +82,11 @@ func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 	}
 	wallet := wallets.GetWallet(from)
 
-	tx := b.NewUTXOTransaction(&wallet, to, amount, &UTXOSet)
+	if wallet == nil {
+		fmt.Println("The Address doesn't belongs to you!")
+		return
+	}
+	tx := b.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
 	if mineNow {
 		cbTx := b.NewCoinbaseTX(from, "")
 		txs := []*b.Transaction{cbTx, tx}
@@ -137,7 +94,7 @@ func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 		newBlock := bc.MineBlock(txs)
 		UTXOSet.Update(newBlock)
 	} else {
-		SendTx(knownNodes[0], tx)
+		SendTx(knownNodes[0], tx) //TODO: проверять остаток на балансе с учетом незамайненых транзакций, во избежание двойного использования выходов
 	}
 
 	fmt.Println("Success!")
@@ -182,6 +139,13 @@ func (cli *CLI) Run() {
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 	reindexUTXOCmd := flag.NewFlagSet("reindexutxo", flag.ExitOnError)
 	startNodeCmd := flag.NewFlagSet("startnode", flag.ExitOnError)
+	//generateKeyCmd := flag.NewFlagSet("generateKey", flag.ExitOnError)
+	generatePrivKeyCmd := flag.NewFlagSet("generatePrivKey", flag.ExitOnError)
+	getPubKeyCmd := flag.NewFlagSet("getPubKey", flag.ExitOnError)
+	getAddressCmd := flag.NewFlagSet("getAddress", flag.ExitOnError)
+	getPubKeyHashCmd := flag.NewFlagSet("getPubKeyHash", flag.ExitOnError)
+	validateAddrCmd := flag.NewFlagSet("validateAddress", flag.ExitOnError)
+	getBlockCmd := flag.NewFlagSet("getBlock", flag.ExitOnError)
 
 	getBalanceAddress := getBalanceCmd.String("address", "", "The address to get balance for")
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address to send genesis block reward to")
@@ -190,6 +154,11 @@ func (cli *CLI) Run() {
 	sendAmount := sendCmd.Int("amount", 0, "Amount to send")
 	sendMine := sendCmd.Bool("mine", false, "Mine immediately on the same node")
 	startNodeMiner := startNodeCmd.String("miner", "", "Enable mining mode and send reward to Address")
+	privateKey := getPubKeyCmd.String("privKey", "", "generate PubKey based on this")
+	pubKey := getAddressCmd.String("pubKey", "", "the key where address generated")
+	pubKeyAddress := getPubKeyHashCmd.String("address", "", "the pub address")
+	address := validateAddrCmd.String("addr", "", "the public address")
+	blockHash := getBlockCmd.String("hash", "", "the block hash")
 
 	switch os.Args[1] {
 	case "getbalance":
@@ -232,6 +201,36 @@ func (cli *CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
+		case "validateAddress":
+			err := validateAddrCmd.Parse(os.Args[2:])
+			if err != nil {
+					log.Panic(err)
+			}
+		case "generatePrivKey":
+			err := generatePrivKeyCmd.Parse(os.Args[2:])
+			if err != nil {
+				log.Panic(err)
+			}
+		case "getPubKey":
+			err := getPubKeyCmd.Parse(os.Args[2:])
+			if err != nil {
+					log.Panic(err)
+			}
+		case "getPubKeyHash":
+			err := getPubKeyHashCmd.Parse(os.Args[2:])
+			if err != nil {
+				log.Panic(err)
+			}
+		case "getAddress":
+			err := getAddressCmd.Parse(os.Args[2:])
+			if err != nil {
+				log.Panic(err)
+			}
+		case "getBlock":
+			err := getBlockCmd.Parse(os.Args[2:])
+			if err != nil {
+				log.Panic(err)
+			}
 	default:
 		cli.printUsage()
 		os.Exit(1)
@@ -284,5 +283,49 @@ func (cli *CLI) Run() {
 			os.Exit(1)
 		}
 		cli.startNode(nodeID, *startNodeMiner)
+	}
+
+	if generatePrivKeyCmd.Parsed() {
+			cli.generatePrivKey()
+	}
+	if getPubKeyCmd.Parsed() {
+		if *privateKey == "" {
+			getPubKeyCmd.Usage()
+			os.Exit(1)
+		}
+		cli.getPubKey(*privateKey)
+	}
+	if getAddressCmd.Parsed() {
+		if *pubKey == "" {
+			getAddressCmd.Usage()
+			os.Exit(1)
+		}
+		cli.getAddress(*pubKey)
+	}
+
+	if getPubKeyHashCmd.Parsed() {
+			if *pubKeyAddress == "" {
+				getPubKeyHashCmd.Usage()
+				os.Exit(1)
+			}
+
+			cli.getPubKeyHash(*pubKeyAddress)
+	}
+
+	if validateAddrCmd.Parsed() {
+		if *address == "" {
+			validateAddrCmd.Usage()
+			os.Exit(1)
+		}
+		cli.validateAddr(*address)
+	}
+
+	if getBlockCmd.Parsed() {
+			if *blockHash == "" {
+				getBlockCmd.Usage()
+				os.Exit(1)
+			}
+
+			cli.printBlock(*blockHash, nodeID)
 	}
 }

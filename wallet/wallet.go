@@ -11,7 +11,7 @@ import (
 	"wizeBlockchain/services"
 )
 
-const version = byte(0x00)
+const Version = byte(0x00)
 const addressChecksumLen = 4
 
 // Wallet stores private and public keys
@@ -22,7 +22,7 @@ type Wallet struct {
 
 // NewWallet creates and returns a Wallet
 func NewWallet() *Wallet {
-	private, public := newKeyPair()
+	private, public := NewKeyPair()
 	wallet := Wallet{private, public}
 
 	return &wallet
@@ -32,8 +32,8 @@ func NewWallet() *Wallet {
 func (w Wallet) GetAddress() []byte {
 	pubKeyHash := HashPubKey(w.PublicKey)
 
-	versionedPayload := append([]byte{version}, pubKeyHash...)
-	checksum := checksum(versionedPayload)
+	versionedPayload := append([]byte{Version}, pubKeyHash...)
+	checksum := Checksum(versionedPayload)
 
 	fullPayload := append(versionedPayload, checksum...)
 	address := services.Base58Encode(fullPayload)
@@ -41,6 +41,13 @@ func (w Wallet) GetAddress() []byte {
 	return address
 }
 
+func (w Wallet) GetPrivateKey(wallet *Wallet) []byte {
+	return wallet.PrivateKey.D.Bytes()
+}
+func (w Wallet) GetPublicKey(wallet *Wallet) []byte {
+	pubKey := append(wallet.PrivateKey.X.Bytes(), wallet.PrivateKey.Y.Bytes()...)
+	return pubKey
+}
 // HashPubKey hashes public key
 func HashPubKey(pubKey []byte) []byte {
 	publicSHA256 := sha256.Sum256(pubKey)
@@ -61,20 +68,20 @@ func ValidateAddress(address string) bool {
 	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLen:]
 	version := pubKeyHash[0]
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]
-	targetChecksum := checksum(append([]byte{version}, pubKeyHash...))
+	targetChecksum := Checksum(append([]byte{version}, pubKeyHash...))
 
 	return bytes.Compare(actualChecksum, targetChecksum) == 0
 }
 
-// Checksum generates a checksum for a public key
-func checksum(payload []byte) []byte {
+// Checksum generates a Checksum for a public key
+func Checksum(payload []byte) []byte {
 	firstSHA := sha256.Sum256(payload)
 	secondSHA := sha256.Sum256(firstSHA[:])
 
 	return secondSHA[:addressChecksumLen]
 }
 
-func newKeyPair() (ecdsa.PrivateKey, []byte) {
+func NewKeyPair() (ecdsa.PrivateKey, []byte) {
 	curve := elliptic.P256()
 	private, err := ecdsa.GenerateKey(curve, rand.Reader)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"wizeBlockchain/utils"
+	s "wizeBlockchain/services"
 )
 
 const dbFile = "wizebit_%s.db"
@@ -90,7 +91,9 @@ func NewBlockchain(nodeID string) *Blockchain {
 		log.Panic(err)
 	}
 
-	err = db.Update(func(tx *bolt.Tx) error {
+	//err = db.Update(func(tx *bolt.Tx) error {
+	//TODO: не уверен что такая замена корректна
+	err = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
 		tip = b.Get([]byte("l"))
 
@@ -329,4 +332,16 @@ func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
 	}
 
 	return tx.Verify(prevTXs)
+}
+func (bc *Blockchain) GetBalance(address string) int {
+	UTXOSet := UTXOSet{bc}
+	balance := 0
+	pubKeyHash := s.Base58Decode([]byte(address))
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+	UTXOs := UTXOSet.FindUTXO(pubKeyHash)
+
+	for _, out := range UTXOs {
+		balance += out.Value
+	}
+	return balance
 }

@@ -12,67 +12,17 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	s "wizeBlockchain/services"
 	w "wizeBlockchain/wallet"
+	s "wizeBlockchain/services"
 )
 
-const subsidy = 5
+const subsidy = 10
 
 // Transaction represents a Bitcoin transaction
 type Transaction struct {
 	ID   []byte
 	Vin  []TXInput
 	Vout []TXOutput
-}
-
-type TXOutput struct {
-	Value      int
-	PubKeyHash []byte
-}
-
-func (out *TXOutput) Lock(address []byte) {
-	pubKeyHash := s.Base58Decode(address)
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-	out.PubKeyHash = pubKeyHash
-}
-
-// IsLockedWithKey checks if the output can be used by the owner of the pubkey
-func (out *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
-	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
-}
-
-// NewTXOutput create a new TXOutput
-func NewTXOutput(value int, address string) *TXOutput {
-	txo := &TXOutput{value, nil}
-	txo.Lock([]byte(address))
-	return txo
-}
-
-// TXOutputs collects TXOutput
-type TXOutputs struct {
-	Outputs []TXOutput
-}
-
-// Serialize serializes TXOutputs
-func (outs TXOutputs) Serialize() []byte {
-	var buff bytes.Buffer
-	enc := gob.NewEncoder(&buff)
-	err := enc.Encode(outs)
-	if err != nil {
-		log.Panic(err)
-	}
-	return buff.Bytes()
-}
-
-// DeserializeOutputs deserializes TXOutputs
-func DeserializeOutputs(data []byte) TXOutputs {
-	var outputs TXOutputs
-	dec := gob.NewDecoder(bytes.NewReader(data))
-	err := dec.Decode(&outputs)
-	if err != nil {
-		log.Panic(err)
-	}
-	return outputs
 }
 
 type TXInput struct {
@@ -159,18 +109,23 @@ func (tx Transaction) String() string {
 	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.ID))
 
 	for i, input := range tx.Vin {
+		pubKeyHash := w.HashPubKey(input.PubKey)
+		versionedPayload := append([]byte{w.Version}, pubKeyHash...)
+		fullPayload := append(versionedPayload, w.Checksum(versionedPayload)...)
 
 		lines = append(lines, fmt.Sprintf("     Input %d:", i))
 		lines = append(lines, fmt.Sprintf("       TXID:      %x", input.Txid))
 		lines = append(lines, fmt.Sprintf("       Out:       %d", input.Vout))
 		lines = append(lines, fmt.Sprintf("       Signature: %x", input.Signature))
 		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
+		lines = append(lines, fmt.Sprintf("       Addr  :    %s", s.Base58Encode(fullPayload)))
 	}
 
 	for i, output := range tx.Vout {
 		lines = append(lines, fmt.Sprintf("     Output %d:", i))
 		lines = append(lines, fmt.Sprintf("       Value:  %d", output.Value))
 		lines = append(lines, fmt.Sprintf("       Script: %x", output.PubKeyHash))
+		lines = append(lines, fmt.Sprintf("       Addr  : %s", output.Address))
 	}
 
 	return strings.Join(lines, "\n")
@@ -186,7 +141,8 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 	}
 
 	for _, vout := range tx.Vout {
-		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
+		//outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash})
+		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash, vout.Address})
 	}
 
 	txCopy := Transaction{tx.ID, inputs, outputs}
@@ -265,18 +221,23 @@ func NewUTXOTransaction(wallet *w.Wallet, to string, amount int, UTXOSet *UTXOSe
 	pubKeyHash := w.HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
+	fmt.Println("Sum of outputs %s", acc)//TODO: delete
+
 	if acc < amount {
 		log.Panic("ERROR: Not enough funds")
 	}
 
 	// Build a list of inputs
-	for txid, outs := range validOutputs {
+	for txid, outs := range validOutputs { //TODO: rewrite to smart choice of outputs
+
 		txID, err := hex.DecodeString(txid)
+
 		if err != nil {
 			log.Panic(err)
 		}
 
 		for _, out := range outs {
+			fmt.Println("Output", out) //TODO: delete
 			input := TXInput{txID, out, nil, wallet.PublicKey}
 			inputs = append(inputs, input)
 		}
