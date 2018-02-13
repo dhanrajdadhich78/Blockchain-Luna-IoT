@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-
 	b "wizeBlockchain/blockchain"
 )
 
@@ -424,8 +423,9 @@ func handleConnection(conn net.Conn, bc *b.Blockchain) {
 }
 
 // StartServer starts a node
-func StartServer(nodeID, minerAddress string) {
+func StartServer(nodeID, minerAddress string, apiAddr string) {
 	nodeAddress = fmt.Sprintf("localhost:%s", nodeID)
+
 	miningAddress = minerAddress
 	ln, err := net.Listen(protocol, nodeAddress)
 	if err != nil {
@@ -438,6 +438,9 @@ func StartServer(nodeID, minerAddress string) {
 	if nodeAddress != knownNodes[0] {
 		sendVersion(knownNodes[0], bc)
 	}
+
+	//Start REST API server
+	go startApiServer(apiAddr)
 
 	for {
 		conn, err := ln.Accept()

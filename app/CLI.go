@@ -99,17 +99,17 @@ func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 	fmt.Println("Success!")
 }
 
-func (cli *CLI) startNode(nodeID, minerAddress string) {
+func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) {
 	fmt.Printf("Starting node %s\n", nodeID)
 	if len(minerAddress) > 0 {
 		if w.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
-			StartServer(nodeID, minerAddress)
+			StartServer(nodeID, minerAddress, apiAddr)
 		} else {
 			log.Panic("Wrong miner address!")
 		}
 	}
-	StartServer(nodeID, minerAddress)
+	StartServer(nodeID, minerAddress, apiAddr)
 }
 
 func (cli *CLI) reindexUTXO(nodeID string) {
@@ -158,6 +158,7 @@ func (cli *CLI) Run() {
 	pubKeyAddress := getPubKeyHashCmd.String("address", "", "the pub address")
 	address := validateAddrCmd.String("addr", "", "the public address")
 	blockHash := getBlockCmd.String("hash", "", "the block hash")
+	apiAddr := startNodeCmd.String("api", "4000", "Enable API server. Default port 4000")
 
 	switch os.Args[1] {
 	case "getbalance":
@@ -277,11 +278,12 @@ func (cli *CLI) Run() {
 
 	if startNodeCmd.Parsed() {
 		nodeID := os.Getenv("NODE_ID")
+
 		if nodeID == "" {
 			startNodeCmd.Usage()
 			os.Exit(1)
 		}
-		cli.startNode(nodeID, *startNodeMiner)
+		cli.startNode(nodeID, *startNodeMiner, *apiAddr)
 	}
 
 	if generatePrivKeyCmd.Parsed() {
