@@ -2,7 +2,6 @@ package services
 
 import (
 	"crypto/sha256"
-	"fmt"
 )
 
 // MerkleTree represent a Merkle tree
@@ -25,7 +24,7 @@ func NewMerkleTree(data [][]byte) *MerkleTree {
 	// append node until number is power of 2
 	if (len(data) & (len(data) - 1)) != 0 {
 		data = append(data, data[len(data)-1])
-		fmt.Println(data)
+		//fmt.Println(data)
 	}
 
 	for _, datum := range data {

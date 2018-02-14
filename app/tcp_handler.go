@@ -1,21 +1,23 @@
 package app
 
 import (
-	"net"
-	"io/ioutil"
-	"log"
-	"fmt"
-	b "wizeBlockchain/blockchain"
 	"bytes"
 	"encoding/gob"
-	"io"
 	"encoding/hex"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
+	"net"
+	b "wizeBlockchain/blockchain"
 )
-const(
-protocol = "tcp"
-nodeVersion = 1
-СommandLength = 12
+
+const (
+	protocol      = "tcp"
+	nodeVersion   = 1
+	СommandLength = 12
 )
+
 var nodeAddress string
 var miningAddress string
 var knownNodes = []string{"localhost:3000"}
@@ -26,34 +28,33 @@ func HandleTCPConnection(conn net.Conn, bc *b.Blockchain) {
 
 	request, err := ioutil.ReadAll(conn)
 	if err != nil {
-	log.Panic(err)
+		log.Panic(err)
 	}
 	command := bytesToCommand(request[:СommandLength])
 	fmt.Printf("Received %s command\n", command)
 
 	switch command {
 	case "addr":
-	handleAddr(request)
+		handleAddr(request)
 	case "block":
-	handleBlock(request, bc)
+		handleBlock(request, bc)
 	case "inv":
-	handleInv(request, bc)
+		handleInv(request, bc)
 	case "getblocks":
-	handleGetBlocks(request, bc)
+		handleGetBlocks(request, bc)
 	case "getdata":
-	handleGetData(request, bc)
+		handleGetData(request, bc)
 	case "tx":
-	handleTx(request, bc)
+		handleTx(request, bc)
 	case "version":
-	handleVersion(request, bc)
+		handleVersion(request, bc)
 	default:
-	fmt.Println("Unknown command!")
+		fmt.Println("Unknown command!")
 	}
 
 	conn.Close()
 
 }
-
 
 type addr struct {
 	AddrList []string

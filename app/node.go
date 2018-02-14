@@ -3,16 +3,16 @@ package app
 import (
 	"context"
 	"encoding/json"
-	//"golang.org/x/net/websocket"
+	"fmt"
+	"github.com/gorilla/mux"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	bc "wizeBlockchain/blockchain"
-	"fmt"
-	"net"
 )
 
 type ErrorResponse struct {
@@ -23,17 +23,17 @@ type Node struct {
 	*http.ServeMux
 	blockchain *bc.Blockchain
 	//conns      []*Conn
-	mu         sync.RWMutex
-	logger     *log.Logger
-	apiAddr	string
-	nodeID	string
+	mu      sync.RWMutex
+	logger  *log.Logger
+	apiAddr string
+	nodeID  string
 }
 
 func NewNode(nodeID string) *Node {
 	return &Node{
 		blockchain: bc.NewBlockchain(nodeID),
 		//conns:      []*Conn{},
-		mu:         sync.RWMutex{},
+		mu: sync.RWMutex{},
 		logger: log.New(
 			os.Stdout,
 			"node: ",
@@ -43,17 +43,18 @@ func NewNode(nodeID string) *Node {
 }
 
 func (node *Node) newApiServer() *http.Server {
-	mux := http.NewServeMux()
+	//mux := http.NewServeMux()
+	router := mux.NewRouter()
 	//mux.HandleFunc("/blocks", node.blocksHandler)
 	//mux.HandleFunc("/mineBlock", node.mineBlockHandler)
 	////mux.HandleFunc("/peers", node.peersHandler)
 	//mux.HandleFunc("/addPeer", node.addPeerHandler)
-	mux.HandleFunc("/", node.sayHello)
-	//mux.HandleFunc("/addPeer", node.addPeerHandler)
+	router.HandleFunc("/", node.sayHello).Methods("GET")
+	router.HandleFunc("/wallet/{hash}", node.getWallet).Methods("GET")
 
 	return &http.Server{
-		Handler: mux,
-		Addr:    ":"+node.apiAddr,
+		Handler: router,
+		Addr:    ":" + node.apiAddr,
 		//Addr:    *apiAddr,
 	}
 }
@@ -74,9 +75,9 @@ func (node *Node) newApiServer() *http.Server {
 func (node *Node) Run(minerAddress string) {
 
 	apiSrv := node.newApiServer()
-	fmt.Println(apiSrv)
 	go func() {
 		node.log("start HTTP server for API")
+
 		if err := apiSrv.ListenAndServe(); err != nil {
 			log.Fatal(err)
 		}
@@ -90,8 +91,6 @@ func (node *Node) Run(minerAddress string) {
 		log.Panic(err)
 	}
 	defer ln.Close()
-
-	//bc := b.NewBlockchain(nodeID)
 
 	if nodeAddress != knownNodes[0] {
 		sendVersion(knownNodes[0], node.blockchain)

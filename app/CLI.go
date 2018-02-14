@@ -36,7 +36,8 @@ func (cli *CLI) createWallet(nodeID string) {
 
 }
 func (cli *CLI) getBalance(address string, nodeID string) {
-	balance := GetWalletCredits(address, nodeID)
+	bc := b.NewBlockchain(nodeID)
+	balance := GetWalletCredits(address, nodeID, bc)
 
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
@@ -90,7 +91,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) {
 		if w.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
 			//StartServer(nodeID, minerAddress, apiAddr)
-			node:=NewNode(nodeID)
+			node := NewNode(nodeID)
 			node.apiAddr = apiAddr
 			node.nodeID = nodeID
 			node.Run(minerAddress)
@@ -100,7 +101,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) {
 	}
 	//StartServer(nodeID, minerAddress, apiAddr)
 
-	node:=NewNode(nodeID)
+	node := NewNode(nodeID)
 	node.apiAddr = apiAddr
 	node.nodeID = nodeID
 	node.Run(minerAddress)
