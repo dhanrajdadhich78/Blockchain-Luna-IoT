@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 	b "wizeBlockchain/blockchain"
-	s "wizeBlockchain/services"
 	w "wizeBlockchain/wallet"
 )
 
@@ -37,21 +36,7 @@ func (cli *CLI) createWallet(nodeID string) {
 
 }
 func (cli *CLI) getBalance(address string, nodeID string) {
-	if !w.ValidateAddress(address) {
-		log.Panic("ERROR: Address is not valid")
-	}
-	bc := b.NewBlockchain(nodeID)
-	UTXOSet := b.UTXOSet{bc}
-	defer bc.Db.Close()
-
-	balance := 0
-	pubKeyHash := s.Base58Decode([]byte(address))
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-	UTXOs := UTXOSet.FindUTXO(pubKeyHash)
-
-	for _, out := range UTXOs {
-		balance += out.Value
-	}
+	balance := GetWalletCredits(address, nodeID)
 
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
@@ -104,12 +89,21 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) {
 	if len(minerAddress) > 0 {
 		if w.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
-			StartServer(nodeID, minerAddress, apiAddr)
+			//StartServer(nodeID, minerAddress, apiAddr)
+			node:=NewNode(nodeID)
+			node.apiAddr = apiAddr
+			node.nodeID = nodeID
+			node.Run(minerAddress)
 		} else {
 			log.Panic("Wrong miner address!")
 		}
 	}
-	StartServer(nodeID, minerAddress, apiAddr)
+	//StartServer(nodeID, minerAddress, apiAddr)
+
+	node:=NewNode(nodeID)
+	node.apiAddr = apiAddr
+	node.nodeID = nodeID
+	node.Run(minerAddress)
 }
 
 func (cli *CLI) reindexUTXO(nodeID string) {
