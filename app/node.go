@@ -51,6 +51,7 @@ func (node *Node) newApiServer() *http.Server {
 	//mux.HandleFunc("/addPeer", node.addPeerHandler)
 	router.HandleFunc("/", node.sayHello).Methods("GET")
 	router.HandleFunc("/wallet/{hash}", node.getWallet).Methods("GET")
+	router.HandleFunc("/wallets/list", node.listWallet).Methods("GET")
 
 	return &http.Server{
 		Handler: router,

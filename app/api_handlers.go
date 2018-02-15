@@ -3,7 +3,9 @@ package app
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"log"
 	"net/http"
+	ww "wizeBlockchain/wallet"
 )
 
 func (node *Node) sayHello(w http.ResponseWriter, r *http.Request) {
@@ -16,6 +18,19 @@ func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {
 	resp := map[string]interface{}{
 		"success": true,
 		"credit":  GetWalletCredits(hash, node.nodeID, node.blockchain),
+	}
+	respondWithJSON(w, http.StatusOK, resp)
+}
+
+func (node *Node) listWallet(w http.ResponseWriter, r *http.Request) {
+	wallets, err := ww.NewWallets(node.nodeID)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	resp := map[string]interface{}{
+		"success":     true,
+		"listWallets": wallets.GetAddresses(),
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
