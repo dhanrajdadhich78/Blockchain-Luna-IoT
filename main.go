@@ -1,16 +1,16 @@
 package main
 
 import (
-	a "wizeBlockchain/app"
+	a "wizeBlock/app"
 	//"flag"
-	//n "wizeBlockchain/network"
-	//s "wizeBlockchain/blockchain/services"
+	//n "wizeBlock/network"
+	//s "wizeBlock/blockchain/services"
 	//"github.com/grrrben/golog"
 	//"path/filepath"
 	//"os"
 	//"fmt"
 	//"strconv"
-	//b "wizeBlockchain/blockchain"
+	//b "wizeBlock/blockchain"
 )
 
 //var ClientPort uint16

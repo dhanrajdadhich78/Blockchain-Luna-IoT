@@ -5,8 +5,8 @@ import (
 	"log"
 	"strconv"
 	"time"
-	b "wizeBlockchain/blockchain"
-	w "wizeBlockchain/wallet"
+	b "wizeBlock/blockchain"
+	w "wizeBlock/wallet"
 )
 
 func (cli *CLI) printChain(nodeID string) {

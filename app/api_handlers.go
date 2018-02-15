@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
-	ww "wizeBlockchain/wallet"
+	ww "wizeBlock/wallet"
 )
 
 func (node *Node) sayHello(w http.ResponseWriter, r *http.Request) {

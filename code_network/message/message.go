@@ -3,7 +3,7 @@ package message
 import (
 	"encoding/json"
 	"errors"
-	b "wizeBlockchain/code_network/block"
+	b "wizeBlock/code_network/block"
 )
 
 type MessageType int

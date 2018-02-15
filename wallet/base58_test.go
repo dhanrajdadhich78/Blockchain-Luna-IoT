@@ -3,7 +3,7 @@ package wallet
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
-	s "wizeBlockchain/services"
+	s "wizeBlock/services"
 )
 
 func TestBase58(t *testing.T) {

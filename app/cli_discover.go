@@ -4,8 +4,8 @@ import (
 	"crypto/elliptic"
 	"encoding/hex"
 	"fmt"
-	s "wizeBlockchain/services"
-	w "wizeBlockchain/wallet"
+	s "wizeBlock/services"
+	w "wizeBlock/wallet"
 )
 
 func (cli *CLI) getPubKey(privateKey string) {

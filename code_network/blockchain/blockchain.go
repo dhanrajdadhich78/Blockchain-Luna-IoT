@@ -3,7 +3,7 @@ package blockchain
 import (
 	"sync"
 	"time"
-	b "wizeBlockchain/code_network/block"
+	b "wizeBlock/code_network/block"
 )
 
 type Blockchain struct {

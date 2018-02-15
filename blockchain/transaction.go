@@ -12,8 +12,8 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	s "wizeBlockchain/services"
-	w "wizeBlockchain/wallet"
+	s "wizeBlock/services"
+	w "wizeBlock/wallet"
 )
 
 const subsidy = 10

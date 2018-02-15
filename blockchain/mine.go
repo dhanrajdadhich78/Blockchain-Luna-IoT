@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"wizeBlockchain/utils"
+	"wizeBlock/utils"
 )
 
 const (

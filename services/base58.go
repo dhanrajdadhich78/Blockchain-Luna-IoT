@@ -3,7 +3,7 @@ package services
 import (
 	"bytes"
 	"math/big"
-	u "wizeBlockchain/utils"
+	u "wizeBlock/utils"
 )
 
 var b58Alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")

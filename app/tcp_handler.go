@@ -9,7 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
-	b "wizeBlockchain/blockchain"
+	b "wizeBlock/blockchain"
 )
 
 const (

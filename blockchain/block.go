@@ -6,7 +6,7 @@ import (
 	"encoding/gob"
 	"log"
 	"time"
-	"wizeBlockchain/services"
+	"wizeBlock/services"
 )
 
 type Block struct {

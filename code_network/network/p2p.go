@@ -7,9 +7,9 @@ import (
 	"sort"
 
 	"golang.org/x/net/websocket"
-	b "wizeBlockchain/code_network/block"
-	bc "wizeBlockchain/code_network/blockchain"
-	m "wizeBlockchain/code_network/message"
+	b "wizeBlock/code_network/block"
+	bc "wizeBlock/code_network/blockchain"
+	m "wizeBlock/code_network/message"
 )
 
 func (node *Node) addConn(conn *Conn) {

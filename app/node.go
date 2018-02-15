@@ -12,7 +12,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	bc "wizeBlockchain/blockchain"
+	bc "wizeBlock/blockchain"
 )
 
 type ErrorResponse struct {

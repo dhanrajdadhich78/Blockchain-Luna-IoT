@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"log"
-	s "wizeBlockchain/services"
+	s "wizeBlock/services"
 )
 
 // TXOutput represents a transaction output

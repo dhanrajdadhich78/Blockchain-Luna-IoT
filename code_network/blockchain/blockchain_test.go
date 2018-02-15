@@ -3,7 +3,7 @@ package blockchain
 import (
 	"sync"
 	"testing"
-	b "wizeBlockchain/code_network/block"
+	b "wizeBlock/code_network/block"
 )
 
 var testGenesisBlock = &b.Block{

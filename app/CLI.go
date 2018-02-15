@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	b "wizeBlockchain/blockchain"
-	w "wizeBlockchain/wallet"
+	b "wizeBlock/blockchain"
+	w "wizeBlock/wallet"
 )
 
 // CLI responsible for processing command line arguments

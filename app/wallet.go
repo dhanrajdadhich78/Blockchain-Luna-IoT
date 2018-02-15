@@ -3,9 +3,9 @@ package app
 import (
 	"log"
 
-	b "wizeBlockchain/blockchain"
-	s "wizeBlockchain/services"
-	w "wizeBlockchain/wallet"
+	b "wizeBlock/blockchain"
+	s "wizeBlock/services"
+	w "wizeBlock/wallet"
 )
 
 func GetWalletCredits(address string, nodeID string, bc *b.Blockchain) int {

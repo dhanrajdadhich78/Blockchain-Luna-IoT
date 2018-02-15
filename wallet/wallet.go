@@ -8,7 +8,7 @@ import (
 	"crypto/sha256"
 	"golang.org/x/crypto/ripemd160"
 	"log"
-	"wizeBlockchain/services"
+	"wizeBlock/services"
 )
 
 const Version = byte(0x00)
