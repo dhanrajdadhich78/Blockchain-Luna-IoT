@@ -2,7 +2,6 @@ package main
 
 import (
 	a "wizeBlock/wizeNode/app"
-
 )
 
 func main() {

@@ -27,6 +27,7 @@ type Node struct {
 	logger  *log.Logger
 	apiAddr string
 	nodeID  string
+	nodeADD string
 }
 
 func NewNode(nodeID string) *Node {
@@ -84,16 +85,16 @@ func (node *Node) Run(minerAddress string) {
 		}
 	}()
 
-	nodeAddress = fmt.Sprintf("localhost:%s", node.nodeID)
-
+	nodeAddress = fmt.Sprintf(":%s", node.nodeID)
 	miningAddress = minerAddress
 	ln, err := net.Listen(protocol, nodeAddress)
 	if err != nil {
 		log.Panic(err)
 	}
 	defer ln.Close()
+	nodeADD := node.nodeADD + nodeAddress
 
-	if nodeAddress != knownNodes[0] {
+	if nodeADD != knownNodes[0] {
 		sendVersion(knownNodes[0], node.blockchain)
 	}
 	go func() {

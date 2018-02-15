@@ -9,7 +9,7 @@ import (
 )
 
 func (node *Node) sayHello(w http.ResponseWriter, r *http.Request) {
-	respondWithJSON(w, http.StatusOK, "Hello wize "+node.apiAddr)
+	respondWithJSON(w, http.StatusOK, "Hello wize "+node.nodeADD)
 }
 
 func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {

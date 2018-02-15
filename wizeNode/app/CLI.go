@@ -87,6 +87,7 @@ func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 
 func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) {
 	fmt.Printf("Starting node %s\n", nodeID)
+	nodeADD := os.Getenv("NODE_ADD")
 	if len(minerAddress) > 0 {
 		if w.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
@@ -94,6 +95,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) {
 			node := NewNode(nodeID)
 			node.apiAddr = apiAddr
 			node.nodeID = nodeID
+			node.nodeADD = nodeADD
 			node.Run(minerAddress)
 		} else {
 			log.Panic("Wrong miner address!")
@@ -104,6 +106,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) {
 	node := NewNode(nodeID)
 	node.apiAddr = apiAddr
 	node.nodeID = nodeID
+	node.nodeADD = nodeADD
 	node.Run(minerAddress)
 }
 
