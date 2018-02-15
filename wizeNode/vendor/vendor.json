@@ -1,0 +1,75 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
+			"path": "github.com/BurntSushi/toml",
+			"revision": "a368813c5e648fee92e5f6c30e3944ff9d5e8895",
+			"revisionTime": "2017-06-26T11:06:00Z"
+		},
+		{
+			"checksumSHA1": "lbE4q2dpUgue10EEx8eutP36vzo=",
+			"path": "github.com/boltdb/bolt",
+			"revision": "9da31745363232bc1e27dbab3569e77383a51585",
+			"revisionTime": "2017-11-20T01:03:07Z"
+		},
+		{
+			"checksumSHA1": "xowWqSavv3sZfo4VZDpZTgql1lY=",
+			"path": "github.com/btcsuite/fastsha256",
+			"revision": "637e656429416087660c84436a2a035d69d54e2e",
+			"revisionTime": "2016-08-15T19:38:21Z"
+		},
+		{
+			"checksumSHA1": "ucHEnGdxN79GCReEZSKaYfyzlP8=",
+			"path": "github.com/coin-network/curve",
+			"revision": "db76e7a38345557ce3256bb78c6efc49cb87a33a",
+			"revisionTime": "2017-01-09T19:46:10Z"
+		},
+		{
+			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "87b1dfb5b2fa649f52695dd9eae19abe404a4308",
+			"revisionTime": "2017-12-31T12:27:32Z"
+		},
+		{
+			"checksumSHA1": "bVayBU8lTVHNDai7umD17bwyws0=",
+			"path": "github.com/gorilla/mux",
+			"revision": "5ab525f4fb1678e197ae59401e9050fa0b6cb5fd",
+			"revisionTime": "2017-12-08T16:08:15Z"
+		},
+		{
+			"checksumSHA1": "rUkZoa6HOwMVz1gnonWoPDXRynI=",
+			"path": "github.com/grrrben/golog",
+			"revision": "75841571e9e51569d34cebb88a3b2cc635255841",
+			"revisionTime": "2017-10-26T16:34:39Z"
+		},
+		{
+			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
+			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "87b1dfb5b2fa649f52695dd9eae19abe404a4308",
+			"revisionTime": "2017-12-31T12:27:32Z"
+		},
+		{
+			"checksumSHA1": "uyVU5fRfEK17QZuODRjeZX8zDqg=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "87b1dfb5b2fa649f52695dd9eae19abe404a4308",
+			"revisionTime": "2017-12-31T12:27:32Z"
+		},
+		{
+			"checksumSHA1": "y/oIaxq2d3WPizRZfVjo8RCRYTU=",
+			"path": "golang.org/x/crypto/ripemd160",
+			"revision": "0efb9460aaf800c6376acf625be2853bceac2e06",
+			"revisionTime": "2018-01-24T03:37:23Z"
+		},
+		{
+			"checksumSHA1": "osb18zDjd7/RMAMUuN3qP+w0ewE=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "37707fdb30a5b38865cfb95e5aab41707daec7fd",
+			"revisionTime": "2018-02-02T13:35:31Z"
+		}
+	],
+	"rootPath": "wizeBlock"
+}

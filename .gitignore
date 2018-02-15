@@ -1,5 +1,5 @@
 .idea/
 *.db
 *.dat
-log/*
-wizeBlock
+wizeNode/log/*
+wizeNode/wizeNode
