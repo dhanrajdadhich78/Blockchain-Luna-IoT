@@ -53,6 +53,8 @@ func (node *Node) newApiServer() *http.Server {
 	router.HandleFunc("/", node.sayHello).Methods("GET")
 	router.HandleFunc("/wallet/{hash}", node.getWallet).Methods("GET")
 	router.HandleFunc("/wallets/list", node.listWallet).Methods("GET")
+	router.HandleFunc("/blockchain/print", node.printBlockchain).Methods("GET")
+	router.HandleFunc("/block/{hash}", node.getBlock).Methods("GET")
 
 	return &http.Server{
 		Handler: router,
