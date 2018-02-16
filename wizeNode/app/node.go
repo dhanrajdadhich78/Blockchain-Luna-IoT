@@ -13,6 +13,8 @@ import (
 	"sync"
 	"syscall"
 	bc "wizeBlock/wizeNode/blockchain"
+	"github.com/betacraft/yaag/yaag"
+	"github.com/betacraft/yaag/middleware"
 )
 
 type ErrorResponse struct {
@@ -45,16 +47,17 @@ func NewNode(nodeID string) *Node {
 
 func (node *Node) newApiServer() *http.Server {
 	//mux := http.NewServeMux()
+	yaag.Init(&yaag.Config{On: true, DocTitle: "Gorilla Mux", DocPath: "apidoc.html"})
 	router := mux.NewRouter()
 	//mux.HandleFunc("/blocks", node.blocksHandler)
 	//mux.HandleFunc("/mineBlock", node.mineBlockHandler)
 	////mux.HandleFunc("/peers", node.peersHandler)
 	//mux.HandleFunc("/addPeer", node.addPeerHandler)
-	router.HandleFunc("/", node.sayHello).Methods("GET")
-	router.HandleFunc("/wallet/{hash}", node.getWallet).Methods("GET")
-	router.HandleFunc("/wallets/list", node.listWallet).Methods("GET")
-	router.HandleFunc("/blockchain/print", node.printBlockchain).Methods("GET")
-	router.HandleFunc("/block/{hash}", node.getBlock).Methods("GET")
+	router.HandleFunc("/", middleware.HandleFunc(node.sayHello)).Methods("GET")
+	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
+	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
+	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
+	router.HandleFunc("/block/{hash}", middleware.HandleFunc(node.getBlock)).Methods("GET")
 
 	return &http.Server{
 		Handler: router,
