@@ -1,0 +1,209 @@
+{
+	"info": {
+		"name": "wizeB",
+		"_postman_id": "a7cd5a2f-f28f-e5e8-a23c-9f69aa61b047",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "index",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:4000/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						""
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "wallet check",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:4000/wallet/1CCNT1X3Z5wMKAgSzUFGCoAmvHd1Sb7jiD",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"wallet",
+						"1CCNT1X3Z5wMKAgSzUFGCoAmvHd1Sb7jiD"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "wallets list",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:4000/wallets/list",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"wallets",
+						"list"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "fetch chain",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:4002/blockchain/print",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4002",
+					"path": [
+						"blockchain",
+						"print"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "fetch block",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:4000/block/some-hash",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "4000",
+					"path": [
+						"block",
+						"some-hash"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "make new transaction",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n \"sender\": \"sender address\",\n \"recipient\": \"someone else's address\",\n \"amount\": 1\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/transaction",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"transaction"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "mine new block",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8000/mine",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"mine"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "validate chain",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"url": {
+					"raw": "http://localhost:8000/validate",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"validate"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "client add",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n \"ip\": \"192.168.10.10\", \n \"protocol\": \"http://\", \n \"port\": 8080,\n \"name\": \"This is me\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8000/client",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"client"
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
