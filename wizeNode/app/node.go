@@ -47,13 +47,15 @@ func NewNode(nodeID string) *Node {
 
 func (node *Node) newApiServer() *http.Server {
 	//mux := http.NewServeMux()
-	yaag.Init(&yaag.Config{On: true, DocTitle: "Gorilla Mux", DocPath: "apidoc.html"})
+	yaag.Init(&yaag.Config{On: true, DocTitle: "Gorilla Mux", DocPath: "./apidoc/apidoc.html"})
 	router := mux.NewRouter()
 	//mux.HandleFunc("/blocks", node.blocksHandler)
 	//mux.HandleFunc("/mineBlock", node.mineBlockHandler)
 	////mux.HandleFunc("/peers", node.peersHandler)
 	//mux.HandleFunc("/addPeer", node.addPeerHandler)
+	router.PathPrefix("/doc/").Handler(http.StripPrefix("/doc/", http.FileServer(http.Dir("./apidoc"))))
 	router.HandleFunc("/", middleware.HandleFunc(node.sayHello)).Methods("GET")
+	//router.Handle("/apidoc", http.FileServer(http.Dir("./apidoc")))
 	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
 	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
 	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
