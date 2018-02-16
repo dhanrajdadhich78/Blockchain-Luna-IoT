@@ -3,3 +3,5 @@
 *.dat
 wizeNode/log/*
 wizeNode/wizeNode
+code_file/
+code_network/
