@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/betacraft/yaag/middleware"
+	"github.com/betacraft/yaag/yaag"
 	"github.com/gorilla/mux"
 	"log"
 	"net"
@@ -13,8 +15,6 @@ import (
 	"sync"
 	"syscall"
 	bc "wizeBlock/wizeNode/blockchain"
-	"github.com/betacraft/yaag/yaag"
-	"github.com/betacraft/yaag/middleware"
 )
 
 type ErrorResponse struct {
@@ -24,19 +24,17 @@ type ErrorResponse struct {
 type Node struct {
 	*http.ServeMux
 	blockchain *bc.Blockchain
-	//conns      []*Conn
-	mu      sync.RWMutex
-	logger  *log.Logger
-	apiAddr string
-	nodeID  string
-	nodeADD string
+	mu         sync.RWMutex
+	logger     *log.Logger
+	apiAddr    string
+	nodeID     string
+	nodeADD    string
 }
 
 func NewNode(nodeID string) *Node {
 	return &Node{
 		blockchain: bc.NewBlockchain(nodeID),
-		//conns:      []*Conn{},
-		mu: sync.RWMutex{},
+		mu:         sync.RWMutex{},
 		logger: log.New(
 			os.Stdout,
 			"node: ",
@@ -55,7 +53,9 @@ func (node *Node) newApiServer() *http.Server {
 	//mux.HandleFunc("/addPeer", node.addPeerHandler)
 	router.PathPrefix("/doc/").Handler(http.StripPrefix("/doc/", http.FileServer(http.Dir("./apidoc"))))
 	router.HandleFunc("/", middleware.HandleFunc(node.sayHello)).Methods("GET")
+	router.HandleFunc("/send", node.send).Methods("POST")
 	//router.Handle("/apidoc", http.FileServer(http.Dir("./apidoc")))
+	router.HandleFunc("/wallet/new", middleware.HandleFunc(node.createWallet)).Methods("POST")
 	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
 	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
 	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
