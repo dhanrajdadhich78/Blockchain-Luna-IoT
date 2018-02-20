@@ -11,13 +11,14 @@ import (
 	"net/http"
 	b "wizeBlock/wizeNode/blockchain"
 	ww "wizeBlock/wizeNode/wallet"
+	"strconv"
 )
 
 type Send struct {
 	From    string
 	To      string
-	Amount  int
-	MineNow bool
+	Amount  string
+	MineNow string
 }
 
 func (node *Node) sayHello(w http.ResponseWriter, r *http.Request) {
@@ -76,14 +77,15 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	if err := json.Unmarshal(body, &send); err != nil {
 		sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 		return
 	}
 	from := send.From
 	to := send.To
-	amount := send.Amount
-	mineNow := send.MineNow
+	amount, _ := strconv.Atoi(send.Amount)
+	mineNow, _ := strconv.ParseBool(send.MineNow)
 	if !ww.ValidateAddress(from) {
 		log.Panic("ERROR: Sender address is not valid")
 	}
