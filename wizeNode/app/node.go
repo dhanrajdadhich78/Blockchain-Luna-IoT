@@ -43,6 +43,7 @@ func NewNode(nodeID string) *Node {
 	}
 }
 
+
 func (node *Node) newApiServer() *http.Server {
 	//mux := http.NewServeMux()
 	yaag.Init(&yaag.Config{On: true, DocTitle: "Gorilla Mux", DocPath: "./apidoc/apidoc.html"})

@@ -3,73 +3,73 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "Pc2ORQp+VY3Un/dkh4QwLC7R6lE=",
-			"path": "github.com/BurntSushi/toml",
-			"revision": "a368813c5e648fee92e5f6c30e3944ff9d5e8895",
-			"revisionTime": "2017-06-26T11:06:00Z"
+			"checksumSHA1": "4XS3Dc1+iB5il4lkZQs0+mGD0ks=",
+			"path": "github.com/betacraft/yaag/middleware",
+			"revision": "67962f4b77581a1ab1e3492ff26add2c20d29def",
+			"revisionTime": "2017-11-21T12:02:39Z"
 		},
 		{
-			"checksumSHA1": "lbE4q2dpUgue10EEx8eutP36vzo=",
+			"checksumSHA1": "mUMb1UiRcdDvQad1X0K1QAS0W1Y=",
+			"path": "github.com/betacraft/yaag/yaag",
+			"revision": "67962f4b77581a1ab1e3492ff26add2c20d29def",
+			"revisionTime": "2017-11-21T12:02:39Z"
+		},
+		{
+			"checksumSHA1": "qf+uQ43oidbii0RFtBIeC6RDNzU=",
+			"path": "github.com/betacraft/yaag/yaag/models",
+			"revision": "67962f4b77581a1ab1e3492ff26add2c20d29def",
+			"revisionTime": "2017-11-21T12:02:39Z"
+		},
+		{
+			"checksumSHA1": "Ac0sHflTyYX4PmgBEJ+POSTyd5o=",
 			"path": "github.com/boltdb/bolt",
-			"revision": "9da31745363232bc1e27dbab3569e77383a51585",
-			"revisionTime": "2017-11-20T01:03:07Z"
-		},
-		{
-			"checksumSHA1": "xowWqSavv3sZfo4VZDpZTgql1lY=",
-			"path": "github.com/btcsuite/fastsha256",
-			"revision": "637e656429416087660c84436a2a035d69d54e2e",
-			"revisionTime": "2016-08-15T19:38:21Z"
-		},
-		{
-			"checksumSHA1": "ucHEnGdxN79GCReEZSKaYfyzlP8=",
-			"path": "github.com/coin-network/curve",
-			"revision": "db76e7a38345557ce3256bb78c6efc49cb87a33a",
-			"revisionTime": "2017-01-09T19:46:10Z"
+			"revision": "fa5367d20c994db73282594be0146ab221657943",
+			"revisionTime": "2017-09-07T20:20:52Z"
 		},
 		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
-			"revision": "87b1dfb5b2fa649f52695dd9eae19abe404a4308",
-			"revisionTime": "2017-12-31T12:27:32Z"
+			"revision": "be8372ae8ec5c6daaed3cc28ebf73c54b737c240",
+			"revisionTime": "2018-02-02T15:35:43Z"
 		},
 		{
-			"checksumSHA1": "bVayBU8lTVHNDai7umD17bwyws0=",
+			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
+			"path": "github.com/gorilla/context",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"revisionTime": "2016-08-17T18:46:32Z"
+		},
+		{
+			"checksumSHA1": "F5dR3/i70EhSIMZfeIV+H8/PtvM=",
 			"path": "github.com/gorilla/mux",
-			"revision": "5ab525f4fb1678e197ae59401e9050fa0b6cb5fd",
-			"revisionTime": "2017-12-08T16:08:15Z"
+			"revision": "392c28fe23e1c45ddba891b0320b3b5df220beea",
+			"revisionTime": "2017-01-18T13:43:44Z"
 		},
 		{
-			"checksumSHA1": "rUkZoa6HOwMVz1gnonWoPDXRynI=",
-			"path": "github.com/grrrben/golog",
-			"revision": "75841571e9e51569d34cebb88a3b2cc635255841",
-			"revisionTime": "2017-10-26T16:34:39Z"
-		},
-		{
-			"checksumSHA1": "zKKp5SZ3d3ycKe4EKMNT0BqAWBw=",
+			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
 			"path": "github.com/pmezard/go-difflib/difflib",
-			"revision": "87b1dfb5b2fa649f52695dd9eae19abe404a4308",
-			"revisionTime": "2017-12-31T12:27:32Z"
+			"revision": "be8372ae8ec5c6daaed3cc28ebf73c54b737c240",
+			"revisionTime": "2018-02-02T15:35:43Z"
 		},
 		{
-			"checksumSHA1": "uyVU5fRfEK17QZuODRjeZX8zDqg=",
+			"checksumSHA1": "5QKvAdxb0E47Nzn7iI25AfgAvOI=",
 			"path": "github.com/stretchr/testify/assert",
-			"revision": "87b1dfb5b2fa649f52695dd9eae19abe404a4308",
-			"revisionTime": "2017-12-31T12:27:32Z"
+			"revision": "be8372ae8ec5c6daaed3cc28ebf73c54b737c240",
+			"revisionTime": "2018-02-02T15:35:43Z"
 		},
 		{
 			"checksumSHA1": "y/oIaxq2d3WPizRZfVjo8RCRYTU=",
 			"path": "golang.org/x/crypto/ripemd160",
-			"revision": "0efb9460aaf800c6376acf625be2853bceac2e06",
-			"revisionTime": "2018-01-24T03:37:23Z"
+			"revision": "1875d0a70c90e57f11972aefd42276df65e895b9",
+			"revisionTime": "2018-01-27T19:02:20Z"
 		},
 		{
-			"checksumSHA1": "osb18zDjd7/RMAMUuN3qP+w0ewE=",
+			"checksumSHA1": "UcMkfR9zjeKaWAOEddxr1QO3Pfs=",
 			"path": "golang.org/x/sys/unix",
-			"revision": "37707fdb30a5b38865cfb95e5aab41707daec7fd",
-			"revisionTime": "2018-02-02T13:35:31Z"
+			"revision": "ff2a66f350cefa5c93a634eadb5d25bb60c85a9c",
+			"revisionTime": "2018-01-26T08:34:12Z"
 		}
 	],
-	"rootPath": "wizeBlock"
+	"rootPath": "wizeBlock/wizeNode"
 }

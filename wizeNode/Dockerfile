@@ -1,4 +1,4 @@
-FROM golang
+FROM golang:1.9
 
 # if left blank app will run with dev settings
 # to build production image run:
@@ -12,10 +12,10 @@ COPY . /go/src/wizeBlock/wizeNode
 WORKDIR /go/src/wizeBlock/wizeNode
 
 # added vendor services will need to be included here
-#RUN go get ./vendor/database
+#RUN go get ./vendor
 
-RUN go get ./
-RUN go build
+RUN go get -v ./
+RUN go build -v
 
 # if dev setting will use pilu/fresh for code reloading via docker-compose volume sharing with local machine
 # if production setting will build binary
