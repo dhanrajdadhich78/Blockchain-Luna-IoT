@@ -14,7 +14,7 @@ import (
 	"wizeBlock/wizeNode/utils"
 )
 
-const dbFile = "wizebit_%s.db"
+const dbFile = "files/db/wizebit_%s.db"
 const blocksBucket = "blocks"
 const genesisCoinbaseData = "The Times 22/Jan/2017 Now I have nice gopher"
 
