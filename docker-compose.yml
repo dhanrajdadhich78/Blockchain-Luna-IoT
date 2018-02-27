@@ -1,65 +1,65 @@
 version: '3'
 services:
 
-  node1:
+  wize1:
     build:
       context: ./wizeNode
       args:
         app_port: 3000
-        app_address: node1
+        app_address: wize1
     volumes:
       - ./wizeNode:/go/src/wizeNode
-    container_name: node1
+    container_name: wize1
     ports:
       - "3000:3000"
       - "4000:4000"
 #    links:
-#      - node2
-#      - node3
+#      - wize2
+#      - wize3
     networks:
       - front-tier
       - back-tier
 
-  node2:
+  wize2:
     build:
       context: ./wizeNode
       args:
         app_port: 3001
-        app_address: node2
+        app_address: wize2
     volumes:
       - ./wizeNode:/go/src/wizeNode
-    container_name: node2
+    container_name: wize2
     ports:
       - "3001:3000"
       - "4001:4000"
     links:
-      - node1:wizeNode-master
+      - wize1:wizeNode-master
     networks:
       - front-tier
       - back-tier
     depends_on:
-      - node1
+      - wize1
 
-  node3:
+  wize3:
     build:
       context: ./wizeNode
       args:
         app_port: 3002
-        app_address: node3
+        app_address: wize3
     volumes:
       - ./wizeNode:/go/src/wizeNode
-    container_name: node3
+    container_name: wize3
     ports:
       - "3002:3000"
       - "4002:4000"
     links:
-      - node1:wizeNode-master
-      - node2:wizeNode-miner
+      - wize1:wizeNode-master
+      - wize2:wizeNode-miner
     networks:
       - front-tier
       - back-tier
     depends_on:
-      - node1
+      - wize1
 
 networks:
   front-tier:

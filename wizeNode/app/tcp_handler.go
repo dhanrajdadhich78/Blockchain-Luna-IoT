@@ -20,7 +20,7 @@ const (
 
 var nodeAddress string
 var miningAddress string
-var knownNodes = []string{"node1:3000"}
+var knownNodes = []string{"wize1:3000"}
 var blocksInTransit = [][]byte{}
 var mempool = make(map[string]b.Transaction)
 
