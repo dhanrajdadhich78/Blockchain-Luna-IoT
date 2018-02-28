@@ -70,7 +70,81 @@ services:
     depends_on:
       - wize1
 
+
+  raft1:
+    build:
+      context: ./fart
+      args:
+        app_port: 3000
+        app_address: wize1
+    volumes:
+      - ./fart/db/raft1:/go/src/wizeBlock/fart/db/raft1
+    container_name: raft1
+    environment:
+      NODE_ID: 3000
+      NODE_ADD: wize1
+    ports:
+      - "11001:11000"
+      - "12001:12000"
+#    links:
+#      - wize1:wizeNode-master
+#      - wize2:wizeNode-miner
+    networks:
+      - front-tier
+      - raft-tier
+#    depends_on:
+#      - wize1
+
+  raft2:
+    build:
+      context: ./fart
+      args:
+        app_port: 3000
+        app_address: wize1
+    volumes:
+      - ./fart/db/raft2:/go/src/wizeBlock/fart/db/raft2
+    container_name: raft2
+    environment:
+      NODE_ID: 3000
+      NODE_ADD: wize1
+    ports:
+      - "11002:11000"
+      - "12002:12000"
+    links:
+      - raft1:raftNode-master
+#      - wize2:wizeNode-miner
+    networks:
+      - front-tier
+      - raft-tier
+    depends_on:
+      - raft1
+
+  raft3:
+    build:
+      context: ./fart
+      args:
+        app_port: 3000
+        app_address: wize1
+    volumes:
+      - ./fart/db/raft3:/go/src/wizeBlock/fart/db/raft3
+    container_name: raft3
+    environment:
+      NODE_ID: 3000
+      NODE_ADD: wize1
+    ports:
+      - "11003:11000"
+      - "12003:12000"
+    links:
+      - raft1:raftNode-master
+      - raft2:raftNode-slave
+    networks:
+      - front-tier
+      - raft-tier
+    depends_on:
+      - raft1
+
 networks:
   front-tier:
   back-tier:
+  raft-tier:
 

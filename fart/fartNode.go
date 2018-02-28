@@ -1,16 +1,16 @@
-package app
+package main
 
 import (
-	"wizeBlock/wizeNode/app/fart/http"
-	"wizeBlock/wizeNode/app/fart/store"
-	"os/signal"
-	"encoding/json"
-	"fmt"
 	"bytes"
+	"encoding/json"
 	"flag"
-	"os"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"wizeBlock/fart/http"
+	"wizeBlock/fart/store"
 )
 
 // Command line defaults
@@ -92,4 +92,3 @@ func join(joinAddr, raftAddr, nodeID string) error {
 
 	return nil
 }
-

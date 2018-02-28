@@ -2,8 +2,12 @@
 
 go version go1.9.2
 
-After building the app it will run on port 4000.
+For start cluster:
+- install docker-ce
+- run bash start_cluster.sh
 
-[localhost:4000](http://localhost:4000)
+connect to blockchain node on localhost:4000 // postman collection can find in root folder of project
+
+connect to raft node on localhost:11001  //postman collection comming soon
 
 ###More comming soon
