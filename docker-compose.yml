@@ -22,6 +22,8 @@ services:
     networks:
       - front-tier
       - back-tier
+    depends_on:
+      - raft3-node
 
   wize2:
     build:
@@ -71,18 +73,17 @@ services:
       - wize1
 
 
-  raft1:
+  raft1-node:
     build:
       context: ./fart
       args:
-        app_port: 3000
+        name: raft1
         app_address: wize1
     volumes:
       - ./fart/db/raft1:/go/src/wizeBlock/fart/db/raft1
-    container_name: raft1
+    container_name: raft1-node
     environment:
-      NODE_ID: 3000
-      NODE_ADD: wize1
+      NODE_COMMAND: -id raft1-node -haddr raft1-node:11000 -raddr raft1-node:12000 ~/node
     ports:
       - "11001:11000"
       - "12001:12000"
@@ -95,53 +96,51 @@ services:
 #    depends_on:
 #      - wize1
 
-  raft2:
+  raft2-node:
     build:
       context: ./fart
       args:
-        app_port: 3000
+        name: raft2
         app_address: wize1
     volumes:
       - ./fart/db/raft2:/go/src/wizeBlock/fart/db/raft2
-    container_name: raft2
+    container_name: raft2-node
     environment:
-      NODE_ID: 3000
-      NODE_ADD: wize1
+      NODE_COMMAND: -id raft2-node -haddr raft2-node:11000 -raddr raft2-node:12000 -join raft1-node:11000 ~/node
     ports:
       - "11002:11000"
       - "12002:12000"
     links:
-      - raft1:raftNode-master
+      - raft1-node:raftNode-master
 #      - wize2:wizeNode-miner
     networks:
       - front-tier
       - raft-tier
     depends_on:
-      - raft1
+      - raft1-node
 
-  raft3:
+  raft3-node:
     build:
       context: ./fart
       args:
-        app_port: 3000
+        name: raft3
         app_address: wize1
     volumes:
       - ./fart/db/raft3:/go/src/wizeBlock/fart/db/raft3
-    container_name: raft3
+    container_name: raft3-node
     environment:
-      NODE_ID: 3000
-      NODE_ADD: wize1
+      NODE_COMMAND: -id raft3-node -haddr raft3-node:11000 -raddr raft3-node:12000 -join raft1-node:11000 ~/node
     ports:
       - "11003:11000"
       - "12003:12000"
     links:
-      - raft1:raftNode-master
-      - raft2:raftNode-slave
+      - raft1-node:raftNode-master
+      - raft2-node:raftNode-slave
     networks:
       - front-tier
       - raft-tier
     depends_on:
-      - raft1
+      - raft2-node
 
 networks:
   front-tier:

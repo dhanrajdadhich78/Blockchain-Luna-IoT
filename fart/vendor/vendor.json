@@ -1,0 +1,55 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "eiRzLoenl7oEVCuoT+Ju/zWBlKg=",
+			"path": "github.com/armon/go-metrics",
+			"revision": "783273d703149aaeb9897cf58613d5af48861c25",
+			"revisionTime": "2018-02-21T18:27:44Z"
+		},
+		{
+			"checksumSHA1": "lbE4q2dpUgue10EEx8eutP36vzo=",
+			"path": "github.com/boltdb/bolt",
+			"revision": "9da31745363232bc1e27dbab3569e77383a51585",
+			"revisionTime": "2017-11-20T01:03:07Z"
+		},
+		{
+			"checksumSHA1": "y+AeKVZoX0gB+DZW4Arzkb3tTVc=",
+			"path": "github.com/hashicorp/go-immutable-radix",
+			"revision": "7f3cd4390caab3250a57f30efdb2a65dd7649ecf",
+			"revisionTime": "2018-01-29T17:09:00Z"
+		},
+		{
+			"checksumSHA1": "TNlVzNR1OaajcNi3CbQ3bGbaLGU=",
+			"path": "github.com/hashicorp/go-msgpack/codec",
+			"revision": "fa3f63826f7c23912c15263591e65d54d080b458",
+			"revisionTime": "2015-05-18T23:42:57Z"
+		},
+		{
+			"checksumSHA1": "8Z637dcPkbR5HdLQQBp/9jTbx9Y=",
+			"path": "github.com/hashicorp/golang-lru/simplelru",
+			"revision": "0fb14efe8c47ae851c0034ed7a448854d3d34cf3",
+			"revisionTime": "2018-02-01T23:52:37Z"
+		},
+		{
+			"checksumSHA1": "dYIbrzGJOeDrLOivaWM0Jw8n3/Y=",
+			"path": "github.com/hashicorp/raft",
+			"revision": "a3fb4581fb07b16ecf1c3361580d4bdb17de9d98",
+			"revisionTime": "2018-02-12T22:15:04Z"
+		},
+		{
+			"checksumSHA1": "Y2PM65le0fGtiD12RaKknBscFys=",
+			"path": "github.com/hashicorp/raft-boltdb",
+			"revision": "6e5ba93211eaf8d9a2ad7e41ffad8c6f160f9fe3",
+			"revisionTime": "2017-10-10T15:18:10Z"
+		},
+		{
+			"checksumSHA1": "+UMEPHX8wvMkCxa+ofAmBKlqdYg=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "f6cff0780e542efa0c8e864dc8fa522808f6a598",
+			"revisionTime": "2018-02-20T20:26:15Z"
+		}
+	],
+	"rootPath": "wizeBlock/fart"
+}
