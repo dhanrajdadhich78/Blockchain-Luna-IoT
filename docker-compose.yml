@@ -75,12 +75,12 @@ services:
 
   raft1-node:
     build:
-      context: ./fart
+      context: ./raft
       args:
         name: raft1
         app_address: wize1
     volumes:
-      - ./fart/db/raft1:/go/src/wizeBlock/fart/db/raft1
+      - ./raft/db/raft1:/go/src/wizeBlock/raft/db/raft1
     container_name: raft1-node
     environment:
       NODE_COMMAND: -id raft1-node -haddr raft1-node:11000 -raddr raft1-node:12000 ~/node
@@ -98,12 +98,12 @@ services:
 
   raft2-node:
     build:
-      context: ./fart
+      context: ./raft
       args:
         name: raft2
         app_address: wize1
     volumes:
-      - ./fart/db/raft2:/go/src/wizeBlock/fart/db/raft2
+      - ./raft/db/raft2:/go/src/wizeBlock/raft/db/raft2
     container_name: raft2-node
     environment:
       NODE_COMMAND: -id raft2-node -haddr raft2-node:11000 -raddr raft2-node:12000 -join raft1-node:11000 ~/node
@@ -121,12 +121,12 @@ services:
 
   raft3-node:
     build:
-      context: ./fart
+      context: ./raft
       args:
         name: raft3
         app_address: wize1
     volumes:
-      - ./fart/db/raft3:/go/src/wizeBlock/fart/db/raft3
+      - ./raft/db/raft3:/go/src/wizeBlock/raft/db/raft3
     container_name: raft3-node
     environment:
       NODE_COMMAND: -id raft3-node -haddr raft3-node:11000 -raddr raft3-node:12000 -join raft1-node:11000 ~/node
