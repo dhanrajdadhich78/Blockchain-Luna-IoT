@@ -1,6 +1,4 @@
 .idea/
-*.db
-*.dat
 wizeNode/log/*
 wizeNode/wizeNode
 code_file/
