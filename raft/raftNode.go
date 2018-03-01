@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"wizeBlock/fart/http"
-	"wizeBlock/fart/store"
+	"wizeBlock/raft/http"
+	"wizeBlock/raft/store"
 )
 
 // Command line defaults
