@@ -4,13 +4,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	b "wizeBlock/wizeNode/blockchain"
 	ww "wizeBlock/wizeNode/wallet"
+
+	"github.com/gorilla/mux"
 )
 
 type Send struct {
@@ -162,7 +163,8 @@ func (node *Node) getBlock(w http.ResponseWriter, r *http.Request) {
 	for {
 		block := bci.Next()
 
-		hash := fmt.Sprintf("%s", block.Hash)
+		bh, _ := json.Marshal(block.Hash)
+		hash := string(bh[1 : len(bh)-1])
 
 		if hash == blockHash {
 			//fmt.Printf("============ Block %x ============\n", block.Hash)
