@@ -19,6 +19,7 @@ RUN go build -v
 
 # if dev setting will use pilu/fresh for code reloading via docker-compose volume sharing with local machine
 # if production setting will build binary
-CMD ["./wizeNode", "startnode"]
+#CMD ["./wizeNode", "startnode"]
+CMD ./wizeNode ${NODE_COMMAND}
 
 EXPOSE 3000 4000

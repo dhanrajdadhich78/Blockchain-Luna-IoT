@@ -43,7 +43,6 @@ func NewNode(nodeID string) *Node {
 	}
 }
 
-
 func (node *Node) newApiServer() *http.Server {
 	//mux := http.NewServeMux()
 	yaag.Init(&yaag.Config{On: true, DocTitle: "Gorilla Mux", DocPath: "./apidoc/apidoc.html"})
@@ -93,7 +92,9 @@ func (node *Node) Run(minerAddress string) {
 		}
 	}()
 
-	nodeAddress = fmt.Sprintf(":%s", node.nodeID)
+	fmt.Println("apiAddr: ", node.apiAddr, " apiAddr: ", node.nodeID, " nodeADD: ", node.nodeADD)
+
+	nodeAddress = fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID) //TODO:make address of node
 	miningAddress = minerAddress
 	ln, err := net.Listen(protocol, nodeAddress)
 	if err != nil {
@@ -101,6 +102,8 @@ func (node *Node) Run(minerAddress string) {
 	}
 	defer ln.Close()
 	nodeADD := node.nodeADD + nodeAddress
+
+	//fmt.Println(nodeAddress) //TODO:dell
 
 	if nodeADD != knownNodes[0] {
 		sendVersion(knownNodes[0], node.blockchain)

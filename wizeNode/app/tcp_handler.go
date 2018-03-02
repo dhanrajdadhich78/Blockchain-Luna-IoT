@@ -35,6 +35,7 @@ func HandleTCPConnection(conn net.Conn, bc *b.Blockchain) {
 
 	switch command {
 	case "addr":
+		//fmt.Println("hendle addr") //TODO: del
 		handleAddr(request)
 	case "block":
 		handleBlock(request, bc)
@@ -154,7 +155,7 @@ func sendData(addr string, data []byte) {
 		}
 
 		knownNodes = updatedNodes
-
+		//fmt.Println(knownNodes) //TODO: del
 		return
 	}
 	defer conn.Close()
@@ -354,7 +355,7 @@ func handleTx(request []byte, bc *b.Blockchain) {
 			}
 		}
 	} else {
-		if len(mempool) >= 2 && len(miningAddress) > 0 {
+		if len(mempool) >= 1 && len(miningAddress) > 0 { //TODO: changing count of transaction for mining
 		MineTransactions:
 			var txs []*b.Transaction
 

@@ -4,15 +4,16 @@ services:
   wize1:
     build:
       context: ./wizeNode
-      args:
-        app_port: 3000
-        app_address: wize1
+#      args:
+#        app_port: 3000
+#        app_address: wize1
     volumes:
       - ./wizeNode/files:/go/src/wizeBlock/wizeNode/files
     container_name: wize1
     environment:
       NODE_ID: 3000
       NODE_ADD: wize1
+      NODE_COMMAND: startnode
     ports:
       - "3000:3000"
       - "4000:4000"
@@ -28,15 +29,16 @@ services:
   wize2:
     build:
       context: ./wizeNode
-      args:
-        app_port: 3001
-        app_address: wize2
+#      args:
+#        app_port: 3001
+#        app_address: wize2
     volumes:
       - ./wizeNode/files:/go/src/wizeBlock/wizeNode/files
     container_name: wize2
     environment:
       NODE_ID: 3001
       NODE_ADD: wize2
+      NODE_COMMAND: startnode
     ports:
       - "3001:3000"
       - "4001:4000"
@@ -51,15 +53,16 @@ services:
   wize3:
     build:
       context: ./wizeNode
-      args:
-        app_port: 3002
-        app_address: wize3
+#      args:
+#        app_port: 3002
+#        app_address: wize3
     volumes:
       - ./wizeNode/files:/go/src/wizeBlock/wizeNode/files
     container_name: wize3
     environment:
       NODE_ID: 3002
       NODE_ADD: wize3
+      NODE_COMMAND: startnode -miner 16KHvH78xquRcY9HBfqqmb1Qeugqq3SiJq
     ports:
       - "3002:3000"
       - "4002:4000"
@@ -76,9 +79,9 @@ services:
   raft1-node:
     build:
       context: ./raft
-      args:
-        name: raft1
-        app_address: wize1
+#      args:
+#        name: raft1
+#        app_address: wize1
     volumes:
       - ./raft/db/raft1:/go/src/wizeBlock/raft/db/raft1
     container_name: raft1-node
@@ -99,9 +102,9 @@ services:
   raft2-node:
     build:
       context: ./raft
-      args:
-        name: raft2
-        app_address: wize1
+#      args:
+#        name: raft2
+#        app_address: wize1
     volumes:
       - ./raft/db/raft2:/go/src/wizeBlock/raft/db/raft2
     container_name: raft2-node
@@ -122,9 +125,9 @@ services:
   raft3-node:
     build:
       context: ./raft
-      args:
-        name: raft3
-        app_address: wize1
+#      args:
+#        name: raft3
+#        app_address: wize1
     volumes:
       - ./raft/db/raft3:/go/src/wizeBlock/raft/db/raft3
     container_name: raft3-node

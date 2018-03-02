@@ -145,6 +145,7 @@ func (bc *Blockchain) FindTransaction(ID []byte) (Transaction, error) {
 		block := bci.Next()
 
 		for _, tx := range block.Transactions {
+			//fmt.Println("ID: ", ID, " tx.ID: ", tx.ID) //TODO: remove
 			if bytes.Compare(tx.ID, ID) == 0 {
 				return *tx, nil
 			}
