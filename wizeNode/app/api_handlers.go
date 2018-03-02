@@ -159,13 +159,12 @@ func (node *Node) getBlock(w http.ResponseWriter, r *http.Request) {
 	//TODO: зачем итеретор? попробовать выбрать по ключу
 	bci := node.blockchain.Iterator()
 	var result *b.Block
-	var hash string
 
 	for {
 		block := bci.Next()
 
 		bh, _ := json.Marshal(block.Hash)
-		hash = string(bh[1 : len(bh)-1])
+		hash := string(bh[1 : len(bh)-1])
 
 		if hash == blockHash {
 			//fmt.Printf("============ Block %x ============\n", block.Hash)
