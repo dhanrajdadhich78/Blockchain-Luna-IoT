@@ -110,14 +110,48 @@ func (s *Store) Open(enableSingle bool, localID string) error {
 func (s *Store) Get(key string) (string, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.m[key], nil
+	value := s.m[key]
+	s.logger.Printf("API:GET key=[%s], value=[%s] ", key, value)
+	return value, nil
 }
+
+func (s *Store) Check() bool {
+	if s.raft.State() != raft.Leader {
+		return false
+	}
+	return true
+}
+
+/*
+func (s *Store) Len() (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return len(s.m), nil
+}
+
+func (s *Store) Clear() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for k, _ := range s.m {
+		delete(s.m, k)
+	}
+	return nil
+}
+
+func (s *Store) Dump() (string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return fmt.Sprintf("%v", s.m), nil
+}
+*/
 
 // Set sets the value for the given key.
 func (s *Store) Set(key, value string) error {
 	if s.raft.State() != raft.Leader {
 		return fmt.Errorf("not leader")
 	}
+
+	s.logger.Printf("API:SET key=[%s], value=[%s] ", key, value)
 
 	c := &command{
 		Op:    "set",
@@ -138,6 +172,8 @@ func (s *Store) Delete(key string) error {
 	if s.raft.State() != raft.Leader {
 		return fmt.Errorf("not leader")
 	}
+
+	s.logger.Printf("API:DELETE After key=[%s] ", key)
 
 	c := &command{
 		Op:  "delete",
