@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -24,6 +25,13 @@ type Store interface {
 
 	// Join joins the node, identitifed by nodeID and reachable at addr, to the cluster.
 	Join(nodeID string, addr string) error
+
+	// Check if this node is Leader
+	Check() bool
+
+	//Len() (int, error)
+	//Clear() error
+	//Dump() (string, error)
 }
 
 // Service provides HTTP service.
@@ -78,6 +86,14 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.handleKeyRequest(w, r)
 	} else if r.URL.Path == "/join" {
 		s.handleJoin(w, r)
+	} else if r.URL.Path == "/check" {
+		s.handleCheckRequest(w, r)
+		//} else if r.URL.Path == "/len" {
+		//	s.handleLenRequest(w, r)
+		//} else if r.URL.Path == "/clear" {
+		//	s.handleClearRequest(w, r)
+		//} else if r.URL.Path == "/dump" {
+		//	s.handleDumpRequest(w, r)
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
@@ -173,6 +189,87 @@ func (s *Service) handleKeyRequest(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+
+func (s *Service) handleCheckRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		isLeader := s.store.Check()
+		b, err := json.Marshal(map[string]string{"check": strconv.FormatBool(isLeader)})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		io.WriteString(w, string(b))
+	} else {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+	return
+}
+
+/*
+func (s *Service) handleLenRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		v, err := s.store.Len()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		b, err := json.Marshal(map[string]string{"len": strconv.Itoa(v)})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		io.WriteString(w, string(b))
+	} else {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+	return
+}
+
+func (s *Service) handleClearRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		err := s.store.Clear()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		b, err := json.Marshal(map[string]string{"clear": "true"})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		io.WriteString(w, string(b))
+	} else {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+	return
+}
+
+func (s *Service) handleDumpRequest(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		v, err := s.store.Dump()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		b, err := json.Marshal(map[string]string{"dump": v})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		io.WriteString(w, string(b))
+	} else {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}
+	return
+}
+*/
 
 // Addr returns the address on which the Service is listening
 func (s *Service) Addr() net.Addr {
