@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net"
+
 	b "wizeBlock/wizeNode/blockchain"
 )
 
@@ -25,7 +26,6 @@ var blocksInTransit = [][]byte{}
 var mempool = make(map[string]b.Transaction)
 
 func HandleTCPConnection(conn net.Conn, bc *b.Blockchain) {
-
 	request, err := ioutil.ReadAll(conn)
 	if err != nil {
 		log.Panic(err)
@@ -35,7 +35,6 @@ func HandleTCPConnection(conn net.Conn, bc *b.Blockchain) {
 
 	switch command {
 	case "addr":
-		//fmt.Println("hendle addr") //TODO: del
 		handleAddr(request)
 	case "block":
 		handleBlock(request, bc)
@@ -54,7 +53,6 @@ func HandleTCPConnection(conn net.Conn, bc *b.Blockchain) {
 	}
 
 	conn.Close()
-
 }
 
 type addr struct {
@@ -155,7 +153,7 @@ func sendData(addr string, data []byte) {
 		}
 
 		knownNodes = updatedNodes
-		//fmt.Println(knownNodes) //TODO: del
+
 		return
 	}
 	defer conn.Close()
@@ -221,7 +219,9 @@ func handleAddr(request []byte) {
 	requestBlocks()
 }
 
-func handleBlock(request []byte, bc *b.Blockchain) { //TODO: проверять остаток на балансе с учетом незамайненых транзакций, во избежание двойного использования выходов
+// OLDTODO: проверять остаток на балансе с учетом незамайненых транзакций,
+//          во избежание двойного использования выходов
+func handleBlock(request []byte, bc *b.Blockchain) {
 	var buff bytes.Buffer
 	var payload block
 
@@ -239,7 +239,7 @@ func handleBlock(request []byte, bc *b.Blockchain) { //TODO: проверять 
 	bc.AddBlock(block)
 
 	fmt.Printf("Added block %x\n", block.Hash)
-	//TODO: add validation of block
+	// OLDTODO: add validation of block
 	if len(blocksInTransit) > 0 {
 		blockHash := blocksInTransit[0]
 		sendGetData(payload.AddrFrom, "block", blockHash)
@@ -247,7 +247,7 @@ func handleBlock(request []byte, bc *b.Blockchain) { //TODO: проверять 
 		blocksInTransit = blocksInTransit[1:]
 	} else {
 		UTXOSet := b.UTXOSet{bc}
-		//TODO: use UTXOSet.Update() instead UTXOSet.Reindex
+		// OLDTODO: use UTXOSet.Update() instead UTXOSet.Reindex
 		UTXOSet.Reindex()
 	}
 }
@@ -355,7 +355,8 @@ func handleTx(request []byte, bc *b.Blockchain) {
 			}
 		}
 	} else {
-		if len(mempool) >= 1 && len(miningAddress) > 0 { //TODO: changing count of transaction for mining
+		// OLDTODO: changing count of transaction for mining
+		if len(mempool) >= 1 && len(miningAddress) > 0 {
 		MineTransactions:
 			var txs []*b.Transaction
 
@@ -376,7 +377,7 @@ func handleTx(request []byte, bc *b.Blockchain) {
 
 			newBlock := bc.MineBlock(txs)
 			UTXOSet := b.UTXOSet{bc}
-			//TODO: use UTXOSet.Update() instead UTXOSet.Reindex
+			// OLDTODO: use UTXOSet.Update() instead UTXOSet.Reindex
 			UTXOSet.Reindex()
 
 			fmt.Println("New block is mined!")
@@ -425,36 +426,6 @@ func handleVersion(request []byte, bc *b.Blockchain) {
 		fmt.Printf("A new node %s is connected\n", payload.AddrFrom)
 		knownNodes = append(knownNodes, payload.AddrFrom)
 	}
-}
-
-func handleConnection(conn net.Conn, bc *b.Blockchain) {
-	request, err := ioutil.ReadAll(conn)
-	if err != nil {
-		log.Panic(err)
-	}
-	command := bytesToCommand(request[:СommandLength])
-	fmt.Printf("Received %s command\n", command)
-
-	switch command {
-	case "addr":
-		handleAddr(request)
-	case "block":
-		handleBlock(request, bc)
-	case "inv":
-		handleInv(request, bc)
-	case "getblocks":
-		handleGetBlocks(request, bc)
-	case "getdata":
-		handleGetData(request, bc)
-	case "tx":
-		handleTx(request, bc)
-	case "version":
-		handleVersion(request, bc)
-	default:
-		fmt.Println("Unknown command!")
-	}
-
-	conn.Close()
 }
 
 func gobEncode(data interface{}) []byte {

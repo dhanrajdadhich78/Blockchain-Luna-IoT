@@ -8,10 +8,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	b "wizeBlock/wizeNode/blockchain"
-	ww "wizeBlock/wizeNode/wallet"
 
 	"github.com/gorilla/mux"
+
+	b "wizeBlock/wizeNode/blockchain"
+	ww "wizeBlock/wizeNode/wallet"
 )
 
 type Send struct {
