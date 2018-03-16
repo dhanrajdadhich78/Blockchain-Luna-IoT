@@ -6,7 +6,6 @@ import (
 	"encoding/gob"
 	"log"
 	"time"
-	"wizeBlock/wizeNode/services"
 )
 
 type Block struct {
@@ -26,7 +25,7 @@ func (b *Block) HashTransactions() []byte {
 	for _, tx := range b.Transactions {
 		transactions = append(transactions, tx.Serialize())
 	}
-	mTree := services.NewMerkleTree(transactions)
+	mTree := NewMerkleTree(transactions)
 
 	return mTree.RootNode.Data
 }

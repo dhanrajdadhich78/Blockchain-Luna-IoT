@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/gob"
 	"log"
-	s "wizeBlock/wizeNode/services"
+
+	"wizeBlock/wizeNode/utils"
 )
 
 // TXOutput represents a transaction output
@@ -16,7 +17,7 @@ type TXOutput struct {
 
 // Lock signs the output
 func (out *TXOutput) Lock(address []byte) {
-	pubKeyHash := s.Base58Decode(address)
+	pubKeyHash := utils.Base58Decode(address)
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
 	out.PubKeyHash = pubKeyHash
 }

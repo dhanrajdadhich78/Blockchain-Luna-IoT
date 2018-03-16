@@ -7,10 +7,11 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/boltdb/bolt"
 	"log"
 	"os"
-	s "wizeBlock/wizeNode/services"
+
+	"github.com/boltdb/bolt"
+
 	"wizeBlock/wizeNode/utils"
 )
 
@@ -335,7 +336,7 @@ func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
 func (bc *Blockchain) GetBalance(address string) int {
 	UTXOSet := UTXOSet{bc}
 	balance := 0
-	pubKeyHash := s.Base58Decode([]byte(address))
+	pubKeyHash := utils.Base58Decode([]byte(address))
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
 	UTXOs := UTXOSet.FindUTXO(pubKeyHash)
 

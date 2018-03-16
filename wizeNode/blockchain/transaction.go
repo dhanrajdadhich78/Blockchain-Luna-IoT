@@ -12,8 +12,8 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	s "wizeBlock/wizeNode/services"
-	w "wizeBlock/wizeNode/wallet"
+
+	"wizeBlock/wizeNode/utils"
 )
 
 const subsidy = 10
@@ -33,7 +33,7 @@ type TXInput struct {
 }
 
 func (in *TXInput) UsesKey(pubKeyHash []byte) bool {
-	lockingHash := w.HashPubKey(in.PubKey)
+	lockingHash := HashPubKey(in.PubKey)
 
 	return bytes.Compare(lockingHash, pubKeyHash) == 0
 }
@@ -109,16 +109,16 @@ func (tx Transaction) String() string {
 	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.ID))
 
 	for i, input := range tx.Vin {
-		pubKeyHash := w.HashPubKey(input.PubKey)
-		versionedPayload := append([]byte{w.Version}, pubKeyHash...)
-		fullPayload := append(versionedPayload, w.Checksum(versionedPayload)...)
+		pubKeyHash := HashPubKey(input.PubKey)
+		versionedPayload := append([]byte{Version}, pubKeyHash...)
+		fullPayload := append(versionedPayload, Checksum(versionedPayload)...)
 
 		lines = append(lines, fmt.Sprintf("     Input %d:", i))
 		lines = append(lines, fmt.Sprintf("       TXID:      %x", input.Txid))
 		lines = append(lines, fmt.Sprintf("       Out:       %d", input.Vout))
 		lines = append(lines, fmt.Sprintf("       Signature: %x", input.Signature))
 		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
-		lines = append(lines, fmt.Sprintf("       Addr  :    %s", s.Base58Encode(fullPayload)))
+		lines = append(lines, fmt.Sprintf("       Addr  :    %s", utils.Base58Encode(fullPayload)))
 	}
 
 	for i, output := range tx.Vout {
@@ -214,11 +214,11 @@ func NewCoinbaseTX(to, data string) *Transaction {
 }
 
 // NewUTXOTransaction creates a new transaction
-func NewUTXOTransaction(wallet *w.Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
+func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	pubKeyHash := w.HashPubKey(wallet.PublicKey)
+	pubKeyHash := HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
 	fmt.Println("Sum of outputs %s", acc) //TODO: delete
