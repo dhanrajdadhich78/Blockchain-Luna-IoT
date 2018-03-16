@@ -2,8 +2,9 @@ package blockchain
 
 import (
 	"encoding/hex"
-	"github.com/boltdb/bolt"
 	"log"
+
+	"github.com/boltdb/bolt"
 )
 
 const utxoBucket = "chainstate"
@@ -14,7 +15,8 @@ type UTXOSet struct {
 }
 
 // FindSpendableOutputs finds and returns unspent outputs to reference in inputs
-func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[string][]int) { //TODO: rewrite for 2 transaction in one block include
+// OLDTODO: rewrite for 2 transaction in one block include
+func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[string][]int) {
 	unspentOutputs := make(map[string][]int)
 	accumulated := 0
 	db := u.Blockchain.Db
@@ -28,7 +30,8 @@ func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[s
 			outs := DeserializeOutputs(v)
 
 			for outIdx, out := range outs.Outputs {
-				if out.IsLockedWithKey(pubkeyHash) && accumulated < amount { //TODO: rewrite to smart choice of outputs
+				// OLDTODO: rewrite to smart choice of outputs
+				if out.IsLockedWithKey(pubkeyHash) && accumulated < amount {
 					accumulated += out.Value
 					unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
 				}

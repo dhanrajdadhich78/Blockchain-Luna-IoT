@@ -27,17 +27,17 @@ func (out *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 	return bytes.Compare(out.PubKeyHash, pubKeyHash) == 0
 }
 
-// TXOutputs collects TXOutput
-type TXOutputs struct {
-	Outputs []TXOutput
-}
-
 // NewTXOutput create a new TXOutput
 func NewTXOutput(value int, address string) *TXOutput {
 	txo := &TXOutput{value, nil, address}
 	txo.Lock([]byte(address))
 
 	return txo
+}
+
+// TXOutputs collects TXOutput
+type TXOutputs struct {
+	Outputs []TXOutput
 }
 
 // Serialize serializes TXOutputs

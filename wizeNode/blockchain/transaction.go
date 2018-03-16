@@ -75,8 +75,8 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
 
 		dataToSign := fmt.Sprintf("%x\n", txCopy)
-		r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
 
+		r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
 		if err != nil {
 			log.Panic(err)
 		}
@@ -84,7 +84,6 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		signature := append(r.Bytes(), s.Bytes()...)
 
 		tx.Vin[inID].Signature = signature
-
 		txCopy.Vin[inID].PubKey = nil
 	}
 }
@@ -171,7 +170,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 
 		dataToVerify := fmt.Sprintf("%x\n", txCopy)
 
-		rawPubKey := ecdsa.PublicKey{curve, &x, &y}
+		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 		if ecdsa.Verify(&rawPubKey, []byte(dataToVerify), &r, &s) == false {
 			return false
 		}
@@ -208,23 +207,24 @@ func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet)
 	pubKeyHash := HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
-	fmt.Println("Sum of outputs %s", acc) //TODO: delete
+	// OLDTODO: delete
+	fmt.Println("Sum of outputs %s", acc)
 
 	if acc < amount {
 		log.Panic("ERROR: Not enough funds")
 	}
 
 	// Build a list of inputs
-	for txid, outs := range validOutputs { //TODO: rewrite to smart choice of outputs
-
+	// OLDTODO: rewrite to smart choice of outputs
+	for txid, outs := range validOutputs {
 		txID, err := hex.DecodeString(txid)
-
 		if err != nil {
 			log.Panic(err)
 		}
 
 		for _, out := range outs {
-			fmt.Println("Output", out) //TODO: delete
+			// OLDTODO: delete
+			fmt.Println("Output", out)
 			input := TXInput{txID, out, nil, wallet.PublicKey}
 			inputs = append(inputs, input)
 		}
