@@ -7,5 +7,4 @@ import (
 func main() {
 	cli := a.CLI{}
 	cli.Run()
-
 }
