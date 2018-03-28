@@ -6,3 +6,6 @@ code_network/
 raft/raft
 wizeNode/files/db/wizebit*
 wizeNode/files/wallets/wallet_3001.dat
+
+# testing
+wizeNode/blockchain/files
