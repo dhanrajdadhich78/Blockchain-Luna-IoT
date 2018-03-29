@@ -19,6 +19,8 @@ func clearData() {
 	if err != nil {
 		return
 	}
+
+	os.RemoveAll("files")
 }
 
 func createWallet() string {
@@ -123,6 +125,9 @@ func newBlock(t *testing.T, bc *Blockchain) *Block {
 func TestBlockchainJustCreating(t *testing.T) {
 	clearData()
 
+	os.MkdirAll("files/db", 0775)
+	os.MkdirAll("files/wallets", 0775)
+
 	// createwallet?
 	walletAddress := createWallet()
 	t.Logf("Wallet address: %s\n", walletAddress)
@@ -144,6 +149,9 @@ func TestBlockchainJustCreating(t *testing.T) {
 
 func TestBlockchainCreatingAndAddingBlock(t *testing.T) {
 	clearData()
+
+	os.MkdirAll("files/db", 0775)
+	os.MkdirAll("files/wallets", 0775)
 
 	// wallets
 	walletAddress1 := createWallet()

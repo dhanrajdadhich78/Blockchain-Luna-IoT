@@ -25,6 +25,8 @@ func nclearData() {
 	clearNodeData("3000")
 	clearNodeData("3001")
 	clearNodeData("3002")
+
+	os.RemoveAll("files")
 }
 
 func clearNodeData(nodeID string) {
@@ -141,10 +143,10 @@ func ngetBalance(t *testing.T, address, nodeID string) int {
 }
 
 func TestScenario1(t *testing.T) {
-	os.MkdirAll("files/db", 0755)
-	os.MkdirAll("files/wallets", 0755)
-
 	nclearData()
+
+	os.MkdirAll("files/db", 0775)
+	os.MkdirAll("files/wallets", 0775)
 
 	for index, value := range KnownNodes {
 		if value == "wize1:3000" {
@@ -415,5 +417,5 @@ func TestScenario1(t *testing.T) {
 
 	wg.Wait()
 	t.Log("finish")
-	//nclearData()
+	nclearData()
 }
