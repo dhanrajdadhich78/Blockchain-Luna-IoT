@@ -25,6 +25,7 @@ func (node *Node) sayHello(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, "Hello wize "+node.nodeADD)
 }
 
+/*
 func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
@@ -66,6 +67,7 @@ func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
+*/
 
 func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	//func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
@@ -94,16 +96,20 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
-	wallets, err := blockchain.NewWallets(node.nodeID)
-	if err != nil {
-		log.Panic(err)
-	}
-	wallet := wallets.GetWallet(from)
+	// TODO-34
+	//wallets, err := blockchain.NewWallets(node.nodeID)
+	//if err != nil {
+	//	log.Panic(err)
+	//}
+	//wallet := wallets.GetWallet(from)
 
-	if wallet == nil {
-		fmt.Println("The Address doesn't belongs to you!")
-		return
-	}
+	//if wallet == nil {
+	//	fmt.Println("The Address doesn't belongs to you!")
+	//	return
+	//}
+
+	// TODO-34
+	wallet := nil
 	tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")

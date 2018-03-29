@@ -7,6 +7,7 @@ import (
 	"wizeBlock/wizeNode/utils"
 )
 
+// TODO-34
 func GetWalletCredits(address string, nodeID string, bc *blockchain.Blockchain) int {
 	if !blockchain.ValidateAddress(address) {
 		log.Panic("ERROR: Address is not valid")

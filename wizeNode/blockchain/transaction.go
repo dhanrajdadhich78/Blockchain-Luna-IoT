@@ -200,10 +200,17 @@ func NewCoinbaseTX(to, data string) *Transaction {
 }
 
 // NewUTXOTransaction creates a new transaction
+// TODO-34
 func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 
+	// TODO-34
+	if wallet == nil {
+		return nil
+	}
+
+	// TODO-34
 	pubKeyHash := HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
@@ -225,12 +232,16 @@ func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet)
 		for _, out := range outs {
 			// OLDTODO: delete
 			//fmt.Println("Output", out)
+
+			// TODO-34
 			input := TXInput{txID, out, nil, wallet.PublicKey}
 			inputs = append(inputs, input)
 		}
 	}
 
 	// Build a list of outputs
+
+	// TODO-34
 	from := fmt.Sprintf("%s", wallet.GetAddress())
 	outputs = append(outputs, *NewTXOutput(amount, to))
 	if acc > amount {
@@ -239,6 +250,8 @@ func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet)
 
 	tx := Transaction{nil, inputs, outputs}
 	tx.ID = tx.Hash()
+
+	// TODO-34
 	UTXOSet.Blockchain.SignTransaction(&tx, wallet.PrivateKey)
 
 	return &tx
