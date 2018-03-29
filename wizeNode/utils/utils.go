@@ -25,10 +25,10 @@ func ReverseBytes(data []byte) {
 	}
 }
 
-func DbExists(dbFile string) bool {
+func DbExists(dbFile string) (bool, error) {
 	if _, err := os.Stat(dbFile); os.IsNotExist(err) {
-		return false
+		return false, err
 	}
 
-	return true
+	return true, nil
 }

@@ -1,4 +1,4 @@
-package wallet
+package blockchain
 
 import (
 	"bytes"
@@ -52,6 +52,7 @@ func (ws *Wallets) GetAddresses() []string {
 //func (ws Wallets) GetWallet(address string) Wallet {
 //	return *ws.Wallets[address]
 //}
+// TODO: check this method
 func (ws Wallets) GetWallet(address string) *Wallet {
 	return ws.Wallets[address]
 }
@@ -83,8 +84,8 @@ func (ws *Wallets) LoadFromFile(nodeID string) error {
 
 // SaveToFile saves wallets to a file
 func (ws Wallets) SaveToFile(nodeID string) {
-	walletFile := fmt.Sprintf(walletFile, nodeID)
 	var content bytes.Buffer
+	walletFile := fmt.Sprintf(walletFile, nodeID)
 
 	gob.Register(elliptic.P256())
 

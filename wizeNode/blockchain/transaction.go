@@ -12,8 +12,8 @@ import (
 	"log"
 	"math/big"
 	"strings"
-	s "wizeBlock/wizeNode/services"
-	w "wizeBlock/wizeNode/wallet"
+
+	"wizeBlock/wizeNode/utils"
 )
 
 const subsidy = 10
@@ -23,19 +23,6 @@ type Transaction struct {
 	ID   []byte
 	Vin  []TXInput
 	Vout []TXOutput
-}
-
-type TXInput struct {
-	Txid      []byte
-	Vout      int
-	Signature []byte
-	PubKey    []byte
-}
-
-func (in *TXInput) UsesKey(pubKeyHash []byte) bool {
-	lockingHash := w.HashPubKey(in.PubKey)
-
-	return bytes.Compare(lockingHash, pubKeyHash) == 0
 }
 
 // IsCoinbase checks whether the transaction is coinbase
@@ -88,8 +75,8 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
 
 		dataToSign := fmt.Sprintf("%x\n", txCopy)
-		r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
 
+		r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
 		if err != nil {
 			log.Panic(err)
 		}
@@ -97,7 +84,6 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		signature := append(r.Bytes(), s.Bytes()...)
 
 		tx.Vin[inID].Signature = signature
-
 		txCopy.Vin[inID].PubKey = nil
 	}
 }
@@ -109,16 +95,16 @@ func (tx Transaction) String() string {
 	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.ID))
 
 	for i, input := range tx.Vin {
-		pubKeyHash := w.HashPubKey(input.PubKey)
-		versionedPayload := append([]byte{w.Version}, pubKeyHash...)
-		fullPayload := append(versionedPayload, w.Checksum(versionedPayload)...)
+		pubKeyHash := HashPubKey(input.PubKey)
+		versionedPayload := append([]byte{Version}, pubKeyHash...)
+		fullPayload := append(versionedPayload, Checksum(versionedPayload)...)
 
 		lines = append(lines, fmt.Sprintf("     Input %d:", i))
 		lines = append(lines, fmt.Sprintf("       TXID:      %x", input.Txid))
 		lines = append(lines, fmt.Sprintf("       Out:       %d", input.Vout))
 		lines = append(lines, fmt.Sprintf("       Signature: %x", input.Signature))
 		lines = append(lines, fmt.Sprintf("       PubKey:    %x", input.PubKey))
-		lines = append(lines, fmt.Sprintf("       Addr  :    %s", s.Base58Encode(fullPayload)))
+		lines = append(lines, fmt.Sprintf("       Addr  :    %s", utils.Base58Encode(fullPayload)))
 	}
 
 	for i, output := range tx.Vout {
@@ -184,7 +170,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 
 		dataToVerify := fmt.Sprintf("%x\n", txCopy)
 
-		rawPubKey := ecdsa.PublicKey{curve, &x, &y}
+		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 		if ecdsa.Verify(&rawPubKey, []byte(dataToVerify), &r, &s) == false {
 			return false
 		}
@@ -214,30 +200,31 @@ func NewCoinbaseTX(to, data string) *Transaction {
 }
 
 // NewUTXOTransaction creates a new transaction
-func NewUTXOTransaction(wallet *w.Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
+func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	pubKeyHash := w.HashPubKey(wallet.PublicKey)
+	pubKeyHash := HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
-	fmt.Println("Sum of outputs %s", acc) //TODO: delete
+	// OLDTODO: delete
+	//fmt.Printf("Sum of outputs %s", acc)
 
 	if acc < amount {
 		log.Panic("ERROR: Not enough funds")
 	}
 
 	// Build a list of inputs
-	for txid, outs := range validOutputs { //TODO: rewrite to smart choice of outputs
-
+	// OLDTODO: rewrite to smart choice of outputs
+	for txid, outs := range validOutputs {
 		txID, err := hex.DecodeString(txid)
-
 		if err != nil {
 			log.Panic(err)
 		}
 
 		for _, out := range outs {
-			fmt.Println("Output", out) //TODO: delete
+			// OLDTODO: delete
+			//fmt.Println("Output", out)
 			input := TXInput{txID, out, nil, wallet.PublicKey}
 			inputs = append(inputs, input)
 		}

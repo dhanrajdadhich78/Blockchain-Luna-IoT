@@ -1,9 +1,10 @@
-package wallet
+package utils
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	s "wizeBlock/wizeNode/services"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestBase58(t *testing.T) {

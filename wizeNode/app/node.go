@@ -4,16 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/betacraft/yaag/middleware"
-	"github.com/betacraft/yaag/yaag"
-	"github.com/gorilla/mux"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/betacraft/yaag/middleware"
+	"github.com/betacraft/yaag/yaag"
+	"github.com/gorilla/mux"
+
 	bc "wizeBlock/wizeNode/blockchain"
 )
 
@@ -45,45 +46,47 @@ func NewNode(nodeID string) *Node {
 
 func (node *Node) newApiServer() *http.Server {
 	//mux := http.NewServeMux()
-	yaag.Init(&yaag.Config{On: true, DocTitle: "Gorilla Mux", DocPath: "./apidoc/apidoc.html"})
-	router := mux.NewRouter()
 	//mux.HandleFunc("/blocks", node.blocksHandler)
 	//mux.HandleFunc("/mineBlock", node.mineBlockHandler)
-	////mux.HandleFunc("/peers", node.peersHandler)
+	//mux.HandleFunc("/peers", node.peersHandler)
 	//mux.HandleFunc("/addPeer", node.addPeerHandler)
+
+	yaag.Init(&yaag.Config{On: true, DocTitle: "Gorilla Mux", DocPath: "./apidoc/apidoc.html"})
+	router := mux.NewRouter()
+
+	//router.Handle("/apidoc", http.FileServer(http.Dir("./apidoc")))
 	router.PathPrefix("/doc/").Handler(http.StripPrefix("/doc/", http.FileServer(http.Dir("./apidoc"))))
 	router.HandleFunc("/", middleware.HandleFunc(node.sayHello)).Methods("GET")
-	router.HandleFunc("/send", node.send).Methods("POST")
-	//router.Handle("/apidoc", http.FileServer(http.Dir("./apidoc")))
+
+	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
+	router.HandleFunc("/block/{hash}", middleware.HandleFunc(node.getBlock)).Methods("GET")
 	router.HandleFunc("/wallet/new", middleware.HandleFunc(node.createWallet)).Methods("POST")
 	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
 	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
-	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
-	router.HandleFunc("/block/{hash}", middleware.HandleFunc(node.getBlock)).Methods("GET")
+	router.HandleFunc("/send", node.send).Methods("POST")
 
 	return &http.Server{
 		Handler: router,
 		Addr:    ":" + node.apiAddr,
-		//Addr:    *apiAddr,
 	}
 }
 
 //func (node *Node) newP2PServer() *http.Server {
-//	//return &http.Server{
-//	////	Handler: websocket.Handler(func(ws *websocket.Conn) {
-//	////		conn := NewConn(ws)
-//	////		node.log("connect to peer:", conn.remoteHost())
-//	////		node.addConn(conn)
-//	////		node.p2pHandler(conn)
-//	////	}),
-//	////	Addr: *p2pAddr,
-//	//}
+//	return &http.Server{
+//		Handler: websocket.Handler(func(ws *websocket.Conn) {
+//			conn := NewConn(ws)
+//			node.log("connect to peer:", conn.remoteHost())
+//			node.addConn(conn)
+//			node.p2pHandler(conn)
+//		}),
+//		Addr: *p2pAddr,
+//	}
 //	return
 //}
 
 func (node *Node) Run(minerAddress string) {
-
 	apiSrv := node.newApiServer()
+
 	go func() {
 		node.log("start HTTP server for API")
 
@@ -92,32 +95,14 @@ func (node *Node) Run(minerAddress string) {
 		}
 	}()
 
-	fmt.Println("apiAddr: ", node.apiAddr, " apiAddr: ", node.nodeID, " nodeADD: ", node.nodeADD)
+	fmt.Println("apiAddr:", node.apiAddr, "nodeID:", node.nodeID, "nodeADD:", node.nodeADD)
 
-	nodeAddress = fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID) //TODO:make address of node
-	miningAddress = minerAddress
-	ln, err := net.Listen(protocol, nodeAddress)
-	if err != nil {
-		log.Panic(err)
-	}
-	defer ln.Close()
-	nodeADD := node.nodeADD + nodeAddress
-
-	//fmt.Println(nodeAddress) //TODO:dell
-
-	if nodeADD != knownNodes[0] {
-		sendVersion(knownNodes[0], node.blockchain)
-	}
+	tcpSrv := NewServer(node, minerAddress)
 	go func() {
 		node.log("start TCP server")
-		for {
-			conn, err := ln.Accept()
-			if err != nil {
-				log.Panic(err)
-			}
-			go HandleTCPConnection(conn, node.blockchain)
-		}
+		tcpSrv.Start()
 	}()
+
 	//p2pSrv := node.newP2PServer()
 	//go func() {
 	//	node.log("start WebSocket server for P2P")
@@ -133,6 +118,7 @@ func (node *Node) Run(minerAddress string) {
 		if s == syscall.SIGTERM {
 			node.log("stop servers")
 			apiSrv.Shutdown(context.Background())
+			tcpSrv.Stop()
 			//p2pSrv.Shutdown(context.Background())
 		}
 	}

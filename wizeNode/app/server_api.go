@@ -8,10 +8,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	b "wizeBlock/wizeNode/blockchain"
-	ww "wizeBlock/wizeNode/wallet"
 
 	"github.com/gorilla/mux"
+
+	blockchain "wizeBlock/wizeNode/blockchain"
 )
 
 type Send struct {
@@ -36,7 +36,7 @@ func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (node *Node) listWallet(w http.ResponseWriter, r *http.Request) {
-	wallets, err := ww.NewWallets(node.nodeID)
+	wallets, err := blockchain.NewWallets(node.nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -49,7 +49,7 @@ func (node *Node) listWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
-	wallets, _ := ww.NewWallets(node.nodeID)
+	wallets, _ := blockchain.NewWallets(node.nodeID)
 	address := wallets.CreateWallet()
 	wallets.SaveToFile(node.nodeID)
 	wallet := wallets.GetWallet(address)
@@ -85,16 +85,16 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	to := send.To
 	amount := send.Amount
 	mineNow := send.MineNow
-	if !ww.ValidateAddress(from) {
+	if !blockchain.ValidateAddress(from) {
 		log.Panic("ERROR: Sender address is not valid")
 	}
-	if !ww.ValidateAddress(to) {
+	if !blockchain.ValidateAddress(to) {
 		log.Panic("ERROR: Recipient address is not valid")
 	}
 
-	UTXOSet := b.UTXOSet{node.blockchain}
+	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
-	wallets, err := ww.NewWallets(node.nodeID)
+	wallets, err := blockchain.NewWallets(node.nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -104,15 +104,17 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("The Address doesn't belongs to you!")
 		return
 	}
-	tx := b.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
+	tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
 	if mineNow {
-		cbTx := b.NewCoinbaseTX(from, "")
-		txs := []*b.Transaction{cbTx, tx}
+		cbTx := blockchain.NewCoinbaseTX(from, "")
+		txs := []*blockchain.Transaction{cbTx, tx}
 
 		newBlock := node.blockchain.MineBlock(txs)
 		UTXOSet.Update(newBlock)
 	} else {
-		SendTx(knownNodes[0], tx) //TODO: проверять остаток на балансе с учетом незамайненых транзакций, во избежание двойного использования выходов
+		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
+		// во избежание двойного использования выходов
+		SendTx(KnownNodes[0], node.nodeID, tx)
 	}
 
 	resp := map[string]interface{}{
@@ -124,7 +126,7 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 func (node *Node) printBlockchain(w http.ResponseWriter, r *http.Request) {
 
 	bci := node.blockchain.Iterator()
-	chain := make([]*b.Block, 0)
+	chain := make([]*blockchain.Block, 0)
 
 	for {
 		block := bci.Next()
@@ -158,7 +160,7 @@ func (node *Node) getBlock(w http.ResponseWriter, r *http.Request) {
 	blockHash := vars["hash"]
 	//TODO: зачем итеретор? попробовать выбрать по ключу
 	bci := node.blockchain.Iterator()
-	var result *b.Block
+	var result *blockchain.Block
 
 	for {
 		block := bci.Next()
