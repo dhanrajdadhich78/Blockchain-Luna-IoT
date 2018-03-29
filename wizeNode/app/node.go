@@ -60,9 +60,9 @@ func (node *Node) newApiServer() *http.Server {
 
 	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
 	router.HandleFunc("/block/{hash}", middleware.HandleFunc(node.getBlock)).Methods("GET")
-	router.HandleFunc("/wallet/new", middleware.HandleFunc(node.createWallet)).Methods("POST")
-	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
-	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
+	//router.HandleFunc("/wallet/new", middleware.HandleFunc(node.createWallet)).Methods("POST")
+	//router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
+	//router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
 	router.HandleFunc("/send", node.send).Methods("POST")
 
 	return &http.Server{

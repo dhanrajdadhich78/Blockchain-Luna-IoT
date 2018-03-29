@@ -11,6 +11,7 @@ import (
 	"wizeBlock/wizeNode/utils"
 )
 
+/*
 func (cli *CLI) generatePrivKey() {
 	private, _ := blockchain.NewKeyPair()
 	fmt.Println(hex.EncodeToString(private.D.Bytes()))
@@ -69,6 +70,7 @@ func (cli *CLI) validateAddr(address string) {
 		fmt.Println("Valid!")
 	}
 }
+*/
 
 // print
 
