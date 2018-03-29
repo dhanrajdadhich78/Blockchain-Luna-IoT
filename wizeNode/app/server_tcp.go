@@ -19,7 +19,7 @@ const nodeVersion = 1
 const commandLength = 12
 const timeFormat = "03:04:05.000000"
 
-var knownNodes = []string{"wize1:3000"}
+var KnownNodes = []string{"wize1:3000"}
 
 type TCPServer struct {
 	node          *Node
@@ -45,26 +45,40 @@ func NewServer(node *Node, minerAddress string) *TCPServer {
 		miningAddress:   minerAddress,
 		blocksInTransit: [][]byte{},
 		mempool:         make(map[string]b.Transaction),
+		bc:              node.blockchain,
+	}
+}
+
+func NewServerForTest(nodeADD, nodeID, minerAddress string) *TCPServer {
+	return &TCPServer{
+		node:            nil,
+		nodeID:          nodeID,
+		nodeADD:         nodeADD,
+		nodeAddress:     fmt.Sprintf("localhost:%s", nodeID),
+		miningAddress:   minerAddress,
+		blocksInTransit: [][]byte{},
+		mempool:         make(map[string]b.Transaction),
+		bc:              b.NewBlockchain(nodeID),
 	}
 }
 
 // StartServer starts a node
 func (s *TCPServer) Start() {
-	s.node.log("TCPServer Start")
+	fmt.Println("TCPServer Start")
 
 	var err error
 	s.ln, err = net.Listen(protocol, s.nodeAddress)
 	if err != nil {
-		s.node.logError(err)
+		fmt.Println(err)
 		//log.Panic(err)
 	}
 	//defer server.ln.Close()
 
-	s.node.log("A nodeAddress:", s.nodeAddress, "knownNodes:", knownNodes)
-	s.bc = s.node.blockchain
+	fmt.Println("A nodeAddress:", s.nodeAddress, "knownNodes:", KnownNodes)
+	//s.bc = s.node.blockchain
 
-	if s.nodeAddress != knownNodes[0] {
-		sendVersion(knownNodes[0], s.nodeAddress, s.bc)
+	if s.nodeAddress != KnownNodes[0] {
+		sendVersion(KnownNodes[0], s.nodeAddress, s.bc)
 	}
 
 	for {
@@ -84,7 +98,7 @@ func (s *TCPServer) handleConnection(conn net.Conn) {
 	}
 	command := bytesToCommand(request[:commandLength])
 	nanonow := time.Now().Format(timeFormat)
-	s.node.log("nodeID:", s.nodeID, ", ", nanonow, ": Received", command, "command")
+	fmt.Printf("nodeID: %s, %s: Received %s command\n", s.nodeID, nanonow, command)
 
 	switch command {
 	case "addr":
@@ -192,7 +206,7 @@ func gobEncode(data interface{}) []byte {
 }
 
 func nodeIsKnown(addr string) bool {
-	for _, node := range knownNodes {
+	for _, node := range KnownNodes {
 		if node == addr {
 			return true
 		}
@@ -207,13 +221,13 @@ func sendData(address string, data []byte) {
 		fmt.Printf("%s is not available\n", address)
 		var updatedNodes []string
 
-		for _, node := range knownNodes {
+		for _, node := range KnownNodes {
 			if node != address {
 				updatedNodes = append(updatedNodes, node)
 			}
 		}
 
-		knownNodes = updatedNodes
+		KnownNodes = updatedNodes
 
 		return
 	}
@@ -226,13 +240,13 @@ func sendData(address string, data []byte) {
 }
 
 func requestBlocks(nodeAddress string) {
-	for _, node := range knownNodes {
+	for _, node := range KnownNodes {
 		sendGetBlocks(node, nodeAddress)
 	}
 }
 
 func sendAddr(address, nodeAddress string) {
-	nodes := addr{knownNodes}
+	nodes := addr{KnownNodes}
 	nodes.AddrList = append(nodes.AddrList, nodeAddress)
 	payload := gobEncode(nodes)
 	request := append(commandToBytes("addr"), payload...)
@@ -298,9 +312,9 @@ func (s *TCPServer) handleAddr(request []byte) {
 		log.Panic(err)
 	}
 
-	knownNodes = append(knownNodes, payload.AddrList...)
+	KnownNodes = append(KnownNodes, payload.AddrList...)
 	nanonow := time.Now().Format(timeFormat)
-	fmt.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(knownNodes))
+	fmt.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(KnownNodes))
 	requestBlocks(s.nodeAddress)
 }
 
@@ -437,9 +451,9 @@ func (s *TCPServer) handleTx(request []byte) {
 	tx := b.DeserializeTransaction(txData)
 	s.mempool[hex.EncodeToString(tx.ID)] = tx
 
-	if s.nodeAddress == knownNodes[0] {
-		fmt.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, knownNodes)
-		for _, node := range knownNodes {
+	if s.nodeAddress == KnownNodes[0] {
+		fmt.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, KnownNodes)
+		for _, node := range KnownNodes {
 			if node != s.nodeAddress && node != payload.AddFrom {
 				sendInv(node, s.nodeAddress, "tx", [][]byte{tx.ID})
 			}
@@ -481,7 +495,7 @@ func (s *TCPServer) handleTx(request []byte) {
 				delete(s.mempool, txID)
 			}
 
-			for _, node := range knownNodes {
+			for _, node := range KnownNodes {
 				if node != s.nodeAddress {
 					sendInv(node, s.nodeAddress, "block", [][]byte{newBlock.Hash})
 				}
@@ -517,6 +531,6 @@ func (s *TCPServer) handleVersion(request []byte) {
 	// sendAddr(payload.AddrFrom)
 	if !nodeIsKnown(payload.AddrFrom) {
 		fmt.Printf("A new node %s is connected\n", payload.AddrFrom)
-		knownNodes = append(knownNodes, payload.AddrFrom)
+		KnownNodes = append(KnownNodes, payload.AddrFrom)
 	}
 }

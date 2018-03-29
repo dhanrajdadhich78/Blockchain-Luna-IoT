@@ -140,7 +140,7 @@ func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
-		SendTx(knownNodes[0], nodeID, tx)
+		SendTx(KnownNodes[0], nodeID, tx)
 	}
 
 	fmt.Println("Success!")

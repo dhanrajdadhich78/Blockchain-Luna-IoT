@@ -114,7 +114,7 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
-		SendTx(knownNodes[0], node.nodeID, tx)
+		SendTx(KnownNodes[0], node.nodeID, tx)
 	}
 
 	resp := map[string]interface{}{
