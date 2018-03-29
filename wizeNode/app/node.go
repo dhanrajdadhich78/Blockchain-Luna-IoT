@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -96,33 +95,12 @@ func (node *Node) Run(minerAddress string) {
 		}
 	}()
 
-	fmt.Println("apiAddr: ", node.apiAddr, " nodeID: ", node.nodeID, " nodeADD: ", node.nodeADD)
+	fmt.Println("apiAddr:", node.apiAddr, "nodeID:", node.nodeID, "nodeADD:", node.nodeADD)
 
-	// OLDTODO: make address of node
-	nodeAddress = fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID)
-	miningAddress = minerAddress
-	ln, err := net.Listen(protocol, nodeAddress)
-	if err != nil {
-		log.Panic(err)
-	}
-	defer ln.Close()
-	nodeADD := node.nodeADD + nodeAddress
-
-	// OLDTODO: delete
-	//fmt.Println(nodeAddress)
-
-	if nodeADD != knownNodes[0] {
-		sendVersion(knownNodes[0], node.blockchain)
-	}
+	tcpSrv := NewServer(node, minerAddress)
 	go func() {
 		node.log("start TCP server")
-		for {
-			conn, err := ln.Accept()
-			if err != nil {
-				log.Panic(err)
-			}
-			go HandleTCPConnection(conn, node.blockchain)
-		}
+		tcpSrv.Start()
 	}()
 
 	//p2pSrv := node.newP2PServer()
@@ -140,6 +118,7 @@ func (node *Node) Run(minerAddress string) {
 		if s == syscall.SIGTERM {
 			node.log("stop servers")
 			apiSrv.Shutdown(context.Background())
+			tcpSrv.Stop()
 			//p2pSrv.Shutdown(context.Background())
 		}
 	}

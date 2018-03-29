@@ -138,7 +138,9 @@ func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 		newBlock := bc.MineBlock(txs)
 		UTXOSet.Update(newBlock)
 	} else {
-		SendTx(knownNodes[0], tx) //TODO: проверять остаток на балансе с учетом незамайненых транзакций, во избежание двойного использования выходов
+		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
+		// во избежание двойного использования выходов
+		SendTx(knownNodes[0], nodeID, tx)
 	}
 
 	fmt.Println("Success!")

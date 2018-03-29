@@ -112,7 +112,9 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 		newBlock := node.blockchain.MineBlock(txs)
 		UTXOSet.Update(newBlock)
 	} else {
-		SendTx(knownNodes[0], tx) //TODO: проверять остаток на балансе с учетом незамайненых транзакций, во избежание двойного использования выходов
+		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
+		// во избежание двойного использования выходов
+		SendTx(knownNodes[0], node.nodeID, tx)
 	}
 
 	resp := map[string]interface{}{
