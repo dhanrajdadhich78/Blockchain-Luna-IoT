@@ -208,7 +208,7 @@ func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
 	// OLDTODO: delete
-	fmt.Println("Sum of outputs %s", acc)
+	fmt.Printf("Sum of outputs %s", acc)
 
 	if acc < amount {
 		log.Panic("ERROR: Not enough funds")

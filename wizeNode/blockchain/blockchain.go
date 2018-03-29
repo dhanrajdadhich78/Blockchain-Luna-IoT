@@ -34,7 +34,8 @@ func (bc *Blockchain) Iterator() *BlockchainIterator {
 // CreateBlockchain creates a new blockchain DB
 func CreateBlockchain(address, nodeID string) *Blockchain {
 	dbFile := fmt.Sprintf(dbFile, nodeID)
-	if utils.DbExists(dbFile) {
+	ok, err := utils.DbExists(dbFile)
+	if ok {
 		fmt.Println("Blockchain already exists.")
 		os.Exit(1)
 	}
@@ -80,7 +81,8 @@ func CreateBlockchain(address, nodeID string) *Blockchain {
 // NewBlockchain creates a new Blockchain with genesis Block
 func NewBlockchain(nodeID string) *Blockchain {
 	dbFile := fmt.Sprintf(dbFile, nodeID)
-	if utils.DbExists(dbFile) == false {
+	ok, err := utils.DbExists(dbFile)
+	if !ok {
 		fmt.Println("No existing blockchain found. Create one first.")
 		os.Exit(1)
 	}
@@ -102,6 +104,7 @@ func NewBlockchain(nodeID string) *Blockchain {
 	}
 
 	bc := Blockchain{tip, db}
+	fmt.Println("B db:", db, "bc:", bc)
 
 	return &bc
 }
