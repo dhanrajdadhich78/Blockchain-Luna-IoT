@@ -2,6 +2,7 @@ package blockchain
 
 import (
 	"encoding/hex"
+	"fmt"
 	"log"
 
 	"github.com/boltdb/bolt"
@@ -29,9 +30,14 @@ func (u UTXOSet) FindSpendableOutputs(pubkeyHash []byte, amount int) (int, map[s
 			txID := hex.EncodeToString(k)
 			outs := DeserializeOutputs(v)
 
+			fmt.Printf("txID: %s, outs: %d\n", txID, len(outs.Outputs))
+
 			for outIdx, out := range outs.Outputs {
+				fmt.Printf("outIdx: %d, value: %d\n", outIdx, out.Value)
+
 				// OLDTODO: rewrite to smart choice of outputs
 				if out.IsLockedWithKey(pubkeyHash) && accumulated < amount {
+					fmt.Printf("accumulated: %d, value: %d\n", accumulated, out.Value)
 					accumulated += out.Value
 					unspentOutputs[txID] = append(unspentOutputs[txID], outIdx)
 				}
