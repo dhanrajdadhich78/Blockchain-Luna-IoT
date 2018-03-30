@@ -43,11 +43,11 @@ func (w Wallet) GetAddress() []byte {
 	return address
 }
 
-func (w Wallet) GetPrivateKey(wallet *Wallet) []byte {
-	return wallet.PrivateKey.D.Bytes()
+func (w Wallet) GetPrivateKey() []byte {
+	return w.PrivateKey.D.Bytes()
 }
-func (w Wallet) GetPublicKey(wallet *Wallet) []byte {
-	pubKey := append(wallet.PrivateKey.X.Bytes(), wallet.PrivateKey.Y.Bytes()...)
+func (w Wallet) GetPublicKey() []byte {
+	pubKey := append(w.PrivateKey.X.Bytes(), w.PrivateKey.Y.Bytes()...)
 	return pubKey
 }
 
