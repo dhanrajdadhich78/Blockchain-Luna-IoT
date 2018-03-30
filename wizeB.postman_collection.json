@@ -124,7 +124,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "http://localhost:4000/wallet/1CCNT1X3Z5wMKAgSzUFGCoAmvHd1Sb7jiD",
+							"raw": "http://localhost:4000/wallet/13kfriEJExZ2hXM1vVuyVkPuUS3eVMjRmx",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -132,7 +132,7 @@
 							"port": "4000",
 							"path": [
 								"wallet",
-								"1CCNT1X3Z5wMKAgSzUFGCoAmvHd1Sb7jiD"
+								"13kfriEJExZ2hXM1vVuyVkPuUS3eVMjRmx"
 							]
 						},
 						"description": null
@@ -174,12 +174,12 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "http://localhost:4002/blockchain/print",
+							"raw": "http://localhost:4000/blockchain/print",
 							"protocol": "http",
 							"host": [
 								"localhost"
 							],
-							"port": "4002",
+							"port": "4000",
 							"path": [
 								"blockchain",
 								"print"
@@ -215,7 +215,7 @@
 					"response": []
 				},
 				{
-					"name": "make new transaction",
+					"name": "prepare new transaction",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -226,7 +226,36 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n \"from\": \"18GmknfAAjDADh2hkvuHZnRjpRujXBVs7N\",\n \"to\": \"1FJpJB98pEyEusryU2iRQmjSW7Bjh9uKpw\",\n \"amount\": 1,\n \"mineNow\": false\n}"
+							"raw": "{\n \"from\": \"13kfriEJExZ2hXM1vVuyVkPuUS3eVMjRmx\",\n \"to\": \"1Ltq1xkag71FpozeUcXXzAtMgvJGiy9Pvq\",\n \"amount\": 1,\n \"pubKey\": \"6e56023b67f3f3005dd74d040aa149fa8afb01ab062c48b0c0ab42206daf54d7688fe1813ab7e6cbf72c03cc00d902574c4ab6fed337c056440be356038f45c7\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:4000/prepare",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "4000",
+							"path": [
+								"prepare"
+							]
+						},
+						"description": null
+					},
+					"response": []
+				},
+				{
+					"name": "send new transaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n \"from\": \"13kfriEJExZ2hXM1vVuyVkPuUS3eVMjRmx\",\n \"to\": \"1Ltq1xkag71FpozeUcXXzAtMgvJGiy9Pvq\",\n \"amount\": 1,\n \"mineNow\": false\n}"
 						},
 						"url": {
 							"raw": "http://localhost:4000/send",
