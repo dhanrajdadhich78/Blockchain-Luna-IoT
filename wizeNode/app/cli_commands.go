@@ -1,7 +1,7 @@
 package app
 
 import (
-	"encoding/hex"
+	//"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -16,7 +16,8 @@ func (cli *CLI) printUsage() {
 	fmt.Println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS")
 	//fmt.Println("  createwallet - Generates a new key-pair and saves it into the wallet file")
 	fmt.Println("  getbalance -address ADDRESS - Get balance of ADDRESS")
-	//fmt.Println("  listaddresses - Lists all addresses from the wallet file")
+	fmt.Println("  listaddresses - Lists all addresses from the wallet file")
+	fmt.Println("  getwallet -address ADDRESS - Get wallet info")
 	fmt.Println("  printchain - Print all the blocks of the blockchain")
 	fmt.Println("  reindexutxo - Rebuilds the UTXO set")
 	fmt.Println("  send -from FROM -to TO -amount AMOUNT -mine - Send AMOUNT of coins from FROM address to TO. Mine on the same node, when -mine is set.")
@@ -64,7 +65,6 @@ func (cli *CLI) getBalance(address string, nodeID string) {
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
 
-/*
 func (cli *CLI) listAddresses(nodeID string) {
 	wallets, err := blockchain.NewWallets(nodeID)
 	if err != nil {
@@ -76,7 +76,18 @@ func (cli *CLI) listAddresses(nodeID string) {
 		fmt.Println(address)
 	}
 }
-*/
+
+func (cli *CLI) getWallet(address string, nodeID string) {
+	wallets, err := blockchain.NewWallets(nodeID)
+	if err != nil {
+		log.Panic(err)
+	}
+	wallet := wallets.GetWallet(address)
+
+	fmt.Printf("Wallet address: '%s'\n", address)
+	fmt.Printf("Wallet pubKey: '%x'\n", wallet.GetPublicKey())
+	fmt.Printf("Wallet privKey: '%x'\n", wallet.GetPrivateKey())
+}
 
 func (cli *CLI) printChain(nodeID string) {
 	bc := blockchain.NewBlockchain(nodeID)
@@ -138,8 +149,9 @@ func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 	//}
 
 	// TODO-34
-	wallet := nil
-	tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
+	//wallet := nil
+	//tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
+	tx := &blockchain.Transaction{}
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}

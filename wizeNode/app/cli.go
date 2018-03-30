@@ -29,7 +29,8 @@ func (cli *CLI) Run() {
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
 	createBlockchainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
 	//createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
-	//listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
+	listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
+	getWalletCmd := flag.NewFlagSet("getwallet", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
 	printChainCmd := flag.NewFlagSet("printchain", flag.ExitOnError)
 	reindexUTXOCmd := flag.NewFlagSet("reindexutxo", flag.ExitOnError)
@@ -43,6 +44,7 @@ func (cli *CLI) Run() {
 	getBlockCmd := flag.NewFlagSet("getBlock", flag.ExitOnError)
 
 	getBalanceAddress := getBalanceCmd.String("address", "", "The address to get balance for")
+	getWalletAddress := getWalletCmd.String("address", "", "The address to get balance for")
 	createBlockchainAddress := createBlockchainCmd.String("address", "", "The address to send genesis block reward to")
 	sendFrom := sendCmd.String("from", "", "Source wallet address")
 	sendTo := sendCmd.String("to", "", "Destination wallet address")
@@ -68,18 +70,23 @@ func (cli *CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
-	/*
-		    case "createwallet":
-				err := createWalletCmd.Parse(os.Args[2:])
-				if err != nil {
-					log.Panic(err)
-				}
-			case "listaddresses":
-				err := listAddressesCmd.Parse(os.Args[2:])
-				if err != nil {
-					log.Panic(err)
-				}
-	*/
+		/*
+			    case "createwallet":
+					err := createWalletCmd.Parse(os.Args[2:])
+					if err != nil {
+						log.Panic(err)
+					}
+		*/
+	case "listaddresses":
+		err := listAddressesCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+	case "getwallet":
+		err := getWalletCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
 	case "printchain":
 		err := printChainCmd.Parse(os.Args[2:])
 		if err != nil {
@@ -157,11 +164,15 @@ func (cli *CLI) Run() {
 		if createWalletCmd.Parsed() {
 			cli.createWallet(nodeID)
 		}
-
-		if listAddressesCmd.Parsed() {
-			cli.listAddresses(nodeID)
-		}
 	*/
+
+	if listAddressesCmd.Parsed() {
+		cli.listAddresses(nodeID)
+	}
+
+	if getWalletCmd.Parsed() {
+		cli.getWallet(*getWalletAddress, nodeID)
+	}
 
 	if printChainCmd.Parsed() {
 		cli.printChain(nodeID)
