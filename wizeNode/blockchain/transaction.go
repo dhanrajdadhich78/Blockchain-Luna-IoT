@@ -25,6 +25,11 @@ type Transaction struct {
 	Vout []TXOutput
 }
 
+type TransactionToSign struct {
+	TxID       []byte
+	DataToSign []string
+}
+
 // IsCoinbase checks whether the transaction is coinbase
 func (tx Transaction) IsCoinbase() bool {
 	return len(tx.Vin) == 1 && len(tx.Vin[0].Txid) == 0 && tx.Vin[0].Vout == -1
@@ -56,6 +61,49 @@ func (tx *Transaction) Hash() []byte {
 }
 
 // Sign signs each input of a Transaction
+func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) *TransactionToSign {
+	if tx.IsCoinbase() {
+		return nil
+	}
+
+	for _, vin := range tx.Vin {
+		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
+			log.Panic("ERROR: Previous transaction is not correct")
+		}
+	}
+
+	txCopy := tx.TrimmedCopy()
+
+	prepareToSign := TransactionToSign{
+		TxID:       tx.ID,
+		DataToSign: make([]string, len(txCopy.Vin)),
+	}
+
+	for inID, vin := range txCopy.Vin {
+		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
+		txCopy.Vin[inID].Signature = nil
+		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
+
+		//// Signing
+		dataToSign := fmt.Sprintf("%x\n", txCopy)
+
+		//r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
+		//if err != nil {
+		//	log.Panic(err)
+		//}
+
+		//signature := append(r.Bytes(), s.Bytes()...)
+
+		prepareToSign.DataToSign[inID] = dataToSign
+
+		// another function
+		//tx.Vin[inID].Signature = signature
+		//txCopy.Vin[inID].PubKey = nil
+	}
+
+	return &prepareToSign
+}
+
 func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
 	if tx.IsCoinbase() {
 		return
@@ -197,6 +245,56 @@ func NewCoinbaseTX(to, data string) *Transaction {
 	tx.ID = tx.Hash()
 
 	return &tx
+}
+
+// PrepareUTXOTransaction prepare a new transaction
+func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet *UTXOSet) (*Transaction, *TransactionToSign) {
+	var inputs []TXInput
+	var outputs []TXOutput
+
+	pubKeyHash := HashPubKey(pubKey)
+	fmt.Printf("pubKeyHash %x\n", pubKeyHash)
+	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
+
+	// OLDTODO: delete
+	fmt.Printf("Sum of outputs %d\n", acc)
+
+	if acc < amount {
+		log.Panic("ERROR: Not enough funds")
+	}
+
+	// TODO: find pubKey by pubKeyHash
+	//pubKey := pubKeyHash
+
+	// Build a list of inputs
+	// OLDTODO: rewrite to smart choice of outputs
+	for txid, outs := range validOutputs {
+		txID, err := hex.DecodeString(txid)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		for _, out := range outs {
+			// OLDTODO: delete
+			//fmt.Println("Output", out)
+
+			// TODO-34
+			input := TXInput{txID, out, nil, pubKey}
+			inputs = append(inputs, input)
+		}
+	}
+
+	// Build a list of outputs
+	outputs = append(outputs, *NewTXOutput(amount, to))
+	if acc > amount {
+		outputs = append(outputs, *NewTXOutput(acc-amount, from)) // a change
+	}
+
+	tx := Transaction{nil, inputs, outputs}
+	tx.ID = tx.Hash()
+
+	// TODO-34
+	return &tx, UTXOSet.Blockchain.PrepareTransactionToSign(&tx)
 }
 
 // NewUTXOTransaction creates a new transaction
