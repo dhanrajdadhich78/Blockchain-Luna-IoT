@@ -55,7 +55,6 @@ func (node *Node) listWallet(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
-/*
 func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 	wallets, _ := blockchain.NewWallets(node.nodeID)
 	address := wallets.CreateWallet()
@@ -74,7 +73,6 @@ func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
-*/
 
 func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	//func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
