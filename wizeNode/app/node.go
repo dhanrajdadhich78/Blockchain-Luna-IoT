@@ -24,18 +24,22 @@ type ErrorResponse struct {
 
 type Node struct {
 	*http.ServeMux
-	blockchain *bc.Blockchain
-	mu         sync.RWMutex
-	logger     *log.Logger
-	apiAddr    string
-	nodeID     string
-	nodeADD    string
+
+	blockchain  *bc.Blockchain
+	preparedTxs map[string]*bc.Transaction
+
+	mu      sync.RWMutex
+	logger  *log.Logger
+	apiAddr string
+	nodeID  string
+	nodeADD string
 }
 
 func NewNode(nodeID string) *Node {
 	return &Node{
-		blockchain: bc.NewBlockchain(nodeID),
-		mu:         sync.RWMutex{},
+		blockchain:  bc.NewBlockchain(nodeID),
+		preparedTxs: make(map[string]*bc.Transaction),
+		mu:          sync.RWMutex{},
 		logger: log.New(
 			os.Stdout,
 			"node: ",
@@ -60,9 +64,12 @@ func (node *Node) newApiServer() *http.Server {
 
 	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
 	router.HandleFunc("/block/{hash}", middleware.HandleFunc(node.getBlock)).Methods("GET")
+
 	//router.HandleFunc("/wallet/new", middleware.HandleFunc(node.createWallet)).Methods("POST")
-	//router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
-	//router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
+	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
+	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
+
+	router.HandleFunc("/prepare", node.prepare).Methods("POST")
 	router.HandleFunc("/send", node.send).Methods("POST")
 
 	return &http.Server{

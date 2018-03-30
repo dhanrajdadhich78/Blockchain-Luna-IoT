@@ -14,6 +14,13 @@ import (
 	blockchain "wizeBlock/wizeNode/blockchain"
 )
 
+type Prepare struct {
+	From   string
+	To     string
+	Amount int
+	PubKey string
+}
+
 type Send struct {
 	From    string
 	To      string
@@ -25,7 +32,6 @@ func (node *Node) sayHello(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, "Hello wize "+node.nodeADD)
 }
 
-/*
 func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
@@ -49,6 +55,7 @@ func (node *Node) listWallet(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
+/*
 func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 	wallets, _ := blockchain.NewWallets(node.nodeID)
 	address := wallets.CreateWallet()
@@ -69,6 +76,46 @@ func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 }
 */
 
+func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
+	//func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
+
+	var prepare Prepare
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Printf("Failed to read the request body: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if err := json.Unmarshal(body, &prepare); err != nil {
+		sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
+		return
+	}
+	from := prepare.From
+	to := prepare.To
+	amount := prepare.Amount
+	pubKey, _ := hex.DecodeString(prepare.PubKey)
+	if !blockchain.ValidateAddress(from) {
+		log.Panic("ERROR: Sender address is not valid")
+	}
+	if !blockchain.ValidateAddress(to) {
+		log.Panic("ERROR: Recipient address is not valid")
+	}
+
+	UTXOSet := blockchain.UTXOSet{node.blockchain}
+
+	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, &UTXOSet)
+
+	txID := fmt.Sprintf("%x", txToSign.TxID)
+	node.preparedTxs[txID] = tx
+
+	resp := map[string]interface{}{
+		"success": true,
+		"txid":    txToSign.TxID,
+		"data":    txToSign.DataToSign,
+	}
+	respondWithJSON(w, http.StatusOK, resp)
+}
+
 func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	//func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 
@@ -85,7 +132,7 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	}
 	from := send.From
 	to := send.To
-	amount := send.Amount
+	//amount := send.Amount
 	mineNow := send.MineNow
 	if !blockchain.ValidateAddress(from) {
 		log.Panic("ERROR: Sender address is not valid")
@@ -109,8 +156,9 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	//}
 
 	// TODO-34
-	wallet := nil
-	tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
+	//wallet := nil
+	//tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
+	tx := &blockchain.Transaction{}
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
@@ -207,6 +255,7 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	w.WriteHeader(code)
 	w.Write(response)
 }
+
 func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(status)
