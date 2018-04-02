@@ -68,8 +68,8 @@ func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 	resp := map[string]interface{}{
 		"success": true,
 		"address": address,
-		"privkey": hex.EncodeToString(wallet.GetPrivateKey(wallet)),
-		"pubkey":  hex.EncodeToString(wallet.GetPublicKey(wallet)),
+		"privkey": hex.EncodeToString(wallet.GetPrivateKey()),
+		"pubkey":  hex.EncodeToString(wallet.GetPublicKey()),
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
