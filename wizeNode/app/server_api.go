@@ -92,6 +92,10 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	to := prepare.To
 	amount := prepare.Amount
 	pubKey, _ := hex.DecodeString(prepare.PubKey)
+
+	fmt.Println("prepare:", prepare)
+	fmt.Println("pubKey:", pubKey)
+
 	if !blockchain.ValidateAddress(from) {
 		log.Panic("ERROR: Sender address is not valid")
 	}
