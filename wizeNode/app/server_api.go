@@ -77,17 +77,25 @@ func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	//func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 
+	fmt.Println("prepare:", r.Body)
+
 	var prepare Prepare
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Printf("Failed to read the request body: %v", err)
+		fmt.Printf("Failed to read the request body: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	fmt.Println("body:", body)
+
 	if err := json.Unmarshal(body, &prepare); err != nil {
+		fmt.Printf("Could not decode the request body as JSON: %v", err)
 		sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 		return
 	}
+
 	from := prepare.From
 	to := prepare.To
 	amount := prepare.Amount
