@@ -14,9 +14,10 @@ import (
 	"wizeBlock/wizeNode/utils"
 )
 
-const dbFile = "files/db/wizebit_%s.db"
+const dbFile = "files/db%s/wizebit.db"
 const blocksBucket = "blocks"
 const genesisCoinbaseData = "The Times 22/Jan/2017 Now I have nice gopher"
+const emissionValue = 1000000
 
 // Blockchain implements interactions with a DB
 type Blockchain struct {
@@ -42,7 +43,7 @@ func CreateBlockchain(address, nodeID string) *Blockchain {
 
 	var tip []byte
 
-	cbtx := NewCoinbaseTX(address, genesisCoinbaseData)
+	cbtx := NewEmissionCoinbaseTX(address, genesisCoinbaseData, emissionValue)
 	genesis := NewGenesisBlock(cbtx)
 
 	db, err := bolt.Open(dbFile, 0600, nil)

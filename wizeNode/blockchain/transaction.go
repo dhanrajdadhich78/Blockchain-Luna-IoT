@@ -247,6 +247,25 @@ func NewCoinbaseTX(to, data string) *Transaction {
 	return &tx
 }
 
+// NewEmissionCoinbaseTX creates a new coinbase transaction with emission
+func NewEmissionCoinbaseTX(to, data string, emission int) *Transaction {
+	if data == "" {
+		randData := make([]byte, 20)
+		_, err := rand.Read(randData)
+		if err != nil {
+			log.Panic(err)
+		}
+		data = fmt.Sprintf("%x", randData)
+	}
+
+	txin := TXInput{[]byte{}, -1, nil, []byte(data)}
+	txout := NewTXOutput(emission, to)
+	tx := Transaction{nil, []TXInput{txin}, []TXOutput{*txout}}
+	tx.ID = tx.Hash()
+
+	return &tx
+}
+
 // PrepareUTXOTransaction prepare a new transaction
 func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet *UTXOSet) (*Transaction, *TransactionToSign) {
 	var inputs []TXInput
