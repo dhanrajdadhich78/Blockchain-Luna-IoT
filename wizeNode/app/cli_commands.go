@@ -1,7 +1,7 @@
 package app
 
 import (
-	//"encoding/hex"
+	"encoding/hex"
 	"fmt"
 	"log"
 	"os"
@@ -14,7 +14,7 @@ import (
 func (cli *CLI) printUsage() {
 	fmt.Println("Usage:")
 	fmt.Println("  createblockchain -address ADDRESS - Create a blockchain and send genesis block reward to ADDRESS")
-	//fmt.Println("  createwallet - Generates a new key-pair and saves it into the wallet file")
+	fmt.Println("  createwallet - Generates a new key-pair and saves it into the wallet file")
 	fmt.Println("  getbalance -address ADDRESS - Get balance of ADDRESS")
 	fmt.Println("  listaddresses - Lists all addresses from the wallet file")
 	fmt.Println("  getwallet -address ADDRESS - Get wallet info")
@@ -44,7 +44,6 @@ func (cli *CLI) createBlockchain(address string, nodeID string) {
 	fmt.Println("Done!")
 }
 
-/*
 func (cli *CLI) createWallet(nodeID string) {
 	wallets, _ := blockchain.NewWallets(nodeID)
 	address := wallets.CreateWallet()
@@ -52,10 +51,9 @@ func (cli *CLI) createWallet(nodeID string) {
 	wallet := wallets.GetWallet(address)
 
 	fmt.Printf("Your new address: %s\n", address)
-	fmt.Println("Private key: ", hex.EncodeToString(wallet.GetPrivateKey(wallet)))
-	fmt.Println("Public key: ", hex.EncodeToString(wallet.GetPublicKey(wallet)))
+	fmt.Println("Private key: ", hex.EncodeToString(wallet.GetPrivateKey()))
+	fmt.Println("Public key: ", hex.EncodeToString(wallet.GetPublicKey()))
 }
-*/
 
 func (cli *CLI) getBalance(address string, nodeID string) {
 	bc := blockchain.NewBlockchain(nodeID)

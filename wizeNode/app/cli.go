@@ -28,7 +28,7 @@ func (cli *CLI) Run() {
 
 	getBalanceCmd := flag.NewFlagSet("getbalance", flag.ExitOnError)
 	createBlockchainCmd := flag.NewFlagSet("createblockchain", flag.ExitOnError)
-	//createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
+	createWalletCmd := flag.NewFlagSet("createwallet", flag.ExitOnError)
 	listAddressesCmd := flag.NewFlagSet("listaddresses", flag.ExitOnError)
 	getWalletCmd := flag.NewFlagSet("getwallet", flag.ExitOnError)
 	sendCmd := flag.NewFlagSet("send", flag.ExitOnError)
@@ -70,13 +70,13 @@ func (cli *CLI) Run() {
 		if err != nil {
 			log.Panic(err)
 		}
-		/*
-			    case "createwallet":
-					err := createWalletCmd.Parse(os.Args[2:])
-					if err != nil {
-						log.Panic(err)
-					}
-		*/
+
+	case "createwallet":
+		err := createWalletCmd.Parse(os.Args[2:])
+		if err != nil {
+			log.Panic(err)
+		}
+
 	case "listaddresses":
 		err := listAddressesCmd.Parse(os.Args[2:])
 		if err != nil {
@@ -160,11 +160,9 @@ func (cli *CLI) Run() {
 		cli.createBlockchain(*createBlockchainAddress, nodeID)
 	}
 
-	/*
-		if createWalletCmd.Parsed() {
-			cli.createWallet(nodeID)
-		}
-	*/
+	if createWalletCmd.Parsed() {
+		cli.createWallet(nodeID)
+	}
 
 	if listAddressesCmd.Parsed() {
 		cli.listAddresses(nodeID)
