@@ -8,7 +8,10 @@ services:
 #        app_port: 3000
 #        app_address: wize1
     volumes:
-      - ./wizeNode/files:/go/src/wizeBlock/wizeNode/files
+      - ./wizeNode/files/db:/go/src/wizeBlock/wizeNode/files/db
+      - ./wizeNode/files/db/wizebit_3000.db:/go/src/wizeBlock/wizeNode/files/db/wizebit_3000.db
+	  - ./wizeNode/files/wallets:/go/src/wizeBlock/wizeNode/files/wallets
+      - ./wizeNode/files/db/wallet_3000.dat:/go/src/wizeBlock/wizeNode/files/wallets/wallet_3000.dat
     container_name: wize1
     environment:
       NODE_ID: 3000
@@ -33,7 +36,10 @@ services:
 #        app_port: 3001
 #        app_address: wize2
     volumes:
-      - ./wizeNode/files:/go/src/wizeBlock/wizeNode/files
+      - ./wizeNode/files/db:/go/src/wizeBlock/wizeNode/files/db
+      - ./wizeNode/files/db/wizebit_3001.db:/go/src/wizeBlock/wizeNode/files/db/wizebit_3001.db
+	  - ./wizeNode/files/wallets:/go/src/wizeBlock/wizeNode/files/wallets
+      - ./wizeNode/files/db/wallet_3001.dat:/go/src/wizeBlock/wizeNode/files/wallets/wallet_3001.dat
     container_name: wize2
     environment:
       NODE_ID: 3001
@@ -57,7 +63,10 @@ services:
 #        app_port: 3002
 #        app_address: wize3
     volumes:
-      - ./wizeNode/files:/go/src/wizeBlock/wizeNode/files
+      - ./wizeNode/files/db:/go/src/wizeBlock/wizeNode/files/db
+      - ./wizeNode/files/db/wizebit_3002.db:/go/src/wizeBlock/wizeNode/files/db/wizebit_3002.db
+	  - ./wizeNode/files/wallets:/go/src/wizeBlock/wizeNode/files/wallets
+      - ./wizeNode/files/db/wallet_3002.dat:/go/src/wizeBlock/wizeNode/files/wallets/wallet_3002.dat
     container_name: wize3
     environment:
       NODE_ID: 3002
