@@ -75,9 +75,6 @@ func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
-	//func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
-
-	fmt.Println("prepare:", r.Body)
 
 	var prepare Prepare
 
@@ -87,8 +84,6 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	fmt.Println("body:", body)
 
 	if err := json.Unmarshal(body, &prepare); err != nil {
 		fmt.Printf("Could not decode the request body as JSON: %v", err)
@@ -100,9 +95,6 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	to := prepare.To
 	amount := prepare.Amount
 	pubKey, _ := hex.DecodeString(prepare.PubKey)
-
-	fmt.Println("prepare:", prepare)
-	fmt.Println("pubKey:", pubKey)
 
 	if !blockchain.ValidateAddress(from) {
 		log.Panic("ERROR: Sender address is not valid")

@@ -2,7 +2,6 @@ package utils
 
 import (
 	"bytes"
-	"fmt"
 	"math/big"
 )
 
@@ -47,9 +46,6 @@ func Base58Decode(input []byte) []byte {
 	decoded := result.Bytes()
 
 	// Fix address version processing in Base58 encoding/decoding
-	fmt.Printf("input: %x\n", input)
-	fmt.Printf("input[0]: %x\n", input[0])
-	fmt.Printf("b58Alphabet[0]: %x\n", b58Alphabet[0])
 	if input[0] == b58Alphabet[0] {
 		decoded = append([]byte{0x00}, decoded...)
 	}
