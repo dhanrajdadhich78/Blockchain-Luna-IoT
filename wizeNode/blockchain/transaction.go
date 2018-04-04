@@ -30,6 +30,11 @@ type TransactionToSign struct {
 	DataToSign []string
 }
 
+type TransactionWithSignatures struct {
+	TxID       []byte
+	Signatures []string
+}
+
 // IsCoinbase checks whether the transaction is coinbase
 func (tx Transaction) IsCoinbase() bool {
 	return len(tx.Vin) == 1 && len(tx.Vin[0].Txid) == 0 && tx.Vin[0].Vout == -1
@@ -102,6 +107,31 @@ func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) *Transactio
 	}
 
 	return &prepareToSign
+}
+
+func (tx *Transaction) SignPrepared(txSignatures *TransactionWithSignatures, prevTXs map[string]Transaction) {
+	if tx.IsCoinbase() {
+		return
+	}
+
+	for _, vin := range tx.Vin {
+		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
+			log.Panic("ERROR: Previous transaction is not correct")
+		}
+	}
+
+	txCopy := tx.TrimmedCopy()
+
+	for inID, _ := range txCopy.Vin {
+		//prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
+		//txCopy.Vin[inID].Signature = nil
+		//txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
+
+		signature := []byte(txSignatures.Signatures[inID])
+
+		tx.Vin[inID].Signature = signature
+		//txCopy.Vin[inID].PubKey = nil
+	}
 }
 
 func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
@@ -296,8 +326,6 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet 
 		for _, out := range outs {
 			// OLDTODO: delete
 			//fmt.Println("Output", out)
-
-			// TODO-34
 			input := TXInput{txID, out, nil, pubKey}
 			inputs = append(inputs, input)
 		}
@@ -312,27 +340,29 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet 
 	tx := Transaction{nil, inputs, outputs}
 	tx.ID = tx.Hash()
 
-	// TODO-34
 	return &tx, UTXOSet.Blockchain.PrepareTransactionToSign(&tx)
 }
 
+// SignUTXOTransaction signs a prepared transaction
+func SignUTXOTransaction(preparedTx *Transaction, txSignatures *TransactionWithSignatures, UTXOSet *UTXOSet) *Transaction {
+	UTXOSet.Blockchain.SignPreparedTransaction(preparedTx, txSignatures)
+	return preparedTx
+}
+
 // NewUTXOTransaction creates a new transaction
-// TODO-34
 func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	// TODO-34
 	if wallet == nil {
 		return nil
 	}
 
-	// TODO-34
 	pubKeyHash := HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
 	// OLDTODO: delete
-	//fmt.Printf("Sum of outputs %s", acc)
+	//fmt.Printf("Sum of outputs %d\n", acc)
 
 	if acc < amount {
 		log.Panic("ERROR: Not enough funds")
@@ -349,16 +379,12 @@ func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet)
 		for _, out := range outs {
 			// OLDTODO: delete
 			//fmt.Println("Output", out)
-
-			// TODO-34
 			input := TXInput{txID, out, nil, wallet.PublicKey}
 			inputs = append(inputs, input)
 		}
 	}
 
 	// Build a list of outputs
-
-	// TODO-34
 	from := fmt.Sprintf("%s", wallet.GetAddress())
 	outputs = append(outputs, *NewTXOutput(amount, to))
 	if acc > amount {
@@ -368,9 +394,7 @@ func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet)
 	tx := Transaction{nil, inputs, outputs}
 	tx.ID = tx.Hash()
 
-	// TODO-34
 	UTXOSet.Blockchain.SignTransaction(&tx, wallet.PrivateKey)
-
 	return &tx
 }
 

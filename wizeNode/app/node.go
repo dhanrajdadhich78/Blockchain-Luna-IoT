@@ -70,6 +70,7 @@ func (node *Node) newApiServer() *http.Server {
 	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
 
 	router.HandleFunc("/prepare", node.prepare).Methods("POST")
+	router.HandleFunc("/sign", node.sign).Methods("POST")
 	router.HandleFunc("/send", node.send).Methods("POST")
 
 	return &http.Server{

@@ -324,6 +324,20 @@ func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction) *TransactionToSi
 	return tx.PrepareToSign(prevTXs)
 }
 
+func (bc *Blockchain) SignPreparedTransaction(preparedTx *Transaction, txSignatures *TransactionWithSignatures) {
+	prevTXs := make(map[string]Transaction)
+
+	for _, vin := range preparedTx.Vin {
+		prevTX, err := bc.FindTransaction(vin.Txid)
+		if err != nil {
+			log.Panic(err)
+		}
+		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
+	}
+
+	preparedTx.SignPrepared(txSignatures, prevTXs)
+}
+
 func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
 	prevTXs := make(map[string]Transaction)
 
