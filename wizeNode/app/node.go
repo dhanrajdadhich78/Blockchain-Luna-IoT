@@ -62,15 +62,21 @@ func (node *Node) newApiServer() *http.Server {
 	router.PathPrefix("/doc/").Handler(http.StripPrefix("/doc/", http.FileServer(http.Dir("./apidoc"))))
 	router.HandleFunc("/", middleware.HandleFunc(node.sayHello)).Methods("GET")
 
+	// inner usage
 	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
 	router.HandleFunc("/block/{hash}", middleware.HandleFunc(node.getBlock)).Methods("GET")
 
+	// DEPRECATED: inner usage
 	router.HandleFunc("/wallet/new", middleware.HandleFunc(node.createWallet)).Methods("POST")
-	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
-	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallet)).Methods("GET")
+	// DEPRECATED: inner usage
+	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallets)).Methods("GET")
 
+	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
+	// send transaction steps: prepare/sign
 	router.HandleFunc("/prepare", node.prepare).Methods("POST")
 	router.HandleFunc("/sign", node.sign).Methods("POST")
+
+	// DEPRECATED: inner usage
 	router.HandleFunc("/send", node.send).Methods("POST")
 
 	return &http.Server{
