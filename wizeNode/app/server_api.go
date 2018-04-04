@@ -205,7 +205,7 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	}
 	from := send.From
 	to := send.To
-	//amount := send.Amount
+	amount := send.Amount
 	mineNow := send.MineNow
 	if !blockchain.ValidateAddress(from) {
 		log.Panic("ERROR: Sender address is not valid")
@@ -216,22 +216,18 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
-	// TODO-34
-	//wallets, err := blockchain.NewWallets(node.nodeID)
-	//if err != nil {
-	//	log.Panic(err)
-	//}
-	//wallet := wallets.GetWallet(from)
+	wallets, err := blockchain.NewWallets(node.nodeID)
+	if err != nil {
+		log.Panic(err)
+	}
+	wallet := wallets.GetWallet(from)
 
-	//if wallet == nil {
-	//	fmt.Println("The Address doesn't belongs to you!")
-	//	return
-	//}
+	if wallet == nil {
+		fmt.Println("The Address doesn't belongs to you!")
+		return
+	}
 
-	// TODO-34
-	//wallet := nil
-	//tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
-	tx := &blockchain.Transaction{}
+	tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
