@@ -468,7 +468,8 @@ func (s *TCPServer) handleTx(request []byte) {
 
 			for id := range s.mempool {
 				tx := s.mempool[id]
-				if s.bc.VerifyTransaction(&tx) {
+				check, err := s.bc.VerifyTransaction(&tx)
+				if check && err == nil {
 					txs = append(txs, &tx)
 				}
 			}

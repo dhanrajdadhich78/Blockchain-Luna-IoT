@@ -215,14 +215,14 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 }
 
 // Verify verifies signatures of Transaction inputs
-func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
+func (tx *Transaction) Verify(prevTXs map[string]Transaction) (bool, error) {
 	if tx.IsCoinbase() {
-		return true
+		return true, nil
 	}
 
 	for _, vin := range tx.Vin {
 		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
-			log.Panic("ERROR: Previous transaction is not correct")
+			return false, fmt.Errorf("ERROR: Previous transaction is not correct")
 		}
 	}
 
@@ -250,12 +250,12 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) bool {
 
 		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
 		if ecdsa.Verify(&rawPubKey, []byte(dataToVerify), &r, &s) == false {
-			return false
+			return false, fmt.Errorf("ERROR: Verify return false")
 		}
 		txCopy.Vin[inID].PubKey = nil
 	}
 
-	return true
+	return true, nil
 }
 
 // NewCoinbaseTX creates a new coinbase transaction

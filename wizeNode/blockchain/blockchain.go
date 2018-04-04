@@ -267,8 +267,10 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 
 	for _, tx := range transactions {
 		// TODO: ignore transaction if it's not valid
-		if bc.VerifyTransaction(tx) != true {
-			log.Panic("ERROR: Invalid transaction")
+		check, err := bc.VerifyTransaction(tx)
+		if err != nil || !check {
+			fmt.Println("ERROR: Invalid transaction")
+			return nil
 		}
 	}
 
@@ -353,16 +355,16 @@ func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey)
 }
 
 // VerifyTransaction verifies transaction input signatures
-func (bc *Blockchain) VerifyTransaction(tx *Transaction) bool {
+func (bc *Blockchain) VerifyTransaction(tx *Transaction) (bool, error) {
 	if tx.IsCoinbase() {
-		return true
+		return true, nil
 	}
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.Vin {
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
-			log.Panic(err)
+			return false, err
 		}
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
