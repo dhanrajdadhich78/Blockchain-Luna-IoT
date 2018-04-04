@@ -142,7 +142,7 @@ func ngetBalance(t *testing.T, address, nodeID string) int {
 	return balance
 }
 
-func TestScenario1(t *testing.T) {
+func testScenario1(t *testing.T) {
 	nclearData()
 
 	os.MkdirAll("files/db", 0775)

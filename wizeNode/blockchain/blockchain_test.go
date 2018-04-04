@@ -122,7 +122,7 @@ func newBlock(t *testing.T, bc *Blockchain) *Block {
 	return NewBlock(nil, lastHash, lastHeight+1)
 }
 
-func TestBlockchainJustCreating(t *testing.T) {
+func testBlockchainJustCreating(t *testing.T) {
 	clearData()
 
 	os.MkdirAll("files/db", 0775)
@@ -147,7 +147,7 @@ func TestBlockchainJustCreating(t *testing.T) {
 	clearData()
 }
 
-func TestBlockchainCreatingAndAddingBlock(t *testing.T) {
+func testBlockchainCreatingAndAddingBlock(t *testing.T) {
 	clearData()
 
 	os.MkdirAll("files/db", 0775)
