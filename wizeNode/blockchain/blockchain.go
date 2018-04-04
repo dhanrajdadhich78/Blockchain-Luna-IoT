@@ -269,7 +269,7 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 		// TODO: ignore transaction if it's not valid
 		check, err := bc.VerifyTransaction(tx)
 		if err != nil || !check {
-			fmt.Println("ERROR: Invalid transaction")
+			fmt.Printf("ERROR: Invalid transaction: %v\n", err)
 			return nil
 		}
 	}
@@ -284,10 +284,17 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 		return nil
 	})
 	if err != nil {
-		log.Panic(err)
+		fmt.Printf("ERROR: db.View %v\n", err)
+		return nil
+		//log.Panic(err)
 	}
 
 	newBlock := NewBlock(transactions, lastHash, lastHeight+1)
+
+	if newBlock == nil {
+		fmt.Printf("ERROR: NewBlock returns nil")
+		return nil
+	}
 
 	err = bc.Db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(blocksBucket))
@@ -298,7 +305,9 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 
 		err = b.Put([]byte("l"), newBlock.Hash)
 		if err != nil {
-			log.Panic(err)
+			fmt.Printf("ERROR: b.Put %v\n", err)
+			return nil
+			//log.Panic(err)
 		}
 
 		bc.tip = newBlock.Hash
@@ -306,7 +315,9 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 		return nil
 	})
 	if err != nil {
-		log.Panic(err)
+		fmt.Printf("ERROR: db.Update %v\n", err)
+		return nil
+		//log.Panic(err)
 	}
 	return newBlock
 }

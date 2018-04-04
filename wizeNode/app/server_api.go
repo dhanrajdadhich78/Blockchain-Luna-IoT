@@ -236,13 +236,19 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 		Signatures: signatures,
 	}
 
+	respsuccess := true
+
 	tx := blockchain.SignUTXOTransaction(preparedTx, txSignatures, &UTXOSet)
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
 
 		newBlock := node.blockchain.MineBlock(txs)
-		UTXOSet.Update(newBlock)
+		if newBlock != nil {
+			UTXOSet.Update(newBlock)
+		} else {
+			respsuccess = false
+		}
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
@@ -253,7 +259,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	delete(node.preparedTxs, txid)
 
 	resp := map[string]interface{}{
-		"success": true,
+		"success": respsuccess,
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
