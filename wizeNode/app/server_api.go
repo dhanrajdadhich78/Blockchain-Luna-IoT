@@ -147,13 +147,13 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	var prepare Prepare
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		fmt.Printf("Failed to read the request body: %v", err)
+		fmt.Printf("Failed to read the request body: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err := json.Unmarshal(body, &prepare); err != nil {
-		fmt.Printf("Could not decode the request body as JSON: %v", err)
+		fmt.Printf("Could not decode the request body as JSON: %v\n", err)
 		sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 		return
 	}
@@ -200,13 +200,13 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 
 	if err != nil {
-		fmt.Printf("Failed to read the request body: %v", err)
+		fmt.Printf("Failed to read the request body: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if err := json.Unmarshal(body, &sign); err != nil {
-		fmt.Printf("Could not decode the request body as JSON: %v", err)
+		fmt.Printf("Could not decode the request body as JSON: %v\n", err)
 		sendErrorMessage(w, "Could not decode the request body as JSON", http.StatusBadRequest)
 		return
 	}
