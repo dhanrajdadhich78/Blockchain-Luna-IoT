@@ -1,6 +1,6 @@
 ## Setup
 
-**go version go1.9.2**
+**go version go1.9.2+**
 
 **linux/mac os x required (_Doesn't support windows now_)**
 

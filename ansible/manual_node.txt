@@ -1,0 +1,28 @@
+PREPARE MACHINE TO DEPLOY
+
+This machine is to deploy application remotely to the servers listed in hosts file.
+
+First you need to install prerequisites
+--------------------------------------------------
+# Update system
+apt -y update && apt -y upgrade
+
+# Install python
+apt -y install python2.7 python
+
+# Install ansible
+apt-add-repository --yes ppa:ansible/ansible
+apt -y update && apt -y install ansible
+--------------------------------------------------
+
+Prepare remote machines to deploy
+--------------------------------------------------
+# You need to add SSH key of deploy machine to remote (destination) machines.
+# Fill the addresses of the servers to the hosts list and check their connection though ansible module ping
+ansible -i hosts -m ping all
+--------------------------------------------------
+
+Start deploy script
+--------------------------------------------------
+ansible-playbook -i hosts wizebit_node.yml
+--------------------------------------------------
