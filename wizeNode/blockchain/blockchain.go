@@ -323,7 +323,7 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 }
 
 // SignTransaction signs inputs of a Transaction
-func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction) *TransactionToSign {
+func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction, privKey ecdsa.PrivateKey) *TransactionToSign {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.Vin {
@@ -334,7 +334,7 @@ func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction) *TransactionToSi
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
 
-	return tx.PrepareToSign(prevTXs)
+	return tx.PrepareToSign(privKey, prevTXs)
 }
 
 func (bc *Blockchain) SignPreparedTransaction(preparedTx *Transaction, txSignatures *TransactionWithSignatures) {

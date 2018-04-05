@@ -15,10 +15,11 @@ import (
 )
 
 type Prepare struct {
-	From   string
-	To     string
-	Amount int
-	PubKey string
+	From    string
+	To      string
+	Amount  int
+	PubKey  string
+	PrivKey string
 }
 
 type Sign struct {
@@ -162,9 +163,11 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	to := prepare.To
 	amount := prepare.Amount
 	pubKey, _ := hex.DecodeString(prepare.PubKey)
+	privKey, _ := hex.DecodeString(prepare.PrivKey)
 
 	fmt.Printf("from: %s, to: %s, amount: %d\n", from, to, amount)
 	fmt.Printf("pubkey: %s, pubkeyHex: %x\n", prepare.PubKey, pubKey)
+	fmt.Printf("privKey: %s, privKeyHex: %x\n", prepare.PrivKey, privKey)
 
 	if !blockchain.ValidateAddress(from) {
 		//log.Panic("ERROR: Sender address is not valid")
@@ -177,9 +180,13 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
-	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, &UTXOSet)
+	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, privKey, &UTXOSet)
 
 	//txid := fmt.Sprintf("%x", txToSign.TxID)
+
+	fmt.Printf("tx.ID: %x\n", tx.ID)
+	fmt.Printf("txToSign.ID: %x\n", txToSign.TxID)
+
 	txid := hex.EncodeToString(txToSign.TxID)
 
 	// add to Prepared-Transactions
@@ -188,9 +195,10 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("txid: %s, dataToSign count: %d\n", txid, len(txToSign.DataToSign))
 
 	resp := map[string]interface{}{
-		"success": true,
-		"txid":    txid,
-		"data":    txToSign.DataToSign,
+		"success":    true,
+		"txid":       txid,
+		"data":       txToSign.DataToSign,
+		"signatures": txToSign.Signatures,
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
@@ -218,12 +226,18 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("from: %s, txid: %s, signatures count: %d\n", from, txid, len(signatures))
 
+	fmt.Printf("signature0: %s\n", signatures[0])
+
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
 	TxID, _ := hex.DecodeString(txid)
 
 	// get from Prepared-Transactions
 	preparedTx, ok := node.preparedTxs[txid]
+
+	fmt.Printf("TxID: %x\n", TxID)
+	fmt.Printf("preparedTx: %x\n", preparedTx.ID)
+
 	if !ok {
 		fmt.Println("Could not get transaction by txid")
 		sendErrorMessage(w, "Could not get transaction by txid", http.StatusBadRequest)
