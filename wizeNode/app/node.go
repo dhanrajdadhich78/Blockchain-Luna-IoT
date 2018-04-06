@@ -14,6 +14,7 @@ import (
 	"github.com/betacraft/yaag/middleware"
 	"github.com/betacraft/yaag/yaag"
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 
 	bc "wizeBlock/wizeNode/blockchain"
 )
@@ -79,8 +80,10 @@ func (node *Node) newApiServer() *http.Server {
 	// DEPRECATED: inner usage
 	router.HandleFunc("/send", node.send).Methods("POST")
 
+	handler := cors.Default().Handler(router)
+
 	return &http.Server{
-		Handler: router,
+		Handler: handler,
 		Addr:    ":" + node.apiAddr,
 	}
 }
