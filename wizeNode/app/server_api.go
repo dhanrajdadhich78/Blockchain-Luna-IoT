@@ -125,20 +125,41 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
+
+	respsuccess := true
+
+	//
+	currentNodeAddress := fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID)
+	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
+
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
 
 		newBlock := node.blockchain.MineBlock(txs)
-		UTXOSet.Update(newBlock)
+		if newBlock != nil {
+			UTXOSet.Update(newBlock)
+		} else {
+			respsuccess = false
+		}
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
 		SendTx(KnownNodes[0], node.nodeID, tx)
 	}
 
+	//
+	if respsuccess {
+		for _, value := range KnownNodes {
+			fmt.Printf("value: %s\n", value)
+			if value != currentNodeAddress {
+				sendVersion(value, currentNodeAddress, node.blockchain)
+			}
+		}
+	}
+
 	resp := map[string]interface{}{
-		"success": true,
+		"success": respsuccess,
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
