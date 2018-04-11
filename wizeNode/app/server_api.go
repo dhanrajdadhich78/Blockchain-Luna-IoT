@@ -15,10 +15,11 @@ import (
 )
 
 type Prepare struct {
-	From   string
-	To     string
-	Amount int
-	PubKey string
+	From    string
+	To      string
+	Amount  int
+	PubKey  string
+	PrivKey string
 }
 
 type Sign struct {
@@ -124,20 +125,41 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tx := blockchain.NewUTXOTransaction(wallet, to, amount, &UTXOSet)
+
+	respsuccess := true
+
+	//
+	currentNodeAddress := fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID)
+	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
+
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
 
 		newBlock := node.blockchain.MineBlock(txs)
-		UTXOSet.Update(newBlock)
+		if newBlock != nil {
+			UTXOSet.Update(newBlock)
+		} else {
+			respsuccess = false
+		}
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
 		SendTx(KnownNodes[0], node.nodeID, tx)
 	}
 
+	//
+	if respsuccess {
+		for _, value := range KnownNodes {
+			fmt.Printf("value: %s\n", value)
+			if value != currentNodeAddress {
+				sendVersion(value, currentNodeAddress, node.blockchain)
+			}
+		}
+	}
+
 	resp := map[string]interface{}{
-		"success": true,
+		"success": respsuccess,
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
@@ -162,9 +184,11 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	to := prepare.To
 	amount := prepare.Amount
 	pubKey, _ := hex.DecodeString(prepare.PubKey)
+	privKey, _ := hex.DecodeString(prepare.PrivKey)
 
 	fmt.Printf("from: %s, to: %s, amount: %d\n", from, to, amount)
 	fmt.Printf("pubkey: %s, pubkeyHex: %x\n", prepare.PubKey, pubKey)
+	fmt.Printf("privKey: %s, privKeyHex: %x\n", prepare.PrivKey, privKey)
 
 	if !blockchain.ValidateAddress(from) {
 		//log.Panic("ERROR: Sender address is not valid")
@@ -177,9 +201,13 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
-	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, &UTXOSet)
+	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, privKey, &UTXOSet)
 
 	//txid := fmt.Sprintf("%x", txToSign.TxID)
+
+	fmt.Printf("tx.ID: %x\n", tx.ID)
+	fmt.Printf("txToSign.ID: %x\n", txToSign.TxID)
+
 	txid := hex.EncodeToString(txToSign.TxID)
 
 	// add to Prepared-Transactions
@@ -188,10 +216,14 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("txid: %s, dataToSign count: %d\n", txid, len(txToSign.DataToSign))
 
 	resp := map[string]interface{}{
-		"success": true,
-		"txid":    txid,
-		"data":    txToSign.DataToSign,
+		"success":    true,
+		"txid":       txid,
+		"data":       txToSign.DataToSign,
+		"signatures": txToSign.Signatures,
 	}
+
+	//fmt.Println("resp:", resp)
+
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
@@ -218,12 +250,18 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("from: %s, txid: %s, signatures count: %d\n", from, txid, len(signatures))
 
+	fmt.Printf("signature0: %s\n", signatures[0])
+
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
 	TxID, _ := hex.DecodeString(txid)
 
 	// get from Prepared-Transactions
 	preparedTx, ok := node.preparedTxs[txid]
+
+	fmt.Printf("TxID: %x\n", TxID)
+	fmt.Printf("preparedTx: %x\n", preparedTx.ID)
+
 	if !ok {
 		fmt.Println("Could not get transaction by txid")
 		sendErrorMessage(w, "Could not get transaction by txid", http.StatusBadRequest)
@@ -239,6 +277,11 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	respsuccess := true
 
 	tx := blockchain.SignUTXOTransaction(preparedTx, txSignatures, &UTXOSet)
+
+	//
+	currentNodeAddress := fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID)
+	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
+
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
@@ -252,7 +295,17 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
-		SendTx(KnownNodes[0], node.nodeID, tx)
+		SendTx(KnownNodes[0], currentNodeAddress, tx)
+	}
+
+	//
+	if respsuccess {
+		for _, value := range KnownNodes {
+			fmt.Printf("value: %s\n", value)
+			if value != currentNodeAddress {
+				sendVersion(value, currentNodeAddress, node.blockchain)
+			}
+		}
 	}
 
 	// remove from Prepared-Transactions
@@ -337,11 +390,18 @@ func (node *Node) getBlock(w http.ResponseWriter, r *http.Request) {
 }
 
 func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
-	response, _ := json.Marshal(payload)
+	response, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Printf("ERROR: respondWithJSON: %v\n", err)
+	}
+
+	fmt.Printf("Payload: %v\n", payload)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	w.Write(response)
+
+	//fmt.Printf("response: %v\n", response)
 }
 
 func sendErrorMessage(w http.ResponseWriter, msg string, status int) {

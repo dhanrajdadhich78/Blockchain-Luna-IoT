@@ -28,6 +28,7 @@ type Transaction struct {
 type TransactionToSign struct {
 	TxID       []byte
 	DataToSign []string
+	Signatures []string
 }
 
 type TransactionWithSignatures struct {
@@ -66,7 +67,7 @@ func (tx *Transaction) Hash() []byte {
 }
 
 // Sign signs each input of a Transaction
-func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) *TransactionToSign {
+func (tx *Transaction) PrepareToSign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) *TransactionToSign {
 	if tx.IsCoinbase() {
 		return nil
 	}
@@ -82,6 +83,7 @@ func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) *Transactio
 	prepareToSign := TransactionToSign{
 		TxID:       tx.ID,
 		DataToSign: make([]string, len(txCopy.Vin)),
+		Signatures: make([]string, len(txCopy.Vin)),
 	}
 
 	for inID, vin := range txCopy.Vin {
@@ -92,14 +94,17 @@ func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) *Transactio
 		//// Signing
 		dataToSign := fmt.Sprintf("%x\n", txCopy)
 
-		//r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
-		//if err != nil {
-		//	log.Panic(err)
-		//}
+		r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
+		if err != nil {
+			log.Panic(err)
+		}
 
-		//signature := append(r.Bytes(), s.Bytes()...)
+		signature := append(r.Bytes(), s.Bytes()...)
+
+		fmt.Printf("A signature: %s\n", hex.EncodeToString(signature))
 
 		prepareToSign.DataToSign[inID] = dataToSign
+		prepareToSign.Signatures[inID] = hex.EncodeToString(signature)
 
 		// another function
 		//tx.Vin[inID].Signature = signature
@@ -127,7 +132,8 @@ func (tx *Transaction) SignPrepared(txSignatures *TransactionWithSignatures, pre
 		//txCopy.Vin[inID].Signature = nil
 		//txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
 
-		signature := []byte(txSignatures.Signatures[inID])
+		signature, _ := hex.DecodeString(txSignatures.Signatures[inID])
+		fmt.Printf("B signature: %x\n", signature)
 
 		tx.Vin[inID].Signature = signature
 		//txCopy.Vin[inID].PubKey = nil
@@ -297,9 +303,27 @@ func NewEmissionCoinbaseTX(to, data string, emission int) *Transaction {
 }
 
 // PrepareUTXOTransaction prepare a new transaction
-func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet *UTXOSet) (*Transaction, *TransactionToSign) {
+func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, privKey []byte, UTXOSet *UTXOSet) (*Transaction, *TransactionToSign) {
 	var inputs []TXInput
 	var outputs []TXOutput
+
+	//
+	ECDSAKeyX := pubKey[:64]
+	ECDSAKeyY := pubKey[64:]
+
+	keyD := new(big.Int)
+	keyX := new(big.Int)
+	keyY := new(big.Int)
+	keyD.SetBytes(privKey)
+	keyX.SetBytes(ECDSAKeyX)
+	keyY.SetBytes(ECDSAKeyY)
+
+	publicKey := ecdsa.PublicKey{
+		Curve: elliptic.P256(),
+		X:     keyX,
+		Y:     keyY,
+	}
+	privateKey := ecdsa.PrivateKey{D: keyD, PublicKey: publicKey}
 
 	pubKeyHash := HashPubKey(pubKey)
 	fmt.Printf("pubKeyHash %x\n", pubKeyHash)
@@ -339,8 +363,9 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet 
 
 	tx := Transaction{nil, inputs, outputs}
 	tx.ID = tx.Hash()
+	fmt.Printf("tx.ID: %x\n", tx.ID)
 
-	return &tx, UTXOSet.Blockchain.PrepareTransactionToSign(&tx)
+	return &tx, UTXOSet.Blockchain.PrepareTransactionToSign(&tx, privateKey)
 }
 
 // SignUTXOTransaction signs a prepared transaction
