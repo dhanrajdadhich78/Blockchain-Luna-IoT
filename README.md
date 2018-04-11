@@ -5,12 +5,14 @@
 **linux/mac os x required (_Doesn't support windows now_)**
 
 For start cluster:
-- install docker-ce
+- install Docker-CE: https://www.docker.com/community-edition
+- install Docker Compose: https://docs.docker.com/compose/install/
 - run bash start_cluster.sh
 
-connect to blockchain node on localhost:4000 // postman collection can be found in root folder of project
+Connect URL to blockchain node is localhost:4000.
+Connect URL to raft node is localhost:11001.
 
-connect to raft node on localhost:11001  //postman collection comming soon
+Postman collection can be found in root folder of project.
 
 
 # How It Works
@@ -26,7 +28,7 @@ In blockchain it’s blocks that store valuable information, in particular, tran
 A transaction is a combination of inputs and outputs. Inputs of a new transaction reference outputs of a previous transaction. Outputs are where coins are actually stored.
 
 
-## Blockchain in Details: wallets, merkle tree, utxo
+## Blockchain in Details: wallets
 
 
 In WizeBlock, your identity is a pair of private and public keys stored on your computer (or stored in some other place you have access to). A wallet is nothing but a key pair. In the construction of wallet a new key pair is generated with ECDSA which is based on elliptic curves. A private key is generated using the curve, and a public key is generated from the private key. One thing to notice: in elliptic curve based algorithms, public keys are points on a curve. Thus, a public key is a combination of X, Y coordinates.
@@ -34,14 +36,6 @@ In WizeBlock, your identity is a pair of private and public keys stored on your 
 If you want to send coins to someone, you need to know their address. But addresses (despite being unique) are not something that identifies you as the owner of a “wallet”. In fact, such addresses are a human readable representation of public keys. The address generation algorithm utilizes a combination of open algorithms that takes a public key and returns real Base58-based address.
 
 Currently WizeBlock has generating wallets on the WizeBlock node side, but in the next version wallets will generate on the user side in the Desktop application.
-
-
-### merklee tree
-### utxo
-
-
-## Blockchain TODO
-
 
 
 # Network
@@ -102,16 +96,32 @@ Proof-of-Work algorithms must meet a requirement: doing the work is hard, but ve
 
 WizeBlock uses Hashcash, a Proof-of-Work algorithm that was initially developed to prevent email spam. This is a brute force algorithm: you change the counter, calculate a new hash, check it, increment the counter, calculate a hash, etc. That’s why it’s computationally expensive.
 
+More about Hashcash: https://en.wikipedia.org/wiki/Hashcash
+
 
 ## Mining todo
 
 
 # Encryption
 
-## hashing algoritms and hashcash - 1-2*
-## wallet key pair generating - 5*
-## transaction signing and verification - 5-6*
-## encryption todo
+
+## Hashing algoritms
+
+
+Hashing is a process of obtaining a hash for specified data. A hash is a unique representation of the data it was calculated on. A hash function is a function that takes data of arbitrary size and produces a fixed size hash. Hashing functions are widely used to check the consistency of data. Some software providers publish checksums in addition to a software package.
+
+In blockchain, hashing is used to guarantee the consistency of a block. The input data for a hashing algorithm contains the hash of the previous block, thus making it impossible (or, at least, quite difficult) to modify a block in the chain: one has to recalculate its hash and hashes of all the blocks after it.
+
+More about hashing: https://en.bitcoin.it/wiki/Block_hashing_algorithm
+
+
+## ECDSA
+
+
+WizeBlock uses elliptic curves to generate private keys. Elliptic curves is a complex mathematical concept, which we’re not going to explain in details here. What we need to know is that these curves can be used to generate really big and random numbers. The curve used by WizeBlock can randomly pick a number between 0 and 2²⁵⁶ (which is approximately 10⁷⁷, when there are between 10⁷⁸ and 10⁸² atoms in the visible universe). Such a huge upper limit means that it’s almost impossible to generate the same private key twice.
+
+Also, WizeBlock uses ECDSA (Elliptic Curve Digital Signature Algorithm) algorithm to sign transactions.
+
 
 # Future Features
 
