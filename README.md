@@ -12,7 +12,9 @@ connect to blockchain node on localhost:4000 // postman collection can be found 
 
 connect to raft node on localhost:11001  //postman collection comming soon
 
+
 # How It Works
+
 
 ## Blockchain Basic: blocks, transactions
 
@@ -44,6 +46,7 @@ Currently WizeBlock has generating wallets on the WizeBlock node side, but in th
 
 # Network
 
+
 ## Network nodes and their roles
 
 
@@ -55,7 +58,7 @@ We’ll have three node roles:
 - A wallet node. This node will be used to send coins between wallets. It’ll store a full copy of blockchain.
 
 
-## tcp service
+## Network Messages
 
 
 Nodes communicate by the means of messages.
@@ -71,18 +74,37 @@ Message **getdata** is a request for certain block or transaction, and it can co
 Messages **block** and **tx** actually transfer the data.
 
 
-## rest service
+## REST Service
 
 
+WizeBlock provides a REST service with next API:
+- Create Wallet (nodeAddress:nodePort/wallet/new) returns wallet info (private and public keys, base58-based address)
+- Get Wallet (nodeAddress:nodePort/wallet/{wallet_address}) returns wallet details (wallet balance)
+- Send Transaction (nodeAddress:nodePort/send) with POST parameters: from_address, to_address, amount value and minenow flag; minenow flag is used for mining new blocks, if it is true new block will mine, and if it false the Miner nodes receives the transaction and keeps it in its memory pool and when there are enough transactions in the memory pool, the miner starts mining a new block
 
 
+## Network todo
 
-## network todo
 
 # Mining
 
-## mining algorithm - proof of work
-## mining todo
+
+## Mining algorithm, proof-of-work
+
+
+A key idea of blockchain is that one has to perform some hard work to put data in it. It is this hard work that makes blockchain secure and consistent. Also, a reward is paid for this hard work (this is how people get coins for mining).
+
+In blockchain, some participants (miners) of the network work to sustain the network, to add new blocks to it, and get a reward for their work. As a result of their work, a block is incorporated into the blockchain in a secure way, which maintains the stability of the whole blockchain database. It’s worth noting that, the one who finished the work has to prove this.
+
+This whole “do hard work and prove” mechanism is called proof-of-work. It’s hard because it requires a lot of computational power: even high performance computers cannot do it quickly.
+
+Proof-of-Work algorithms must meet a requirement: doing the work is hard, but verifying the proof is easy. A proof is usually handed to someone else, so for them, it shouldn’t take much time to verify it.
+
+WizeBlock uses Hashcash, a Proof-of-Work algorithm that was initially developed to prevent email spam. This is a brute force algorithm: you change the counter, calculate a new hash, check it, increment the counter, calculate a hash, etc. That’s why it’s computationally expensive.
+
+
+## Mining todo
+
 
 # Encryption
 
@@ -91,5 +113,5 @@ Messages **block** and **tx** actually transfer the data.
 ## transaction signing and verification - 5-6*
 ## encryption todo
 
-# Furure Features
+# Future Features
 
