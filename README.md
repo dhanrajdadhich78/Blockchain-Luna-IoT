@@ -1,5 +1,6 @@
 
-Using WizeBit as an alternative WEB network
+#Using WizeBit as an alternative WEB network.
+
 	Today, an ever-increasing problem of the WEB network is the restriction of information dissemination by regulators, censorship, restriction of anonymity and freedom of expression.
 	The developed software and network complex WizeBit has in its architectural basis all the necessary capabilities to provide the end user with services that solve the above-mentioned shortcomings of the existing WEB network. To solve the described problem, developers need to develop 2 basic tools that allow to emulate web sites inside the WizeBit network. It is necessary to develop:
 
