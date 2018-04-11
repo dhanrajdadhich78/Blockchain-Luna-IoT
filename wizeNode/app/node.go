@@ -80,10 +80,10 @@ func (node *Node) newApiServer() *http.Server {
 	// DEPRECATED: inner usage
 	router.HandleFunc("/send", node.send).Methods("POST")
 
-	handler := cors.Default().Handler(router)
+	corsHandler := cors.Default().Handler(router)
 
 	return &http.Server{
-		Handler: handler,
+		Handler: corsHandler,
 		Addr:    ":" + node.apiAddr,
 	}
 }
