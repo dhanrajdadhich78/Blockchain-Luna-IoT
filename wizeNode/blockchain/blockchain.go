@@ -2,7 +2,7 @@ package blockchain
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
+	ecdsa "wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/utils"
 )
 

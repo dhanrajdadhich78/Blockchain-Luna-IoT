@@ -2,14 +2,15 @@ package blockchain
 
 import (
 	"bytes"
-	"crypto/ecdsa"
-	"crypto/elliptic"
+	//"crypto/ecdsa"
+	//"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
 	"log"
 
 	"golang.org/x/crypto/ripemd160"
 
+	ecdsa "wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/utils"
 )
 
@@ -85,8 +86,8 @@ func Checksum(payload []byte) []byte {
 }
 
 func NewKeyPair() (ecdsa.PrivateKey, []byte) {
-	curve := elliptic.P256()
-	private, err := ecdsa.GenerateKey(curve, rand.Reader)
+	//curve := elliptic.P256()
+	private, err := ecdsa.GenerateKey(nil, rand.Reader)
 	if err != nil {
 		log.Panic(err)
 	}

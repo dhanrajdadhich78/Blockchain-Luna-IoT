@@ -2,7 +2,7 @@ package blockchain
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"strings"
 
+	ecdsa "wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/utils"
 )
 
