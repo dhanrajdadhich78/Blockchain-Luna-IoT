@@ -68,6 +68,7 @@ func (node *Node) newApiServer() *http.Server {
 	router.HandleFunc("/block/{hash}", middleware.HandleFunc(node.getBlock)).Methods("GET")
 
 	// DEPRECATED: inner usage
+	// TODO: what is middleware.HandleFunc() doing here?
 	router.HandleFunc("/wallet/new", middleware.HandleFunc(node.createWallet)).Methods("POST")
 	// DEPRECATED: inner usage
 	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallets)).Methods("GET")
@@ -78,6 +79,7 @@ func (node *Node) newApiServer() *http.Server {
 	router.HandleFunc("/sign", node.sign).Methods("POST")
 
 	// DEPRECATED: inner usage
+	// TODO: why there is not middleware.HandleFunc()?
 	router.HandleFunc("/send", node.send).Methods("POST")
 
 	corsHandler := cors.Default().Handler(router)
