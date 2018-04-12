@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	//"encoding/hex"
 	"io"
-	//"log"
+	"log"
 	"math/big"
 
 	"github.com/btccom/secp256k1-go/secp256k1"
@@ -65,7 +65,7 @@ func GenerateKey(c elliptic.Curve, rand io.Reader) (*PrivateKey, error) {
 	}
 	// publicKey has 65 bytes when Uncompressesed
 	// first byte equals 0x04
-	//log.Printf("Public Key: %+v\n", hex.EncodeToString(publicKey[:]))
+	//log.Printf("Public Key:   %s\n", hex.EncodeToString(publicKey[:]))
 	//log.Printf("Public Key X: %s\n", hex.EncodeToString(publicKey[1:33]))
 	//log.Printf("Public Key Y: %s\n", hex.EncodeToString(publicKey[33:]))
 
@@ -81,7 +81,6 @@ func GenerateKey(c elliptic.Curve, rand io.Reader) (*PrivateKey, error) {
 }
 
 func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err error) {
-	// get ctx, privateKey
 	// context
 	params := uint(secp256k1.ContextSign | secp256k1.ContextVerify)
 	ctx, err := secp256k1.ContextCreate(params)
@@ -117,4 +116,49 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
 	secp256k1.ContextDestroy(ctx)
 
 	return r, s, nil
+}
+
+// TODO: To avoid accepting malleable signature, only ECDSA
+// signatures in lower-S form are accepted. If you need to accept ECDSA
+// sigantures from sources that do not obey this rule, apply
+// EcdsaSignatureNormalize() prior to validation (however, this results in
+// malleable signatures)
+func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool {
+	// context
+	params := uint(secp256k1.ContextSign | secp256k1.ContextVerify)
+	ctx, err := secp256k1.ContextCreate(params)
+	if err != nil {
+		log.Printf("Error: %s", err)
+		return false
+	}
+	//log.Printf("%+v\n", ctx)
+
+	signature := append(r.Bytes(), s.Bytes()...)
+	_, ecdsaSignature, err := secp256k1.EcdsaSignatureParseCompact(ctx, signature)
+	if err != nil {
+		log.Printf("Error: %s", err)
+		return false
+	}
+
+	publicKey := make([]byte, 1)
+	publicKey[0] = 0x04
+	publicKey = append(publicKey, pub.X.Bytes()...)
+	publicKey = append(publicKey, pub.Y.Bytes()...)
+	//log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
+	_, publicKeyStruct, err := secp256k1.EcPubkeyParse(ctx, publicKey)
+	if err != nil {
+		log.Printf("Error: %s", err)
+		return false
+	}
+
+	ret, err := secp256k1.EcdsaVerify(ctx, ecdsaSignature, hash, publicKeyStruct)
+	if err != nil {
+		log.Printf("Error: %s", err)
+		return false
+	}
+	log.Println("ret", ret)
+
+	secp256k1.ContextDestroy(ctx)
+
+	return ret == 1
 }
