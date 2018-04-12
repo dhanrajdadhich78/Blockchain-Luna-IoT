@@ -1,5 +1,7 @@
 FROM golang:1.9
 
+RUN apt-get update && apt-get install libgmp-dev -y
+
 # if left blank app will run with dev settings
 # to build production image run:
 # $ docker build ./nodeWize --build-args app_env=production
