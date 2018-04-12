@@ -3,9 +3,9 @@ package crypto
 import (
 	"crypto/elliptic"
 	"crypto/rand"
-	"encoding/hex"
+	//"encoding/hex"
 	"io"
-	"log"
+	//"log"
 	"math/big"
 
 	"github.com/btccom/secp256k1-go/secp256k1"
@@ -37,27 +37,27 @@ func GenerateKey(c elliptic.Curve, rand io.Reader) (*PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("%+v\n", ctx)
+	//log.Printf("%+v\n", ctx)
 
 	// generate private key
 	privateKey := rand32()
-	log.Printf("Private Key: %s\n", hex.EncodeToString(privateKey[:]))
-	res := secp256k1.ContextRandomize(ctx, privateKey)
-	log.Printf("Result of randomize: %d\n", res)
+	//log.Printf("Private Key: %s\n", hex.EncodeToString(privateKey[:]))
+	secp256k1.ContextRandomize(ctx, privateKey)
+	//log.Printf("Result of randomize: %d\n", res)
 
 	// verify private key
 	_, err = secp256k1.EcSeckeyVerify(ctx, privateKey[:])
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Verifying was successful\n")
+	//log.Printf("Verifying was successful\n")
 
 	// get the public key
 	_, publicKeyStruct, err := secp256k1.EcPubkeyCreate(ctx, privateKey[:])
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Public Key: %+v\n", publicKeyStruct)
+	//log.Printf("Public Key: %+v\n", publicKeyStruct)
 
 	_, publicKey, err := secp256k1.EcPubkeySerialize(ctx, publicKeyStruct, secp256k1.EcUncompressed)
 	if err != nil {
@@ -65,9 +65,9 @@ func GenerateKey(c elliptic.Curve, rand io.Reader) (*PrivateKey, error) {
 	}
 	// publicKey has 65 bytes when Uncompressesed
 	// first byte equals 0x04
-	log.Printf("Public Key: %+v\n", hex.EncodeToString(publicKey[:]))
-	log.Printf("Public Key X: %+v\n", hex.EncodeToString(publicKey[1:33]))
-	log.Printf("Public Key Y: %+v\n", hex.EncodeToString(publicKey[33:]))
+	//log.Printf("Public Key: %+v\n", hex.EncodeToString(publicKey[:]))
+	//log.Printf("Public Key X: %s\n", hex.EncodeToString(publicKey[1:33]))
+	//log.Printf("Public Key Y: %s\n", hex.EncodeToString(publicKey[33:]))
 
 	priv := new(PrivateKey)
 	priv.PublicKey.Curve = c
@@ -78,4 +78,43 @@ func GenerateKey(c elliptic.Curve, rand io.Reader) (*PrivateKey, error) {
 	secp256k1.ContextDestroy(ctx)
 
 	return priv, nil
+}
+
+func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err error) {
+	// get ctx, privateKey
+	// context
+	params := uint(secp256k1.ContextSign | secp256k1.ContextVerify)
+	ctx, err := secp256k1.ContextCreate(params)
+	if err != nil {
+		return nil, nil, err
+	}
+	//log.Printf("%+v\n", ctx)
+
+	privateKey := priv.D.Bytes()
+	_, ecdsaSignature, err := secp256k1.EcdsaSign(ctx, hash, privateKey)
+	if err != nil {
+		return nil, nil, err
+	}
+	//log.Printf("Signature: %+v\n", ecdsaSignature)
+
+	//_, serializedDer, err := secp256k1.EcdsaSignatureSerializeDer(ctx, ecdsaSignature)
+	//if err != nil {
+	//	return nil, nil, err
+	//}
+	//log.Printf("Signature DER: %s\n", hex.EncodeToString(serializedDer[:]))
+
+	_, serializedCompact, err := secp256k1.EcdsaSignatureSerializeCompact(ctx, ecdsaSignature)
+	if err != nil {
+		return nil, nil, err
+	}
+	//log.Printf("Signature Compact: %s\n", hex.EncodeToString(serializedCompact[:]))
+	//log.Printf("Signature R: %s\n", hex.EncodeToString(serializedCompact[:32]))
+	//log.Printf("Signature S: %s\n", hex.EncodeToString(serializedCompact[32:]))
+
+	r = new(big.Int).SetBytes(serializedCompact[:32])
+	s = new(big.Int).SetBytes(serializedCompact[32:])
+
+	secp256k1.ContextDestroy(ctx)
+
+	return r, s, nil
 }
