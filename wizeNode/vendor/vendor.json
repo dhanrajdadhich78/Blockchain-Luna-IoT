@@ -27,6 +27,12 @@
 			"revisionTime": "2017-09-07T20:20:52Z"
 		},
 		{
+			"checksumSHA1": "yDVluYffoZoOEwDxLCMi3WniRtA=",
+			"path": "github.com/btccom/secp256k1-go/secp256k1",
+			"revision": "f7178bcde5780809c6f819d62c3e7a37c635e749",
+			"revisionTime": "2017-09-20T14:31:46Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
