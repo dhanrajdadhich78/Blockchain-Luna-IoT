@@ -160,8 +160,10 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
 
 		dataToSign := fmt.Sprintf("%x\n", txCopy)
+		hashToSign := sha256.Sum256([]byte(dataToSign))
+		fmt.Printf("hashToSign: %x\n", hashToSign)
 
-		r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
+		r, s, err := ecdsa.Sign(rand.Reader, &privKey, hashToSign[:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -234,7 +236,7 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) (bool, error) {
 	}
 
 	txCopy := tx.TrimmedCopy()
-	curve := elliptic.P256()
+	//curve := elliptic.P256()
 
 	for inID, vin := range tx.Vin {
 		prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
@@ -254,9 +256,11 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) (bool, error) {
 		y.SetBytes(vin.PubKey[(keyLen / 2):])
 
 		dataToVerify := fmt.Sprintf("%x\n", txCopy)
+		hashToVerify := sha256.Sum256([]byte(dataToVerify))
+		fmt.Printf("hashToVerify: %x\n", hashToVerify)
 
-		rawPubKey := ecdsa.PublicKey{Curve: curve, X: &x, Y: &y}
-		if ecdsa.Verify(&rawPubKey, []byte(dataToVerify), &r, &s) == false {
+		rawPubKey := ecdsa.PublicKey{Curve: nil, X: &x, Y: &y}
+		if ecdsa.Verify(&rawPubKey, hashToVerify[:], &r, &s) == false {
 			return false, fmt.Errorf("ERROR: Verify return false")
 		}
 		txCopy.Vin[inID].PubKey = nil

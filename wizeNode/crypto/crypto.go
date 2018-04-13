@@ -3,7 +3,7 @@ package crypto
 import (
 	"crypto/elliptic"
 	"crypto/rand"
-	//"encoding/hex"
+	"encoding/hex"
 	"io"
 	"log"
 	"math/big"
@@ -89,6 +89,12 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
 	}
 	//log.Printf("%+v\n", ctx)
 
+	publicKey := make([]byte, 1)
+	publicKey[0] = 0x04
+	publicKey = append(publicKey, priv.PublicKey.X.Bytes()...)
+	publicKey = append(publicKey, priv.PublicKey.Y.Bytes()...)
+	log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
+
 	privateKey := priv.D.Bytes()
 	_, ecdsaSignature, err := secp256k1.EcdsaSign(ctx, hash, privateKey)
 	if err != nil {
@@ -144,7 +150,7 @@ func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool {
 	publicKey[0] = 0x04
 	publicKey = append(publicKey, pub.X.Bytes()...)
 	publicKey = append(publicKey, pub.Y.Bytes()...)
-	//log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
+	log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
 	_, publicKeyStruct, err := secp256k1.EcPubkeyParse(ctx, publicKey)
 	if err != nil {
 		log.Printf("Error: %s", err)
