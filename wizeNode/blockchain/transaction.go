@@ -17,7 +17,7 @@ import (
 	"wizeBlock/wizeNode/utils"
 )
 
-const subsidy = 10
+const subsidy = 0
 
 // Transaction represents a Bitcoin transaction
 type Transaction struct {
@@ -94,8 +94,11 @@ func (tx *Transaction) PrepareToSign(privKey ecdsa.PrivateKey, prevTXs map[strin
 
 		//// Signing
 		dataToSign := fmt.Sprintf("%x\n", txCopy)
+		//fmt.Printf("txCopy: %s\n", txCopy)
+		hashToSign := sha256.Sum256([]byte(dataToSign))
+		//fmt.Printf("hashToSign: %x\n", hashToSign)
 
-		r, s, err := ecdsa.Sign(rand.Reader, &privKey, []byte(dataToSign))
+		r, s, err := ecdsa.Sign(rand.Reader, &privKey, hashToSign[:])
 		if err != nil {
 			log.Panic(err)
 		}
@@ -104,12 +107,12 @@ func (tx *Transaction) PrepareToSign(privKey ecdsa.PrivateKey, prevTXs map[strin
 
 		fmt.Printf("A signature: %s\n", hex.EncodeToString(signature))
 
-		prepareToSign.DataToSign[inID] = dataToSign
+		prepareToSign.DataToSign[inID] = hex.EncodeToString(hashToSign[:])
 		prepareToSign.Signatures[inID] = hex.EncodeToString(signature)
 
 		// another function
 		//tx.Vin[inID].Signature = signature
-		//txCopy.Vin[inID].PubKey = nil
+		txCopy.Vin[inID].PubKey = nil
 	}
 
 	return &prepareToSign
@@ -256,8 +259,9 @@ func (tx *Transaction) Verify(prevTXs map[string]Transaction) (bool, error) {
 		y.SetBytes(vin.PubKey[(keyLen / 2):])
 
 		dataToVerify := fmt.Sprintf("%x\n", txCopy)
+		//fmt.Printf("txCopy: %s\n", txCopy)
 		hashToVerify := sha256.Sum256([]byte(dataToVerify))
-		fmt.Printf("hashToVerify: %x\n", hashToVerify)
+		//fmt.Printf("hashToVerify: %x\n", hashToVerify)
 
 		rawPubKey := ecdsa.PublicKey{Curve: nil, X: &x, Y: &y}
 		if ecdsa.Verify(&rawPubKey, hashToVerify[:], &r, &s) == false {
