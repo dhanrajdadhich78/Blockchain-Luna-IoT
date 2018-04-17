@@ -3,7 +3,7 @@ package blockchain
 import (
 	"bytes"
 	//"crypto/ecdsa"
-	"crypto/elliptic"
+	//"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/gob"
@@ -29,7 +29,6 @@ type Transaction struct {
 type TransactionToSign struct {
 	TxID       []byte
 	DataToSign []string
-	Signatures []string
 }
 
 type TransactionWithSignatures struct {
@@ -68,7 +67,7 @@ func (tx *Transaction) Hash() []byte {
 }
 
 // Sign signs each input of a Transaction
-func (tx *Transaction) PrepareToSign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) *TransactionToSign {
+func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) *TransactionToSign {
 	if tx.IsCoinbase() {
 		return nil
 	}
@@ -84,7 +83,6 @@ func (tx *Transaction) PrepareToSign(privKey ecdsa.PrivateKey, prevTXs map[strin
 	prepareToSign := TransactionToSign{
 		TxID:       tx.ID,
 		DataToSign: make([]string, len(txCopy.Vin)),
-		Signatures: make([]string, len(txCopy.Vin)),
 	}
 
 	for inID, vin := range txCopy.Vin {
@@ -98,17 +96,7 @@ func (tx *Transaction) PrepareToSign(privKey ecdsa.PrivateKey, prevTXs map[strin
 		hashToSign := sha256.Sum256([]byte(dataToSign))
 		//fmt.Printf("hashToSign: %x\n", hashToSign)
 
-		r, s, err := ecdsa.Sign(rand.Reader, &privKey, hashToSign[:])
-		if err != nil {
-			log.Panic(err)
-		}
-
-		signature := append(r.Bytes(), s.Bytes()...)
-
-		fmt.Printf("A signature: %s\n", hex.EncodeToString(signature))
-
 		prepareToSign.DataToSign[inID] = hex.EncodeToString(hashToSign[:])
-		prepareToSign.Signatures[inID] = hex.EncodeToString(signature)
 
 		// another function
 		//tx.Vin[inID].Signature = signature
@@ -312,27 +300,9 @@ func NewEmissionCoinbaseTX(to, data string, emission int) *Transaction {
 }
 
 // PrepareUTXOTransaction prepare a new transaction
-func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, privKey []byte, UTXOSet *UTXOSet) (*Transaction, *TransactionToSign) {
+func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet *UTXOSet) (*Transaction, *TransactionToSign) {
 	var inputs []TXInput
 	var outputs []TXOutput
-
-	//
-	ECDSAKeyX := pubKey[:64]
-	ECDSAKeyY := pubKey[64:]
-
-	keyD := new(big.Int)
-	keyX := new(big.Int)
-	keyY := new(big.Int)
-	keyD.SetBytes(privKey)
-	keyX.SetBytes(ECDSAKeyX)
-	keyY.SetBytes(ECDSAKeyY)
-
-	publicKey := ecdsa.PublicKey{
-		Curve: elliptic.P256(),
-		X:     keyX,
-		Y:     keyY,
-	}
-	privateKey := ecdsa.PrivateKey{D: keyD, PublicKey: publicKey}
 
 	pubKeyHash := HashPubKey(pubKey)
 	fmt.Printf("pubKeyHash %x\n", pubKeyHash)
@@ -374,7 +344,7 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, privKey 
 	tx.ID = tx.Hash()
 	fmt.Printf("tx.ID: %x\n", tx.ID)
 
-	return &tx, UTXOSet.Blockchain.PrepareTransactionToSign(&tx, privateKey)
+	return &tx, UTXOSet.Blockchain.PrepareTransactionToSign(&tx)
 }
 
 // SignUTXOTransaction signs a prepared transaction

@@ -190,11 +190,9 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	to := prepare.To
 	amount := prepare.Amount
 	pubKey, _ := hex.DecodeString(prepare.PubKey)
-	privKey, _ := hex.DecodeString(prepare.PrivKey)
 
 	fmt.Printf("from: %s, to: %s, amount: %d\n", from, to, amount)
 	fmt.Printf("pubkey: %s, pubkeyHex: %x\n", prepare.PubKey, pubKey)
-	fmt.Printf("privKey: %s, privKeyHex: %x\n", prepare.PrivKey, privKey)
 
 	if !blockchain.ValidateAddress(from) {
 		//log.Panic("ERROR: Sender address is not valid")
@@ -207,7 +205,7 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
-	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, privKey, &UTXOSet)
+	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, &UTXOSet)
 
 	//txid := fmt.Sprintf("%x", txToSign.TxID)
 
@@ -222,10 +220,9 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("txid: %s, dataToSign count: %d\n", txid, len(txToSign.DataToSign))
 
 	resp := map[string]interface{}{
-		"success":    true,
-		"txid":       txid,
-		"data":       txToSign.DataToSign,
-		"signatures": txToSign.Signatures,
+		"success": true,
+		"txid":    txid,
+		"data":    txToSign.DataToSign,
 	}
 
 	//fmt.Println("resp:", resp)
