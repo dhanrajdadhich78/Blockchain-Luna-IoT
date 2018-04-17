@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install libgmp-dev -y
 COPY . /go/src/wizeBlock/wizeNode
 WORKDIR /go/src/wizeBlock/wizeNode
 
+ENV CGO_LDFLAGS_ALLOW=".*\.a"
+
 # added vendor services will need to be included here
 #RUN go get ./vendor
 
