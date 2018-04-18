@@ -27,8 +27,8 @@ type Transaction struct {
 }
 
 type TransactionToSign struct {
-	TxID       []byte
-	DataToSign []string
+	TxID         []byte
+	HashesToSign []string
 }
 
 type TransactionWithSignatures struct {
@@ -67,22 +67,23 @@ func (tx *Transaction) Hash() []byte {
 }
 
 // Sign signs each input of a Transaction
-func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) *TransactionToSign {
+func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) (*TransactionToSign, error) {
 	if tx.IsCoinbase() {
-		return nil
+		return nil, nil
 	}
 
 	for _, vin := range tx.Vin {
 		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
-			log.Panic("ERROR: Previous transaction is not correct")
+			fmt.Printf("ERROR: Previous transaction is not correct")
+			return nil, fmt.Errorf("ERROR: Previous transaction is not correct")
 		}
 	}
 
 	txCopy := tx.TrimmedCopy()
 
 	prepareToSign := TransactionToSign{
-		TxID:       tx.ID,
-		DataToSign: make([]string, len(txCopy.Vin)),
+		TxID:         tx.ID,
+		HashesToSign: make([]string, len(txCopy.Vin)),
 	}
 
 	for inID, vin := range txCopy.Vin {
@@ -96,40 +97,37 @@ func (tx *Transaction) PrepareToSign(prevTXs map[string]Transaction) *Transactio
 		hashToSign := sha256.Sum256([]byte(dataToSign))
 		//fmt.Printf("hashToSign: %x\n", hashToSign)
 
-		prepareToSign.DataToSign[inID] = hex.EncodeToString(hashToSign[:])
+		prepareToSign.HashesToSign[inID] = hex.EncodeToString(hashToSign[:])
 
-		// another function
+		//
 		//tx.Vin[inID].Signature = signature
 		txCopy.Vin[inID].PubKey = nil
 	}
 
-	return &prepareToSign
+	return &prepareToSign, nil
 }
 
-func (tx *Transaction) SignPrepared(txSignatures *TransactionWithSignatures, prevTXs map[string]Transaction) {
+func (tx *Transaction) SignPrepared(txSignatures *TransactionWithSignatures, prevTXs map[string]Transaction) error {
 	if tx.IsCoinbase() {
-		return
+		return nil
 	}
 
 	for _, vin := range tx.Vin {
 		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
-			log.Panic("ERROR: Previous transaction is not correct")
+			fmt.Println("ERROR: Previous transaction is not correct")
+			return nil, fmt.Errorf("ERROR: Previous transaction is not correct")
 		}
 	}
 
 	txCopy := tx.TrimmedCopy()
 
 	for inID, _ := range txCopy.Vin {
-		//prevTx := prevTXs[hex.EncodeToString(vin.Txid)]
-		//txCopy.Vin[inID].Signature = nil
-		//txCopy.Vin[inID].PubKey = prevTx.Vout[vin.Vout].PubKeyHash
-
 		signature, _ := hex.DecodeString(txSignatures.Signatures[inID])
 		fmt.Printf("B signature: %x\n", signature)
-
 		tx.Vin[inID].Signature = signature
-		//txCopy.Vin[inID].PubKey = nil
 	}
+
+	return nil
 }
 
 func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transaction) {
@@ -300,7 +298,7 @@ func NewEmissionCoinbaseTX(to, data string, emission int) *Transaction {
 }
 
 // PrepareUTXOTransaction prepare a new transaction
-func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet *UTXOSet) (*Transaction, *TransactionToSign) {
+func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet *UTXOSet) (*Transaction, *TransactionToSign, error) {
 	var inputs []TXInput
 	var outputs []TXOutput
 
@@ -312,7 +310,8 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet 
 	fmt.Printf("Sum of outputs %d\n", acc)
 
 	if acc < amount {
-		log.Panic("ERROR: Not enough funds")
+		fmt.Println("ERROR: Not enough funds")
+		return nil, nil, fmt.Errorf("ERROR: Not enough funds")
 	}
 
 	// TODO: find pubKey by pubKeyHash
@@ -323,7 +322,8 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet 
 	for txid, outs := range validOutputs {
 		txID, err := hex.DecodeString(txid)
 		if err != nil {
-			log.Panic(err)
+			fmt.Printf("ERROR: Transaction ID decoding failed: %s\n", err)
+			return nil, nil, fmt.Errorf("ERROR: Transaction ID decoding failed: %s\n", err)
 		}
 
 		for _, out := range outs {
@@ -344,7 +344,9 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet 
 	tx.ID = tx.Hash()
 	fmt.Printf("tx.ID: %x\n", tx.ID)
 
-	return &tx, UTXOSet.Blockchain.PrepareTransactionToSign(&tx)
+	txToSign, err := UTXOSet.Blockchain.PrepareTransactionToSign(&tx)
+
+	return &tx, txToSign, err
 }
 
 // SignUTXOTransaction signs a prepared transaction

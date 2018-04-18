@@ -15,11 +15,10 @@ import (
 )
 
 type Prepare struct {
-	From    string
-	To      string
-	Amount  int
-	PubKey  string
-	PrivKey string
+	From   string
+	To     string
+	Amount int
+	PubKey string
 }
 
 type Sign struct {
@@ -104,6 +103,7 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	to := send.To
 	amount := send.Amount
 	mineNow := send.MineNow
+
 	if from == to {
 		fmt.Println("ERROR: Sender address is equal to Recipient address")
 		return
@@ -176,7 +176,7 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		fmt.Printf("Failed to read the request body: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		sendErrorMessage(w, "Failed to read the request body", http.StatusBadRequest)
 		return
 	}
 
@@ -194,18 +194,35 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("from: %s, to: %s, amount: %d\n", from, to, amount)
 	fmt.Printf("pubkey: %s, pubkeyHex: %x\n", prepare.PubKey, pubKey)
 
+	if from == "" || to == "" || amount <= 0 {
+		sendErrorMessage(w, "Please check your prepare request", http.StatusBadRequest)
+		return
+	}
+
+	if from == to {
+		fmt.Println("ERROR: Sender address is equal to Recipient address")
+		sendErrorMessage(w, "Sender address is equal to Recipient address", http.StatusBadRequest)
+		return
+	}
+
 	if !blockchain.ValidateAddress(from) {
-		//log.Panic("ERROR: Sender address is not valid")
 		fmt.Println("ERROR: Sender address is not valid")
+		sendErrorMessage(w, "Sender address is not valid", http.StatusBadRequest)
+		return
 	}
 	if !blockchain.ValidateAddress(to) {
-		//log.Panic("ERROR: Recipient address is not valid")
 		fmt.Println("ERROR: Recipient address is not valid")
+		sendErrorMessage(w, "Recipient address is not valid", http.StatusBadRequest)
+		return
 	}
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
 	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, &UTXOSet)
+	if tx == nil || txToSign == nil {
+		sendErrorMessage(w, "Could not prepare transaction", http.StatusInternalServerError)
+		return
+	}
 
 	//txid := fmt.Sprintf("%x", txToSign.TxID)
 
@@ -217,16 +234,13 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	// add to Prepared-Transactions
 	node.preparedTxs[txid] = tx
 
-	fmt.Printf("txid: %s, dataToSign count: %d\n", txid, len(txToSign.DataToSign))
+	fmt.Printf("txid: %s, hashesToSign count: %d\n", txid, len(txToSign.HashesToSign))
 
 	resp := map[string]interface{}{
 		"success": true,
 		"txid":    txid,
-		"data":    txToSign.DataToSign,
+		"hashes":  txToSign.HashesToSign,
 	}
-
-	//fmt.Println("resp:", resp)
-
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
@@ -236,7 +250,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Printf("Failed to read the request body: %v\n", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		sendErrorMessage(w, "Failed to read the request body", http.StatusBadRequest)
 		return
 	}
 
@@ -253,10 +267,12 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("from: %s, txid: %s, signatures count: %d\n", from, txid, len(signatures))
 
-	fmt.Printf("signature0: %s\n", signatures[0])
+	if from == "" || txid == "" {
+		sendErrorMessage(w, "Please check your sign request", http.StatusBadRequest)
+		return
+	}
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
-
 	TxID, _ := hex.DecodeString(txid)
 
 	// get from Prepared-Transactions
@@ -281,11 +297,13 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 
 	tx := blockchain.SignUTXOTransaction(preparedTx, txSignatures, &UTXOSet)
 
-	//
+	// network update
 	currentNodeAddress := fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID)
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
+	// mining block: now and with miner's help
 	if mineNow {
+		// TODO: minenow=true
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
 
@@ -296,12 +314,14 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 			respsuccess = false
 		}
 	} else {
+		// TODO: minenow=false
+
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
 		SendTx(KnownNodes[0], currentNodeAddress, tx)
 	}
 
-	//
+	// network update
 	if respsuccess {
 		for _, value := range KnownNodes {
 			fmt.Printf("value: %s\n", value)

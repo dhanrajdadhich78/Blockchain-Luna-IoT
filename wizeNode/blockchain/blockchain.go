@@ -324,13 +324,14 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 }
 
 // SignTransaction signs inputs of a Transaction
-func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction) *TransactionToSign {
+func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction) (*TransactionToSign, error) {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.Vin {
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
-			log.Panic(err)
+			fmt.Printf("Cant find transaction: %s\n", err)
+			return nil, fmt.Errorf("Cant find transaction: %s\n", err)
 		}
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
@@ -338,18 +339,19 @@ func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction) *TransactionToSi
 	return tx.PrepareToSign(prevTXs)
 }
 
-func (bc *Blockchain) SignPreparedTransaction(preparedTx *Transaction, txSignatures *TransactionWithSignatures) {
+func (bc *Blockchain) SignPreparedTransaction(preparedTx *Transaction, txSignatures *TransactionWithSignatures) error {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range preparedTx.Vin {
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
-			log.Panic(err)
+			fmt.Printf("ERROR: Cant find transaction: %s\n", err)
+			return fmt.Errorf("Cant find transaction: %s\n", err)
 		}
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
 
-	preparedTx.SignPrepared(txSignatures, prevTXs)
+	return preparedTx.SignPrepared(txSignatures, prevTXs)
 }
 
 func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
