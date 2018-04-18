@@ -3,7 +3,7 @@ package crypto
 import (
 	"crypto/elliptic"
 	"crypto/rand"
-	"encoding/hex"
+	//"encoding/hex"
 	"io"
 	"log"
 	"math/big"
@@ -11,6 +11,10 @@ import (
 	"github.com/btccom/secp256k1-go/secp256k1"
 )
 
+// TODO: C library & cgo for different platforms
+// TODO: working with contexts
+
+// TODO: should we add curve?
 type PublicKey struct {
 	elliptic.Curve
 	X, Y *big.Int
@@ -21,6 +25,7 @@ type PrivateKey struct {
 	D *big.Int
 }
 
+// TODO: more random?
 func rand32() [32]byte {
 	key := [32]byte{}
 	_, err := io.ReadFull(rand.Reader, key[:])
@@ -93,7 +98,7 @@ func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err err
 	publicKey[0] = 0x04
 	publicKey = append(publicKey, priv.PublicKey.X.Bytes()...)
 	publicKey = append(publicKey, priv.PublicKey.Y.Bytes()...)
-	log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
+	//log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
 
 	privateKey := priv.D.Bytes()
 	_, ecdsaSignature, err := secp256k1.EcdsaSign(ctx, hash, privateKey)
@@ -150,7 +155,7 @@ func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool {
 	publicKey[0] = 0x04
 	publicKey = append(publicKey, pub.X.Bytes()...)
 	publicKey = append(publicKey, pub.Y.Bytes()...)
-	log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
+	//log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
 	_, publicKeyStruct, err := secp256k1.EcPubkeyParse(ctx, publicKey)
 	if err != nil {
 		log.Printf("Error: %s", err)
@@ -162,7 +167,7 @@ func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool {
 		log.Printf("Error: %s", err)
 		return false
 	}
-	log.Println("ret", ret)
+	//log.Println("ret", ret)
 
 	secp256k1.ContextDestroy(ctx)
 

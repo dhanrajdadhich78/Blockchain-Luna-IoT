@@ -21,8 +21,9 @@ static void freePubkeyArray(secp256k1_pubkey **a) {
 import "C"
 
 import (
-	"github.com/pkg/errors"
 	"unsafe"
+
+	"github.com/pkg/errors"
 )
 
 const (
