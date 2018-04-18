@@ -58,7 +58,7 @@ func (cli *CLI) createWallet(nodeID string) {
 func (cli *CLI) getBalance(address string, nodeID string) {
 	bc := blockchain.NewBlockchain(nodeID)
 	// TODO-34
-	balance := GetWalletCredits(address, nodeID, bc)
+	balance := blockchain.GetWalletBalance(address, bc)
 
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }

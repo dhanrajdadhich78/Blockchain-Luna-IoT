@@ -22,7 +22,7 @@ type Prepare struct {
 }
 
 type Sign struct {
-	From       string
+	//From       string
 	TxID       string
 	Signatures []string
 	MineNow    bool
@@ -45,13 +45,14 @@ func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	resp := map[string]interface{}{
 		"success": true,
-		"credit":  GetWalletCredits(hash, node.nodeID, node.blockchain),
+		"credit":  blockchain.GetWalletBalance(hash, node.blockchain),
+		//"credit":  GetWalletCredits(hash, node.nodeID, node.blockchain),
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
 // DEPRECATED: inner usage
-func (node *Node) listWallets(w http.ResponseWriter, r *http.Request) {
+func (node *Node) deprecatedWalletsList(w http.ResponseWriter, r *http.Request) {
 	wallets, err := blockchain.NewWallets(node.nodeID)
 	if err != nil {
 		log.Panic(err)
@@ -65,7 +66,7 @@ func (node *Node) listWallets(w http.ResponseWriter, r *http.Request) {
 }
 
 // DEPRECATED: inner usage
-func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
+func (node *Node) deprecatedWalletCreate(w http.ResponseWriter, r *http.Request) {
 	wallets, _ := blockchain.NewWallets(node.nodeID)
 	address := wallets.CreateWallet()
 	wallets.SaveToFile(node.nodeID)
@@ -85,7 +86,7 @@ func (node *Node) createWallet(w http.ResponseWriter, r *http.Request) {
 }
 
 // DEPRECATED: inner usage
-func (node *Node) send(w http.ResponseWriter, r *http.Request) {
+func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 	//func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 
 	var send Send
@@ -218,8 +219,8 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
-	tx, txToSign := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, &UTXOSet)
-	if tx == nil || txToSign == nil {
+	tx, txToSign, err := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, &UTXOSet)
+	if err != nil || tx == nil || txToSign == nil {
 		sendErrorMessage(w, "Could not prepare transaction", http.StatusInternalServerError)
 		return
 	}
@@ -232,7 +233,11 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	txid := hex.EncodeToString(txToSign.TxID)
 
 	// add to Prepared-Transactions
-	node.preparedTxs[txid] = tx
+	preparedTx := &PreparedTransaction{
+		From:        from,
+		Transaction: tx,
+	}
+	node.preparedTxs[txid] = preparedTx
 
 	fmt.Printf("txid: %s, hashesToSign count: %d\n", txid, len(txToSign.HashesToSign))
 
@@ -260,14 +265,14 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	from := sign.From
+	//from := sign.From
 	txid := sign.TxID
 	signatures := sign.Signatures
 	mineNow := sign.MineNow
 
-	fmt.Printf("from: %s, txid: %s, signatures count: %d\n", from, txid, len(signatures))
+	fmt.Printf("txid: %s, signatures count: %d\n", txid, len(signatures))
 
-	if from == "" || txid == "" {
+	if txid == "" {
 		sendErrorMessage(w, "Please check your sign request", http.StatusBadRequest)
 		return
 	}
@@ -275,11 +280,13 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 	TxID, _ := hex.DecodeString(txid)
 
-	// get from Prepared-Transactions
+	// get from Prepared Transactions
 	preparedTx, ok := node.preparedTxs[txid]
+	from := preparedTx.From
 
 	fmt.Printf("TxID: %x\n", TxID)
-	fmt.Printf("preparedTx: %x\n", preparedTx.ID)
+	fmt.Printf("preparedTx: %x\n", preparedTx.Transaction.ID)
+	fmt.Printf("preparedTx From: %s\n", from)
 
 	if !ok {
 		fmt.Println("Could not get transaction by txid")
@@ -288,6 +295,13 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("GOOD: Get transaction by txid!")
 
+	// check from
+	if !blockchain.ValidateAddress(from) {
+		fmt.Println("ERROR: Sender address is not valid")
+		sendErrorMessage(w, "Sender address is not valid", http.StatusBadRequest)
+		return
+	}
+
 	txSignatures := &blockchain.TransactionWithSignatures{
 		TxID:       TxID,
 		Signatures: signatures,
@@ -295,7 +309,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 
 	respsuccess := true
 
-	tx := blockchain.SignUTXOTransaction(preparedTx, txSignatures, &UTXOSet)
+	tx := blockchain.SignUTXOTransaction(preparedTx.Transaction, txSignatures, &UTXOSet)
 
 	// network update
 	currentNodeAddress := fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID)

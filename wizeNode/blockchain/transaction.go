@@ -115,7 +115,7 @@ func (tx *Transaction) SignPrepared(txSignatures *TransactionWithSignatures, pre
 	for _, vin := range tx.Vin {
 		if prevTXs[hex.EncodeToString(vin.Txid)].ID == nil {
 			fmt.Println("ERROR: Previous transaction is not correct")
-			return nil, fmt.Errorf("ERROR: Previous transaction is not correct")
+			return fmt.Errorf("ERROR: Previous transaction is not correct")
 		}
 	}
 
