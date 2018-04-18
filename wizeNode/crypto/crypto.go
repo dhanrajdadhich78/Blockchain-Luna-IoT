@@ -85,6 +85,50 @@ func GenerateKey(c elliptic.Curve, rand io.Reader) (*PrivateKey, error) {
 	return priv, nil
 }
 
+func GetPrivateKey(c elliptic.Curve, privateKey []byte) (*PrivateKey, error) {
+	// context
+	params := uint(secp256k1.ContextSign | secp256k1.ContextVerify)
+	ctx, err := secp256k1.ContextCreate(params)
+	if err != nil {
+		return nil, err
+	}
+	//log.Printf("%+v\n", ctx)
+
+	// verify private key
+	_, err = secp256k1.EcSeckeyVerify(ctx, privateKey[:])
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("Verifying was successful\n")
+
+	// get the public key
+	_, publicKeyStruct, err := secp256k1.EcPubkeyCreate(ctx, privateKey[:])
+	if err != nil {
+		return nil, err
+	}
+	//log.Printf("Public Key: %+v\n", publicKeyStruct)
+
+	_, publicKey, err := secp256k1.EcPubkeySerialize(ctx, publicKeyStruct, secp256k1.EcUncompressed)
+	if err != nil {
+		return nil, err
+	}
+	// publicKey has 65 bytes when Uncompressesed
+	// first byte equals 0x04
+	//log.Printf("Public Key:   %s\n", hex.EncodeToString(publicKey[:]))
+	//log.Printf("Public Key X: %s\n", hex.EncodeToString(publicKey[1:33]))
+	//log.Printf("Public Key Y: %s\n", hex.EncodeToString(publicKey[33:]))
+
+	priv := new(PrivateKey)
+	priv.PublicKey.Curve = c
+	priv.D = new(big.Int).SetBytes(privateKey[:])
+	priv.PublicKey.X = new(big.Int).SetBytes(publicKey[1:33])
+	priv.PublicKey.Y = new(big.Int).SetBytes(publicKey[33:])
+
+	secp256k1.ContextDestroy(ctx)
+
+	return priv, nil
+}
+
 func Sign(rand io.Reader, priv *PrivateKey, hash []byte) (r, s *big.Int, err error) {
 	// context
 	params := uint(secp256k1.ContextSign | secp256k1.ContextVerify)
