@@ -1,5 +1,7 @@
 FROM golang:1.9
 
+RUN apt-get update && apt-get install libgmp-dev -y
+
 # if left blank app will run with dev settings
 # to build production image run:
 # $ docker build ./nodeWize --build-args app_env=production
@@ -10,6 +12,8 @@ FROM golang:1.9
 # it is okay to leave user/GoDoRP as long as you do not want to share code with other libraries
 COPY . /go/src/wizeBlock/wizeNode
 WORKDIR /go/src/wizeBlock/wizeNode
+
+ENV CGO_LDFLAGS_ALLOW=".*\.a"
 
 # added vendor services will need to be included here
 #RUN go get ./vendor

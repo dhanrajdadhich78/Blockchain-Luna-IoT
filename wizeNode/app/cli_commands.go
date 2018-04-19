@@ -58,17 +58,24 @@ func (cli *CLI) createWallet(nodeID string) {
 func (cli *CLI) getBalance(address string, nodeID string) {
 	bc := blockchain.NewBlockchain(nodeID)
 	// TODO-34
-	balance := GetWalletCredits(address, nodeID, bc)
+	balance := blockchain.GetWalletBalance(address, bc)
 
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
 
 func (cli *CLI) listAddresses(nodeID string) {
-	wallets, err := blockchain.NewWallets(nodeID)
-	if err != nil {
-		log.Panic(err)
+	var addresses []string = []string{}
+
+	if nodeID == "3100" {
+		bc := blockchain.NewBlockchain("3000")
+		addresses = bc.GetAddresses()
+	} else {
+		wallets, err := blockchain.NewWallets(nodeID)
+		if err != nil {
+			log.Panic(err)
+		}
+		addresses = wallets.GetAddresses()
 	}
-	addresses := wallets.GetAddresses()
 
 	for _, address := range addresses {
 		fmt.Println(address)

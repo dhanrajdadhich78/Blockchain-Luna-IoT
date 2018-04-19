@@ -2,7 +2,7 @@ package blockchain
 
 import (
 	"bytes"
-	"crypto/ecdsa"
+	//"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
+	ecdsa "wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/utils"
 )
 
@@ -323,32 +324,34 @@ func (bc *Blockchain) MineBlock(transactions []*Transaction) *Block {
 }
 
 // SignTransaction signs inputs of a Transaction
-func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction, privKey ecdsa.PrivateKey) *TransactionToSign {
+func (bc *Blockchain) PrepareTransactionToSign(tx *Transaction) (*TransactionToSign, error) {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.Vin {
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
-			log.Panic(err)
+			fmt.Printf("Cant find transaction: %s\n", err)
+			return nil, fmt.Errorf("Cant find transaction: %s\n", err)
 		}
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
 
-	return tx.PrepareToSign(privKey, prevTXs)
+	return tx.PrepareToSign(prevTXs)
 }
 
-func (bc *Blockchain) SignPreparedTransaction(preparedTx *Transaction, txSignatures *TransactionWithSignatures) {
+func (bc *Blockchain) SignPreparedTransaction(preparedTx *Transaction, txSignatures *TransactionWithSignatures) error {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range preparedTx.Vin {
 		prevTX, err := bc.FindTransaction(vin.Txid)
 		if err != nil {
-			log.Panic(err)
+			fmt.Printf("ERROR: Cant find transaction: %s\n", err)
+			return fmt.Errorf("Cant find transaction: %s\n", err)
 		}
 		prevTXs[hex.EncodeToString(prevTX.ID)] = prevTX
 	}
 
-	preparedTx.SignPrepared(txSignatures, prevTXs)
+	return preparedTx.SignPrepared(txSignatures, prevTXs)
 }
 
 func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
@@ -382,6 +385,7 @@ func (bc *Blockchain) VerifyTransaction(tx *Transaction) (bool, error) {
 
 	return tx.Verify(prevTXs)
 }
+
 func (bc *Blockchain) GetBalance(address string) int {
 	UTXOSet := UTXOSet{bc}
 	balance := 0
@@ -393,4 +397,53 @@ func (bc *Blockchain) GetBalance(address string) int {
 		balance += out.Value
 	}
 	return balance
+}
+
+func (bc *Blockchain) GetAddresses() []string {
+	var addressesMap map[string]int // value will be balance in the future
+	addressesMap = make(map[string]int)
+
+	bci := bc.Iterator()
+
+	for {
+		block := bci.Next()
+
+		for _, tx := range block.Transactions {
+			txID := hex.EncodeToString(tx.ID)
+			txID8 := txID[:8]
+
+			for outIdx, out := range tx.Vout {
+				fmt.Printf("block: %3d, tx: %s.., outIdx : %d, address: %s, value: %9d\n", block.Height, txID8, outIdx, out.Address, out.Value)
+				addressesMap[out.Address] = out.Value
+			}
+
+			if tx.IsCoinbase() == false {
+				for inIdx, in := range tx.Vin {
+					// get outIdx, out from in.Txid, in.Vout
+					// find transaction in.Txid
+					tx, err := bc.FindTransaction(in.Txid)
+					if err != nil {
+						fmt.Printf("ERROR: %s", err)
+					} else {
+						// get transaction output in.Vout
+						fmt.Printf("block: %3d, tx: %s.., inIdx  : %d, address: %s, value: %9d\n", block.Height, txID8, inIdx, tx.Vout[in.Vout].Address, tx.Vout[in.Vout].Value)
+						addressesMap[tx.Vout[in.Vout].Address] = tx.Vout[in.Vout].Value
+					}
+
+				}
+			}
+		}
+
+		if len(block.PrevBlockHash) == 0 {
+			break
+		}
+	}
+
+	var addressesSlice []string
+	addressesSlice = make([]string, 1)
+	for address, _ := range addressesMap {
+		addressesSlice = append(addressesSlice, address)
+	}
+
+	return addressesSlice
 }

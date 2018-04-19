@@ -65,7 +65,7 @@ services:
     environment:
       NODE_ID: 3002
       NODE_ADD: wize3
-      NODE_COMMAND: startnode -miner 16JzXBui8TrRGjAtwbnL3vRakNi8vkjYk1
+      NODE_COMMAND: startnode -miner 15sT8nDhbQWHEjeZY8PXqjCJHCQ9DZSCS3
     ports:
       - "3002:3000"
       - "4002:4000"
