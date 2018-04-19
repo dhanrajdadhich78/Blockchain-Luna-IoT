@@ -104,11 +104,17 @@ func (node *Node) send(w http.ResponseWriter, r *http.Request) {
 	to := send.To
 	amount := send.Amount
 	mineNow := send.MineNow
+	if from == to {
+		fmt.Println("ERROR: Sender address is equal to Recipient address")
+		return
+	}
 	if !blockchain.ValidateAddress(from) {
-		log.Panic("ERROR: Sender address is not valid")
+		fmt.Println("ERROR: Sender address is not valid")
+		return
 	}
 	if !blockchain.ValidateAddress(to) {
-		log.Panic("ERROR: Recipient address is not valid")
+		fmt.Println("ERROR: Recipient address is not valid")
+		return
 	}
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
