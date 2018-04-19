@@ -2,8 +2,6 @@ package blockchain
 
 import (
 	"bytes"
-	//"crypto/ecdsa"
-	//"crypto/elliptic"
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
@@ -71,6 +69,7 @@ func (w Wallet) GetPublicKey() []byte {
 
 // NewKeyPair
 func NewKeyPair() (*ecdsa.PrivateKey, []byte) {
+	// TODO: should we realize curve?
 	//curve := elliptic.P256()
 	privKey, err := ecdsa.GenerateKey(nil, rand.Reader)
 	if err != nil {
@@ -111,13 +110,20 @@ func HashPubKey(pubKey []byte) []byte {
 
 // ValidateAddress check if address if valid
 func ValidateAddress(address string) bool {
-	pubKeyHash := utils.Base58Decode([]byte(address))
-	actualChecksum := pubKeyHash[len(pubKeyHash)-addressChecksumLen:]
-	version := pubKeyHash[0]
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-addressChecksumLen]
+	fullPayload := utils.Base58Decode([]byte(address))
+	actualChecksum := fullPayload[len(fullPayload)-addressChecksumLen:]
+	version := fullPayload[0]
+	pubKeyHash := fullPayload[1 : len(fullPayload)-addressChecksumLen]
 	targetChecksum := Checksum(append([]byte{version}, pubKeyHash...))
 
 	return bytes.Compare(actualChecksum, targetChecksum) == 0
+}
+
+func GetPubKeyHash(address string) []byte {
+	fullPayload := utils.Base58Decode([]byte(address))
+	pubKeyHash := fullPayload[1 : len(fullPayload)-addressChecksumLen]
+	fmt.Printf("PubKeyHash: %x\n", pubKeyHash)
+	return pubKeyHash
 }
 
 // Checksum generates a Checksum for a public key
@@ -126,6 +132,10 @@ func Checksum(payload []byte) []byte {
 	secondSHA := sha256.Sum256(firstSHA[:])
 
 	return secondSHA[:addressChecksumLen]
+}
+
+func GetAddresses(bc *Blockchain) []string {
+	return bc.GetAddresses()
 }
 
 func GetWalletBalance(address string, bc *Blockchain) int {

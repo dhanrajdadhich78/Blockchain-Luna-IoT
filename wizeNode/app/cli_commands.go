@@ -64,11 +64,18 @@ func (cli *CLI) getBalance(address string, nodeID string) {
 }
 
 func (cli *CLI) listAddresses(nodeID string) {
-	wallets, err := blockchain.NewWallets(nodeID)
-	if err != nil {
-		log.Panic(err)
+	var addresses []string = []string{}
+
+	if nodeID == "3100" {
+		bc := blockchain.NewBlockchain("3000")
+		addresses = bc.GetAddresses()
+	} else {
+		wallets, err := blockchain.NewWallets(nodeID)
+		if err != nil {
+			log.Panic(err)
+		}
+		addresses = wallets.GetAddresses()
 	}
-	addresses := wallets.GetAddresses()
 
 	for _, address := range addresses {
 		fmt.Println(address)
