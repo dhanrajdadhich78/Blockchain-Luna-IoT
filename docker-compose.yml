@@ -13,7 +13,7 @@ services:
     container_name: wize1
     environment:
       NODE_ID: 3000
-      NODE_ADD: wize1
+      NODE_ADD: 77.93.60.113
       NODE_COMMAND: startnode
     ports:
       - "3000:3000"
