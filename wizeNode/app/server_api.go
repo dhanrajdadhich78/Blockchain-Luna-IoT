@@ -327,22 +327,24 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 		} else {
 			respsuccess = false
 		}
+
+		// network update
+		if respsuccess {
+			for _, value := range KnownNodes {
+				fmt.Printf("value: %s\n", value)
+				if value != currentNodeAddress {
+					sendVersion(value, currentNodeAddress, node.blockchain)
+				}
+			}
+		}
 	} else {
 		// TODO: minenow=false
 
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
-		SendTx(KnownNodes[0], currentNodeAddress, tx)
-	}
 
-	// network update
-	if respsuccess {
-		for _, value := range KnownNodes {
-			fmt.Printf("value: %s\n", value)
-			if value != currentNodeAddress {
-				sendVersion(value, currentNodeAddress, node.blockchain)
-			}
-		}
+		fmt.Printf("Send Tx: %x, from %s, to: %s\n", tx.ID, KnownNodes[0], currentNodeAddress)
+		SendTx(KnownNodes[0], currentNodeAddress, tx)
 	}
 
 	// remove from Prepared-Transactions
