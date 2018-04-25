@@ -467,7 +467,8 @@ func (s *TCPServer) handleTx(request []byte) {
 	} else {
 		// OLDTODO: changing count of transaction for mining
 		fmt.Printf("miningAddress: %s, len(mempool): %d\n", s.miningAddress, len(s.mempool))
-		if len(s.mempool) >= 2 && len(s.miningAddress) > 0 {
+		// FIXME: len of mempool?
+		if len(s.mempool) >= 1 && len(s.miningAddress) > 0 {
 		MineTransactions:
 			fmt.Println("MineTransactions...")
 			var txs []*b.Transaction
