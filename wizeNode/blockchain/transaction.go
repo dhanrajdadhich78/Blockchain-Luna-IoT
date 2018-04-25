@@ -13,6 +13,7 @@ import (
 	"log"
 	"math/big"
 	"strings"
+	"time"
 
 	ecdsa "wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/utils"
@@ -22,9 +23,10 @@ const subsidy = 0
 
 // Transaction represents a Bitcoin transaction
 type Transaction struct {
-	ID   []byte
-	Vin  []TXInput
-	Vout []TXOutput
+	Timestamp int64
+	ID        []byte
+	Vin       []TXInput
+	Vout      []TXOutput
 }
 
 type TransactionToSign struct {
@@ -166,7 +168,6 @@ func (tx *Transaction) Sign(privKey ecdsa.PrivateKey, prevTXs map[string]Transac
 		if err != nil {
 			log.Panic(err)
 		}
-
 		signature := append(r.Bytes(), s.Bytes()...)
 
 		tx.Vin[inID].Signature = signature
@@ -217,7 +218,7 @@ func (tx *Transaction) TrimmedCopy() Transaction {
 		outputs = append(outputs, TXOutput{vout.Value, vout.PubKeyHash, vout.Address})
 	}
 
-	txCopy := Transaction{tx.ID, inputs, outputs}
+	txCopy := Transaction{tx.Timestamp, tx.ID, inputs, outputs}
 
 	return txCopy
 }
@@ -282,7 +283,7 @@ func NewCoinbaseTX(to, data string) *Transaction {
 
 	txin := TXInput{[]byte{}, -1, nil, []byte(data)}
 	txout := NewTXOutput(subsidy, to)
-	tx := Transaction{nil, []TXInput{txin}, []TXOutput{*txout}}
+	tx := Transaction{time.Now().UnixNano(), nil, []TXInput{txin}, []TXOutput{*txout}}
 	tx.ID = tx.Hash()
 
 	return &tx
@@ -301,7 +302,7 @@ func NewEmissionCoinbaseTX(to, data string, emission int) *Transaction {
 
 	txin := TXInput{[]byte{}, -1, nil, []byte(data)}
 	txout := NewTXOutput(emission, to)
-	tx := Transaction{nil, []TXInput{txin}, []TXOutput{*txout}}
+	tx := Transaction{time.Now().UnixNano(), nil, []TXInput{txin}, []TXOutput{*txout}}
 	tx.ID = tx.Hash()
 
 	return &tx
@@ -350,7 +351,7 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet 
 		outputs = append(outputs, *NewTXOutput(acc-amount, from)) // a change
 	}
 
-	tx := Transaction{nil, inputs, outputs}
+	tx := Transaction{time.Now().UnixNano(), nil, inputs, outputs}
 	tx.ID = tx.Hash()
 	fmt.Printf("tx.ID: %x\n", tx.ID)
 
@@ -369,10 +370,6 @@ func SignUTXOTransaction(preparedTx *Transaction, txSignatures *TransactionWithS
 func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet) *Transaction {
 	var inputs []TXInput
 	var outputs []TXOutput
-
-	if wallet == nil {
-		return nil
-	}
 
 	pubKeyHash := HashPubKey(wallet.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
@@ -407,10 +404,10 @@ func NewUTXOTransaction(wallet *Wallet, to string, amount int, UTXOSet *UTXOSet)
 		outputs = append(outputs, *NewTXOutput(acc-amount, from)) // a change
 	}
 
-	tx := Transaction{nil, inputs, outputs}
+	tx := Transaction{time.Now().UnixNano(), nil, inputs, outputs}
 	tx.ID = tx.Hash()
-
 	UTXOSet.Blockchain.SignTransaction(&tx, wallet.PrivateKey)
+
 	return &tx
 }
 
