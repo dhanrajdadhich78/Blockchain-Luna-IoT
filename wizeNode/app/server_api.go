@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"wizeBlock/wizeNode/blockchain"
+	"wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/wallet"
 )
 
@@ -110,11 +111,11 @@ func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ERROR: Sender address is equal to Recipient address")
 		return
 	}
-	if !wallet.ValidateAddress(from) {
+	if !crypto.ValidateAddress(from) {
 		fmt.Println("ERROR: Sender address is not valid")
 		return
 	}
-	if !wallet.ValidateAddress(to) {
+	if !crypto.ValidateAddress(to) {
 		fmt.Println("ERROR: Recipient address is not valid")
 		return
 	}
@@ -207,12 +208,12 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !wallet.ValidateAddress(from) {
+	if !crypto.ValidateAddress(from) {
 		fmt.Println("ERROR: Sender address is not valid")
 		sendErrorMessage(w, "Sender address is not valid", http.StatusBadRequest)
 		return
 	}
-	if !wallet.ValidateAddress(to) {
+	if !crypto.ValidateAddress(to) {
 		fmt.Println("ERROR: Recipient address is not valid")
 		sendErrorMessage(w, "Recipient address is not valid", http.StatusBadRequest)
 		return
@@ -297,7 +298,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("GOOD: Get transaction by txid!")
 
 	// check from
-	if !wallet.ValidateAddress(from) {
+	if !crypto.ValidateAddress(from) {
 		fmt.Println("ERROR: Sender address is not valid")
 		sendErrorMessage(w, "Sender address is not valid", http.StatusBadRequest)
 		return

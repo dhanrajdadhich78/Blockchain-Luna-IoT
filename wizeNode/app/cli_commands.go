@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"wizeBlock/wizeNode/blockchain"
+	"wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/wallet"
 )
 
@@ -34,7 +35,7 @@ func (cli *CLI) printUsage() {
 }
 
 func (cli *CLI) createBlockchain(address string, nodeID string) {
-	if !wallet.ValidateAddress(address) {
+	if !crypto.ValidateAddress(address) {
 		log.Panic("ERROR: Address is not valid")
 	}
 	bc := blockchain.CreateBlockchain(address, nodeID)
@@ -131,10 +132,10 @@ func (cli *CLI) reindexUTXO(nodeID string) {
 }
 
 func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
-	if !wallet.ValidateAddress(from) {
+	if !crypto.ValidateAddress(from) {
 		log.Panic("ERROR: Sender address is not valid")
 	}
-	if !wallet.ValidateAddress(to) {
+	if !crypto.ValidateAddress(to) {
 		log.Panic("ERROR: Recipient address is not valid")
 	}
 
@@ -177,7 +178,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) {
 	fmt.Printf("Starting node %s\n", nodeID)
 	nodeADD := os.Getenv("NODE_ADD")
 	if len(minerAddress) > 0 {
-		if wallet.ValidateAddress(minerAddress) {
+		if crypto.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
 			//StartServer(nodeID, minerAddress, apiAddr)
 			node := NewNode(nodeID)

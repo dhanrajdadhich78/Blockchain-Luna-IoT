@@ -11,7 +11,6 @@ import (
 	"github.com/boltdb/bolt"
 
 	"wizeBlock/wizeNode/crypto"
-	"wizeBlock/wizeNode/wallet"
 )
 
 const dbFile = "files/db%s/wizebit.db"
@@ -448,7 +447,7 @@ func (bc *Blockchain) GetAddresses() []string {
 }
 
 func (bc *Blockchain) GetWalletBalance(address string) int {
-	if !wallet.ValidateAddress(address) {
+	if !crypto.ValidateAddress(address) {
 		log.Panic("ERROR: Address is not valid")
 	}
 

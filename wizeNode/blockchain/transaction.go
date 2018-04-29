@@ -180,9 +180,9 @@ func (tx Transaction) String() string {
 	lines = append(lines, fmt.Sprintf("--- Transaction %x:", tx.ID))
 
 	for i, input := range tx.Vin {
-		pubKeyHash := wallet.HashPubKey(input.PubKey)
-		versionedPayload := append([]byte{wallet.Version}, pubKeyHash...)
-		fullPayload := append(versionedPayload, wallet.Checksum(versionedPayload)...)
+		pubKeyHash := crypto.HashPubKey(input.PubKey)
+		versionedPayload := append([]byte{crypto.Version}, pubKeyHash...)
+		fullPayload := append(versionedPayload, crypto.Checksum(versionedPayload)...)
 
 		lines = append(lines, fmt.Sprintf("     Input %d:", i))
 		lines = append(lines, fmt.Sprintf("       TXID:      %x", input.Txid))
@@ -311,7 +311,7 @@ func PrepareUTXOTransaction(from, to string, amount int, pubKey []byte, UTXOSet 
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	pubKeyHash := wallet.HashPubKey(pubKey)
+	pubKeyHash := crypto.HashPubKey(pubKey)
 	fmt.Printf("pubKeyHash %x\n", pubKeyHash)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
@@ -369,7 +369,7 @@ func NewUTXOTransaction(walletFrom *wallet.Wallet, to string, amount int, UTXOSe
 	var inputs []TXInput
 	var outputs []TXOutput
 
-	pubKeyHash := wallet.HashPubKey(walletFrom.PublicKey)
+	pubKeyHash := crypto.HashPubKey(walletFrom.PublicKey)
 	acc, validOutputs := UTXOSet.FindSpendableOutputs(pubKeyHash, amount)
 
 	// OLDTODO: delete
