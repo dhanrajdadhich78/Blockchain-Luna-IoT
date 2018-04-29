@@ -11,7 +11,8 @@ import (
 
 	"github.com/gorilla/mux"
 
-	blockchain "wizeBlock/wizeNode/blockchain"
+	"wizeBlock/wizeNode/blockchain"
+	"wizeBlock/wizeNode/wallet"
 )
 
 type Prepare struct {
@@ -45,7 +46,7 @@ func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {
 	hash := vars["hash"]
 	resp := map[string]interface{}{
 		"success": true,
-		"credit":  blockchain.GetWalletBalance(hash, node.blockchain),
+		"credit":  node.blockchain.GetWalletBalance(hash),
 		//"credit":  GetWalletCredits(hash, node.nodeID, node.blockchain),
 	}
 	respondWithJSON(w, http.StatusOK, resp)
@@ -53,7 +54,7 @@ func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {
 
 // DEPRECATED: inner usage
 func (node *Node) deprecatedWalletsList(w http.ResponseWriter, r *http.Request) {
-	wallets, err := blockchain.NewWallets(node.nodeID)
+	wallets, err := wallet.NewWallets(node.nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -67,7 +68,7 @@ func (node *Node) deprecatedWalletsList(w http.ResponseWriter, r *http.Request) 
 
 // DEPRECATED: inner usage
 func (node *Node) deprecatedWalletCreate(w http.ResponseWriter, r *http.Request) {
-	wallets, _ := blockchain.NewWallets(node.nodeID)
+	wallets, _ := wallet.NewWallets(node.nodeID)
 	address := wallets.CreateWallet()
 	wallets.SaveToFile(node.nodeID)
 	wallet := wallets.GetWallet(address)
@@ -109,18 +110,18 @@ func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ERROR: Sender address is equal to Recipient address")
 		return
 	}
-	if !blockchain.ValidateAddress(from) {
+	if !wallet.ValidateAddress(from) {
 		fmt.Println("ERROR: Sender address is not valid")
 		return
 	}
-	if !blockchain.ValidateAddress(to) {
+	if !wallet.ValidateAddress(to) {
 		fmt.Println("ERROR: Recipient address is not valid")
 		return
 	}
 
 	UTXOSet := blockchain.UTXOSet{node.blockchain}
 
-	wallets, err := blockchain.NewWallets(node.nodeID)
+	wallets, err := wallet.NewWallets(node.nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -206,12 +207,12 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !blockchain.ValidateAddress(from) {
+	if !wallet.ValidateAddress(from) {
 		fmt.Println("ERROR: Sender address is not valid")
 		sendErrorMessage(w, "Sender address is not valid", http.StatusBadRequest)
 		return
 	}
-	if !blockchain.ValidateAddress(to) {
+	if !wallet.ValidateAddress(to) {
 		fmt.Println("ERROR: Recipient address is not valid")
 		sendErrorMessage(w, "Recipient address is not valid", http.StatusBadRequest)
 		return
@@ -296,7 +297,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("GOOD: Get transaction by txid!")
 
 	// check from
-	if !blockchain.ValidateAddress(from) {
+	if !wallet.ValidateAddress(from) {
 		fmt.Println("ERROR: Sender address is not valid")
 		sendErrorMessage(w, "Sender address is not valid", http.StatusBadRequest)
 		return

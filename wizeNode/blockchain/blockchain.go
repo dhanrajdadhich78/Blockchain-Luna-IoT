@@ -2,7 +2,6 @@ package blockchain
 
 import (
 	"bytes"
-	//"crypto/ecdsa"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -11,8 +10,8 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	ecdsa "wizeBlock/wizeNode/crypto"
-	"wizeBlock/wizeNode/utils"
+	"wizeBlock/wizeNode/crypto"
+	"wizeBlock/wizeNode/wallet"
 )
 
 const dbFile = "files/db%s/wizebit.db"
@@ -36,7 +35,7 @@ func (bc *Blockchain) Iterator() *BlockchainIterator {
 // CreateBlockchain creates a new blockchain DB
 func CreateBlockchain(address, nodeID string) *Blockchain {
 	dbFile := fmt.Sprintf(dbFile, nodeID)
-	ok, err := utils.DbExists(dbFile)
+	ok, err := DbExists(dbFile)
 	if ok {
 		fmt.Println("Blockchain already exists.")
 		os.Exit(1)
@@ -84,7 +83,7 @@ func CreateBlockchain(address, nodeID string) *Blockchain {
 func NewBlockchain(nodeID string) *Blockchain {
 	dbFile := fmt.Sprintf(dbFile, nodeID)
 	//fmt.Printf("dbFile: %s\n", dbFile)
-	ok, err := utils.DbExists(dbFile)
+	ok, err := DbExists(dbFile)
 	if !ok {
 		fmt.Println("No existing blockchain found. Create one first.")
 		os.Exit(1)
@@ -354,7 +353,7 @@ func (bc *Blockchain) SignPreparedTransaction(preparedTx *Transaction, txSignatu
 	return preparedTx.SignPrepared(txSignatures, prevTXs)
 }
 
-func (bc *Blockchain) SignTransaction(tx *Transaction, privKey ecdsa.PrivateKey) {
+func (bc *Blockchain) SignTransaction(tx *Transaction, privKey crypto.PrivateKey) {
 	prevTXs := make(map[string]Transaction)
 
 	for _, vin := range tx.Vin {
@@ -389,7 +388,7 @@ func (bc *Blockchain) VerifyTransaction(tx *Transaction) (bool, error) {
 func (bc *Blockchain) GetBalance(address string) int {
 	UTXOSet := UTXOSet{bc}
 	balance := 0
-	pubKeyHash := utils.Base58Decode([]byte(address))
+	pubKeyHash := crypto.Base58Decode([]byte(address))
 	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
 	UTXOs := UTXOSet.FindUTXO(pubKeyHash)
 
@@ -446,4 +445,22 @@ func (bc *Blockchain) GetAddresses() []string {
 	}
 
 	return addressesSlice
+}
+
+func (bc *Blockchain) GetWalletBalance(address string) int {
+	if !wallet.ValidateAddress(address) {
+		log.Panic("ERROR: Address is not valid")
+	}
+
+	balance := 0
+	pubKeyHash := crypto.Base58Decode([]byte(address))
+	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
+
+	UTXOSet := UTXOSet{bc}
+	UTXOs := UTXOSet.FindUTXO(pubKeyHash)
+
+	for _, out := range UTXOs {
+		balance += out.Value
+	}
+	return balance
 }

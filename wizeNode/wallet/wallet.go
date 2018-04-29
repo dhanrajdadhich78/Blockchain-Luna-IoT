@@ -1,4 +1,4 @@
-package blockchain
+package wallet
 
 import (
 	"bytes"
@@ -9,8 +9,7 @@ import (
 
 	"golang.org/x/crypto/ripemd160"
 
-	ecdsa "wizeBlock/wizeNode/crypto"
-	"wizeBlock/wizeNode/utils"
+	"wizeBlock/wizeNode/crypto"
 )
 
 const Version = byte(0x00)
@@ -18,7 +17,7 @@ const addressChecksumLen = 4
 
 // Wallet stores private and public keys
 type Wallet struct {
-	PrivateKey ecdsa.PrivateKey
+	PrivateKey crypto.PrivateKey
 	PublicKey  []byte
 }
 
@@ -32,7 +31,7 @@ func NewWallet() *Wallet {
 
 // CreateWallet from private key
 func CreateWallet(privateKey []byte) (*Wallet, error) {
-	private, err := ecdsa.GetPrivateKey(nil, privateKey)
+	private, err := crypto.GetPrivateKey(nil, privateKey)
 	if err != nil {
 		fmt.Printf("Cant generate keys: %s", err)
 		return nil, err
@@ -51,7 +50,7 @@ func (w Wallet) GetAddress() []byte {
 	checksum := Checksum(versionedPayload)
 
 	fullPayload := append(versionedPayload, checksum...)
-	address := utils.Base58Encode(fullPayload)
+	address := crypto.Base58Encode(fullPayload)
 
 	return address
 }
@@ -68,10 +67,10 @@ func (w Wallet) GetPublicKey() []byte {
 ////
 
 // NewKeyPair
-func NewKeyPair() (*ecdsa.PrivateKey, []byte) {
+func NewKeyPair() (*crypto.PrivateKey, []byte) {
 	// TODO: should we realize curve?
 	//curve := elliptic.P256()
-	privKey, err := ecdsa.GenerateKey(nil, rand.Reader)
+	privKey, err := crypto.GenerateKey(nil, rand.Reader)
 	if err != nil {
 		fmt.Printf("Cant generate keys: %s", err)
 		return nil, nil
@@ -89,7 +88,7 @@ func GetAddress(pubKey []byte) []byte {
 	checksum := Checksum(versionedPayload)
 
 	fullPayload := append(versionedPayload, checksum...)
-	address := utils.Base58Encode(fullPayload)
+	address := crypto.Base58Encode(fullPayload)
 
 	return address
 }
@@ -110,7 +109,7 @@ func HashPubKey(pubKey []byte) []byte {
 
 // ValidateAddress check if address if valid
 func ValidateAddress(address string) bool {
-	fullPayload := utils.Base58Decode([]byte(address))
+	fullPayload := crypto.Base58Decode([]byte(address))
 	actualChecksum := fullPayload[len(fullPayload)-addressChecksumLen:]
 	version := fullPayload[0]
 	pubKeyHash := fullPayload[1 : len(fullPayload)-addressChecksumLen]
@@ -120,7 +119,7 @@ func ValidateAddress(address string) bool {
 }
 
 func GetPubKeyHash(address string) []byte {
-	fullPayload := utils.Base58Decode([]byte(address))
+	fullPayload := crypto.Base58Decode([]byte(address))
 	pubKeyHash := fullPayload[1 : len(fullPayload)-addressChecksumLen]
 	fmt.Printf("PubKeyHash: %x\n", pubKeyHash)
 	return pubKeyHash
@@ -132,26 +131,4 @@ func Checksum(payload []byte) []byte {
 	secondSHA := sha256.Sum256(firstSHA[:])
 
 	return secondSHA[:addressChecksumLen]
-}
-
-func GetAddresses(bc *Blockchain) []string {
-	return bc.GetAddresses()
-}
-
-func GetWalletBalance(address string, bc *Blockchain) int {
-	if !ValidateAddress(address) {
-		log.Panic("ERROR: Address is not valid")
-	}
-
-	balance := 0
-	pubKeyHash := utils.Base58Decode([]byte(address))
-	pubKeyHash = pubKeyHash[1 : len(pubKeyHash)-4]
-
-	UTXOSet := UTXOSet{bc}
-	UTXOs := UTXOSet.FindUTXO(pubKeyHash)
-
-	for _, out := range UTXOs {
-		balance += out.Value
-	}
-	return balance
 }
