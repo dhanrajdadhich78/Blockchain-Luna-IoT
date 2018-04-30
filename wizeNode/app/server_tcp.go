@@ -367,7 +367,7 @@ func (s *TCPServer) handleInv(request []byte) {
 
 	nanonow := time.Now().Format(timeFormat)
 	fmt.Printf("nodeID: %s, %s: Received inventory with %d %s\n", s.nodeID, nanonow, len(payload.Items), payload.Type)
-	//fmt.Printf("len(mempool): %d\n", len(s.mempool))
+	fmt.Printf("len(mempool): %d\n", len(s.mempool))
 
 	if payload.Type == "block" {
 		s.blocksInTransit = payload.Items
@@ -450,7 +450,13 @@ func (s *TCPServer) handleTx(request []byte) {
 
 	txData := payload.Transaction
 	tx := b.DeserializeTransaction(txData)
+	fmt.Printf("handleTx: [%x] miningAddress: %s\n", tx.ID, s.miningAddress)
+
+	// TODO: mempool should be just for miners?
+	//if len(s.miningAddress) > 0 {
+	fmt.Printf("Added to pool %d Tx: [%x]\n", len(s.mempool), tx.ID)
 	s.mempool[hex.EncodeToString(tx.ID)] = tx
+	//}
 
 	if s.nodeAddress == KnownNodes[0] {
 		fmt.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, KnownNodes)
@@ -462,7 +468,8 @@ func (s *TCPServer) handleTx(request []byte) {
 	} else {
 		// OLDTODO: changing count of transaction for mining
 		fmt.Printf("miningAddress: %s, len(mempool): %d\n", s.miningAddress, len(s.mempool))
-		if len(s.mempool) >= 2 && len(s.miningAddress) > 0 {
+		// FIXME: len of mempool?
+		if len(s.mempool) >= 1 && len(s.miningAddress) > 0 {
 		MineTransactions:
 			fmt.Println("MineTransactions...")
 			var txs []*b.Transaction
@@ -479,6 +486,43 @@ func (s *TCPServer) handleTx(request []byte) {
 				fmt.Println("All transactions are invalid! Waiting for new ones...")
 				return
 			}
+
+			// TODO: fix transactions with minenow=false, count = 2? more?
+			// TODO: we should check all transactions from the first to the last in time
+			// TODO: check all transactions by timestamp
+			/*
+				var inputTxID, check = "", ""
+				for index, tx := range txs {
+					fmt.Printf("Index: %d, Timestamp: %d, TxID: %x\n", index, tx.Timestamp, tx.ID)
+					if len(tx.Vin) > 0 {
+						for vi, vin := range tx.Vin {
+							fmt.Printf("  Input  %d, TxID: %x, Out: %d\n", vi, vin.Txid, vin.Vout)
+						}
+					}
+					if len(tx.Vout) > 0 {
+						for vo, vout := range tx.Vout {
+							fmt.Printf("  Output %d, PubKeyHash: %x, Out: %d\n", vo, vout.PubKeyHash, vout.Value)
+						}
+					}
+
+					if len(tx.Vin) > 0 && inputTxID == "" {
+						inputTxID = hex.EncodeToString(tx.Vin[0].Txid)
+						fmt.Printf("    inputTxID: %s\n", inputTxID)
+					} else if len(tx.Vin) > 0 {
+						check = hex.EncodeToString(tx.Vin[0].Txid)
+						fmt.Printf("    check:     %s\n", check)
+						if check == inputTxID {
+							fmt.Printf("    Equals!\n")
+
+							// FIXME
+							fmt.Printf("    Fix: %x to %x\n", tx.Vin[0].Txid, txs[index-1].ID)
+							//tx.Vin[0].Txid = txs[index-1].ID
+
+							inputTxID = check
+						}
+					}
+				}
+			*/
 
 			cbTx := b.NewCoinbaseTX(s.miningAddress, "")
 			txs = append(txs, cbTx)
