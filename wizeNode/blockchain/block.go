@@ -5,6 +5,8 @@ import (
 	"encoding/gob"
 	"fmt"
 	"time"
+
+	"wizeBlock/wizeNode/crypto"
 )
 
 // Block represents a block in the blockchain
@@ -41,7 +43,7 @@ func (b *Block) HashTransactions() []byte {
 	for _, tx := range b.Transactions {
 		transactions = append(transactions, tx.Serialize())
 	}
-	mTree := NewMerkleTree(transactions)
+	mTree := crypto.NewMerkleTree(transactions)
 
 	return mTree.RootNode.Data
 }
