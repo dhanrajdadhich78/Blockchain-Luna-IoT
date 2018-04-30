@@ -20,7 +20,7 @@ const nodeVersion = 1
 const commandLength = 12
 const timeFormat = "03:04:05.000000"
 
-var KnownNodes = []string{os.Getenv("MASTERNODE")} //TODO: change to valid nodes in production
+var KnownNodes = []string{os.Getenv("MASTERNODE") + ":3000"} //TODO: change to valid nodes in production
 
 type TCPServer struct {
 	node          *Node

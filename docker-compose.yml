@@ -10,10 +10,16 @@ services:
     volumes:
       - ./wizeNode/files/db3000:/go/src/wizeBlock/wizeNode/files/db3000
       - ./wizeNode/files/wallet3000:/go/src/wizeBlock/wizeNode/files/wallet3000
-    container_name: wize1
+    container_name: wize.${USER_PUBKEY}
     environment:
-      NODE_ID: 3000
-      NODE_ADD: 77.93.60.113
+      NODE_ID: ${NODE_ID}
+      NODE_ADD: ${NODE_ADD}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: startnode
     ports:
       - "3000:3000"

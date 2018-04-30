@@ -9,3 +9,4 @@ wizeNode/files/wallets/wallet_3001.dat
 
 # testing
 wizeNode/blockchain/files
+wizeNode/startnode.sh
