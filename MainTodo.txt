@@ -1,0 +1,9 @@
+// TODO: add wizeWallet cli app for debugging purposes
+// TODO: what we can debug with wizeWallet firstly?
+//       todo: get addresses (wallets) list
+//       todo: get address (wallet) info
+//       todo: send (prepare/sign) transaction
+//       todo: get blockchain info
+//       todo: get transactions info
+
+// TODO: replace CLI struct with urfave cli library
