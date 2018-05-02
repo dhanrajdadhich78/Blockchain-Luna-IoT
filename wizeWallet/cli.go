@@ -8,7 +8,9 @@ import (
 )
 
 // CLI responsible for processing command line arguments
-type CLI struct{}
+type CLI struct {
+	blockApi *BlockApi
+}
 
 func (cli *CLI) validateArgs() {
 	if len(os.Args) < 2 {
@@ -89,6 +91,8 @@ func (cli *CLI) Run() {
 		cli.printUsage()
 		os.Exit(1)
 	}
+
+	cli.blockApi = NewBlockApi()
 
 	if createWalletCmd.Parsed() {
 		cli.createWallet(nodeID)

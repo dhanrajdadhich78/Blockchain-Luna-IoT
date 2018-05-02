@@ -13,13 +13,13 @@ import (
 	"wizeBlock/wizeNode/wallet"
 )
 
-// TODO: add REST API Client to wizeNode REST API Service
+// DOING: add REST API Client to wizeNode REST API Service
 
 // DONE: createwallet
 // DONE: listaddresses
-// TODO: getwallet
-// TODO: getbalance
-// TODO: send (prepare/sign)
+// DOING: getwallet
+// DOING: getbalance
+// DOING: send (prepare/sign) with mine (minenow=true)
 // TODO: fix nodeID
 
 func (cli *CLI) printUsage() {
@@ -58,6 +58,11 @@ func (cli *CLI) listAddresses(nodeID string) {
 }
 
 func (cli *CLI) getWallet(address string, nodeID string) {
+	walletInfo, err := cli.blockApi.GetWalletInfo(address)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+	}
+	fmt.Printf("Wallet info: %+v\n", walletInfo)
 }
 
 func (cli *CLI) getBalance(address string, nodeID string) {
