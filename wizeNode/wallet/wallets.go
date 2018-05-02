@@ -24,13 +24,25 @@ const walletFile = "files/wallet%s/wallet.dat"
 
 // Wallets stores a collection of wallets
 type Wallets struct {
-	Wallets map[string]*Wallet
+	Wallets    map[string]*Wallet
+	walletFile string
 }
 
 // NewWallets creates Wallets and fills it from a file if it exists
 func NewWallets(nodeID string) (*Wallets, error) {
 	wallets := Wallets{}
 	wallets.Wallets = make(map[string]*Wallet)
+	wallets.walletFile = walletFile
+
+	err := wallets.LoadFromFile(nodeID)
+
+	return &wallets, err
+}
+
+func NewWalletsExt(file, nodeID string) (*Wallets, error) {
+	wallets := Wallets{}
+	wallets.Wallets = make(map[string]*Wallet)
+	wallets.walletFile = file
 
 	err := wallets.LoadFromFile(nodeID)
 
@@ -65,7 +77,7 @@ func (ws Wallets) GetWallet(address string) *Wallet {
 
 // LoadFromFile loads wallets from the file
 func (ws *Wallets) LoadFromFile(nodeID string) error {
-	walletFile := fmt.Sprintf(walletFile, nodeID)
+	walletFile := fmt.Sprintf(ws.walletFile, nodeID)
 	if _, err := os.Stat(walletFile); os.IsNotExist(err) {
 		return err
 	}
@@ -93,7 +105,7 @@ func (ws *Wallets) LoadFromFile(nodeID string) error {
 // SaveToFile saves wallets to a file
 func (ws Wallets) SaveToFile(nodeID string) {
 	var content bytes.Buffer
-	walletFile := fmt.Sprintf(walletFile, nodeID)
+	walletFile := fmt.Sprintf(ws.walletFile, nodeID)
 
 	// FIXME: should we use this Register?
 	gob.Register(elliptic.P256())
