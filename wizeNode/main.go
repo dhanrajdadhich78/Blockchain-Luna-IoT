@@ -1,10 +1,24 @@
 package main
 
 import (
-	a "wizeBlock/wizeNode/app"
+	"os"
+
+	"github.com/urfave/cli"
+
+	command "wizeBlock/wizeNode/app"
 )
 
 func main() {
-	cli := a.CLI{}
-	cli.Run()
+	app := cli.NewApp()
+	app.Name = "WizeBlock Node"
+	app.Version = "0.2"
+	app.Usage = "Command-line API for WizeBlock Node"
+
+	app.Flags = command.GlobalFlags
+	app.Commands = command.Commands
+
+	app.CommandNotFound = command.CommandNotFound
+	app.Before = command.CommandBefore
+
+	app.Run(os.Args)
 }
