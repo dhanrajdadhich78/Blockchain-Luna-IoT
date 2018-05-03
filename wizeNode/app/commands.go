@@ -13,9 +13,16 @@ import (
 	"wizeBlock/wizeNode/blockchain"
 	"wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/wallet"
-	//"bitbucket.org/udt/wizefs/internal/command"
-	//"bitbucket.org/udt/wizefs/internal/tlog"
 )
+
+// TODO: all commands should moved to another file module
+//       & perhaps it will be Node struct module
+// TODO: [DC] check all base commands
+//       createwallet, createblockchain, getbalance, send
+//       listaddresses, printchain, getblock, startnode
+// TODO: [DC] add all node commands
+// TODO: [DC] add all blockchain commands
+// TODO: optimize all commands, add command groups, subcommands?
 
 var GlobalFlags = []cli.Flag{
 	cli.BoolFlag{
@@ -25,13 +32,13 @@ var GlobalFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:   "nodeADD",
 		Value:  "localhost",
-		Usage:  "",
+		Usage:  "Node address",
 		EnvVar: "NODE_ADD",
 	},
 	cli.StringFlag{
 		Name:   "nodeID",
 		Value:  "3000",
-		Usage:  "",
+		Usage:  "Node ID (port)",
 		EnvVar: "NODE_ID",
 	},
 }
@@ -56,8 +63,7 @@ var Commands = []cli.Command{
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "address",
-				Value: "3000",
-				Usage: "",
+				Usage: "Wallet address",
 			},
 		},
 		Usage:  "Get balance of ADDRESS",
@@ -70,8 +76,7 @@ var Commands = []cli.Command{
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "address",
-				Value: "3000",
-				Usage: "",
+				Usage: "Wallet address for miner rewards",
 			},
 		},
 		Usage:  "Create a blockchain and send genesis block reward to ADDRESS",
@@ -165,15 +170,14 @@ func CmdCreateWallet(c *cli.Context) (err error) {
 	fmt.Printf("Your new address: %s\n", address)
 	fmt.Println("Private key: ", hex.EncodeToString(walletNew.GetPrivateKey()))
 	fmt.Println("Public key: ", hex.EncodeToString(walletNew.GetPublicKey()))
-
 	return nil
 }
 
 func CmdListAddresses(c *cli.Context) (err error) {
 	nodeID := c.GlobalString("nodeID")
 	var addresses []string = []string{}
-
 	if nodeID == "3100" {
+		// FIXME: experiment with get addresses
 		bc := blockchain.NewBlockchain("3000")
 		addresses = bc.GetAddresses()
 	} else {
@@ -183,11 +187,9 @@ func CmdListAddresses(c *cli.Context) (err error) {
 		}
 		addresses = wallets.GetAddresses()
 	}
-
 	for _, address := range addresses {
 		fmt.Println(address)
 	}
-
 	return nil
 }
 
