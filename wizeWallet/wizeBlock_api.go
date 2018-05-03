@@ -35,6 +35,29 @@ type WalletHashInfo struct {
 	Credit  int
 }
 
+type PrepareTxRequest struct {
+	From   string
+	To     string
+	Amount int
+	PubKey string
+}
+
+type PrepareTxResponse struct {
+	Success bool
+	Txid    string
+	Hashes  []string
+}
+
+type SignTxRequest struct {
+	Txid       string
+	Minenow    bool
+	Signatures []string
+}
+
+type SignTxResponse struct {
+	Success bool
+}
+
 type BlockApi struct {
 	Available bool
 	http      *http.Client
@@ -46,7 +69,7 @@ func NewBlockApi() *BlockApi {
 		http:      &http.Client{},
 	}
 
-	blockApi.CheckApi()
+	//blockApi.CheckApi()
 	return blockApi
 }
 
@@ -168,6 +191,50 @@ func (c *BlockApi) PostWalletCreate(request *WalletCreateRequest) (*WalletCreate
 	var result WalletCreateInfo
 	err = mapstructure.Decode(data, &result)
 	//fmt.Println("result", result, err)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (c *BlockApi) PostTxPrepare(request *PrepareTxRequest) (*PrepareTxResponse, error) {
+	j, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := c.Post("/prepare", bytes.NewBuffer(j))
+	if err != nil {
+		return nil, err
+	}
+	//fmt.Println("data: ", data, err)
+
+	var result PrepareTxResponse
+	err = mapstructure.Decode(data, &result)
+	fmt.Println("result", result, err)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (c *BlockApi) PostTxSign(request *SignTxRequest) (*SignTxResponse, error) {
+	j, err := json.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := c.Post("/sign", bytes.NewBuffer(j))
+	if err != nil {
+		return nil, err
+	}
+	//fmt.Println("data: ", data, err)
+
+	var result SignTxResponse
+	err = mapstructure.Decode(data, &result)
+	fmt.Println("result", result, err)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"log"
@@ -9,7 +10,7 @@ import (
 	//"time"
 
 	//"wizeBlock/wizeNode/blockchain"
-	//"wizeBlock/wizeNode/crypto"
+	"wizeBlock/wizeNode/crypto"
 	"wizeBlock/wizeNode/wallet"
 )
 
@@ -35,7 +36,7 @@ func (cli *CLI) printUsage() {
 }
 
 func (cli *CLI) createWallet(nodeID string) {
-	wallets, _ := wallet.NewWalletsExt("wallet%s.data", nodeID)
+	wallets, _ := wallet.NewWalletsExt("wallet%s.dat", nodeID)
 	address := wallets.CreateWallet()
 	wallets.SaveToFile(nodeID)
 	walletNew := wallets.GetWallet(address)
@@ -47,7 +48,7 @@ func (cli *CLI) createWallet(nodeID string) {
 
 func (cli *CLI) listAddresses(nodeID string) {
 	var addresses []string = []string{}
-	wallets, err := wallet.NewWalletsExt("wallet%s.data", nodeID)
+	wallets, err := wallet.NewWalletsExt("wallet%s.dat", nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -57,7 +58,7 @@ func (cli *CLI) listAddresses(nodeID string) {
 	}
 }
 
-func (cli *CLI) getWallet(address string, nodeID string) {
+func (cli *CLI) getWalletApi(address string, nodeID string) {
 	walletInfo, err := cli.blockApi.GetWalletInfo(address)
 	if err != nil {
 		fmt.Printf("Error: %s", err)
@@ -65,10 +66,63 @@ func (cli *CLI) getWallet(address string, nodeID string) {
 	fmt.Printf("Wallet info: %+v\n", walletInfo)
 }
 
+func (cli *CLI) getWallet(address string, nodeID string) {
+	wallets, _ := wallet.NewWalletsExt("wallet%s.dat", nodeID)
+	w := wallets.GetWallet(address)
+	fmt.Printf("Your new address: %s\n", address)
+	fmt.Println("Private key: ", hex.EncodeToString(w.GetPrivateKey()))
+	fmt.Println("Public key:  ", hex.EncodeToString(w.GetPublicKey()))
+}
+
 func (cli *CLI) getBalance(address string, nodeID string) {
+	walletInfo, err := cli.blockApi.GetWalletInfo(address)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+	}
+	fmt.Printf("Wallet info: %+v\n", walletInfo)
 }
 
 func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
+	wallets, _ := wallet.NewWalletsExt("wallet%s.dat", nodeID)
+	w := wallets.GetWallet(from)
+	pubKey := hex.EncodeToString(w.GetPublicKey())
+	privKeyStruct, err := crypto.GetPrivateKey(nil, w.GetPrivateKey())
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+	}
+
+	prepare := &PrepareTxRequest{
+		From:   from,
+		To:     to,
+		Amount: amount,
+		PubKey: pubKey,
+	}
+	prepared, _ := cli.blockApi.PostTxPrepare(prepare)
+
+	// sign
+	signatures := make([]string, 0)
+	for _, hash := range prepared.Hashes {
+		hashToSign, _ := hex.DecodeString(hash)
+		r, s, err := crypto.Sign(rand.Reader, privKeyStruct, hashToSign[:])
+		if err != nil {
+			fmt.Printf("Error: %s\n", err)
+		}
+		signature := append(r.Bytes(), s.Bytes()...)
+		signatures = append(signatures, hex.EncodeToString(signature))
+	}
+
+	fmt.Printf("Signatures: %+v\n", signatures)
+
+	sign := &SignTxRequest{
+		Txid:       prepared.Txid,
+		Minenow:    mineNow,
+		Signatures: signatures,
+	}
+	signed, _ := cli.blockApi.PostTxSign(sign)
+
+	if signed.Success {
+
+	}
 }
 
 func (cli *CLI) printChain(nodeID string) {
