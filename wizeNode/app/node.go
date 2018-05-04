@@ -12,7 +12,7 @@ import (
 )
 
 // TODO: refactoring
-//       doing: REST Server, Mutex?
+//       done: REST Server, Mutex?
 //       todo: TCP Server
 //       todo: blockchain, preparedTxs
 //       todo: logger
@@ -27,7 +27,6 @@ type PreparedTransaction struct {
 }
 
 type Node struct {
-	//*http.ServeMux
 	restServer *RestServer
 
 	nodeID  string
@@ -37,7 +36,6 @@ type Node struct {
 	blockchain  *bc.Blockchain
 	preparedTxs map[string]*PreparedTransaction
 
-	mu     sync.RWMutex
 	logger *log.Logger
 }
 
@@ -48,7 +46,6 @@ func NewNode(nodeADD, nodeID, apiADD string) *Node {
 		apiADD:      apiADD,
 		blockchain:  bc.NewBlockchain(nodeID),
 		preparedTxs: make(map[string]*PreparedTransaction),
-		mu:          sync.RWMutex{},
 		logger: log.New(
 			os.Stdout,
 			"node: ",
