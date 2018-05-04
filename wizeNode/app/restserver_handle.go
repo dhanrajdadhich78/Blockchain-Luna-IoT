@@ -38,24 +38,24 @@ type Send struct {
 	MineNow bool
 }
 
-func (node *Node) sayHello(w http.ResponseWriter, r *http.Request) {
-	respondWithJSON(w, http.StatusOK, "Hello wize "+node.nodeADD)
+func (s *RestServer) sayHello(w http.ResponseWriter, r *http.Request) {
+	respondWithJSON(w, http.StatusOK, "Hello wize "+s.node.nodeADD)
 }
 
-func (node *Node) getWallet(w http.ResponseWriter, r *http.Request) {
+func (s *RestServer) getWallet(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	hash := vars["hash"]
 	resp := map[string]interface{}{
 		"success": true,
-		"credit":  node.blockchain.GetWalletBalance(hash),
+		"credit":  s.node.blockchain.GetWalletBalance(hash),
 		//"credit":  GetWalletCredits(hash, node.nodeID, node.blockchain),
 	}
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
 // DEPRECATED: inner usage
-func (node *Node) deprecatedWalletsList(w http.ResponseWriter, r *http.Request) {
-	wallets, err := wallet.NewWallets(node.nodeID)
+func (s *RestServer) deprecatedWalletsList(w http.ResponseWriter, r *http.Request) {
+	wallets, err := wallet.NewWallets(s.node.nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -68,10 +68,10 @@ func (node *Node) deprecatedWalletsList(w http.ResponseWriter, r *http.Request) 
 }
 
 // DEPRECATED: inner usage
-func (node *Node) deprecatedWalletCreate(w http.ResponseWriter, r *http.Request) {
-	wallets, _ := wallet.NewWallets(node.nodeID)
+func (s *RestServer) deprecatedWalletCreate(w http.ResponseWriter, r *http.Request) {
+	wallets, _ := wallet.NewWallets(s.node.nodeID)
 	address := wallets.CreateWallet()
-	wallets.SaveToFile(node.nodeID)
+	wallets.SaveToFile(s.node.nodeID)
 	wallet := wallets.GetWallet(address)
 
 	//fmt.Printf("Your new address: %s\n", address)
@@ -88,7 +88,7 @@ func (node *Node) deprecatedWalletCreate(w http.ResponseWriter, r *http.Request)
 }
 
 // DEPRECATED: inner usage
-func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
+func (s *RestServer) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 	//func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
 
 	var send Send
@@ -120,9 +120,9 @@ func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	UTXOSet := blockchain.UTXOSet{node.blockchain}
+	UTXOSet := blockchain.UTXOSet{s.node.blockchain}
 
-	wallets, err := wallet.NewWallets(node.nodeID)
+	wallets, err := wallet.NewWallets(s.node.nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -138,14 +138,14 @@ func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 	respsuccess := true
 
 	//
-	currentNodeAddress := fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID)
+	currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
 	if mineNow {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
 
-		newBlock := node.blockchain.MineBlock(txs)
+		newBlock := s.node.blockchain.MineBlock(txs)
 		if newBlock != nil {
 			UTXOSet.Update(newBlock)
 		} else {
@@ -154,7 +154,7 @@ func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
-		SendTx(KnownNodes[0], node.nodeID, tx)
+		SendTx(KnownNodes[0], s.node.nodeID, tx)
 	}
 
 	//
@@ -162,7 +162,7 @@ func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 		for _, value := range KnownNodes {
 			fmt.Printf("value: %s\n", value)
 			if value != currentNodeAddress {
-				sendVersion(value, currentNodeAddress, node.blockchain)
+				sendVersion(value, currentNodeAddress, s.node.blockchain)
 			}
 		}
 	}
@@ -174,7 +174,7 @@ func (node *Node) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 }
 
 // send transaction steps: prepare/sign
-func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
+func (s *RestServer) prepare(w http.ResponseWriter, r *http.Request) {
 	var prepare Prepare
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -219,7 +219,7 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	UTXOSet := blockchain.UTXOSet{node.blockchain}
+	UTXOSet := blockchain.UTXOSet{s.node.blockchain}
 
 	tx, txToSign, err := blockchain.PrepareUTXOTransaction(from, to, amount, pubKey, &UTXOSet)
 	if err != nil || tx == nil || txToSign == nil {
@@ -239,7 +239,7 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 		From:        from,
 		Transaction: tx,
 	}
-	node.preparedTxs[txid] = preparedTx
+	s.node.preparedTxs[txid] = preparedTx
 
 	fmt.Printf("txid: %s, hashesToSign count: %d\n", txid, len(txToSign.HashesToSign))
 
@@ -251,7 +251,7 @@ func (node *Node) prepare(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
-func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
+func (s *RestServer) sign(w http.ResponseWriter, r *http.Request) {
 	var sign Sign
 	body, err := ioutil.ReadAll(r.Body)
 
@@ -279,11 +279,11 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	UTXOSet := blockchain.UTXOSet{node.blockchain}
+	UTXOSet := blockchain.UTXOSet{s.node.blockchain}
 	TxID, _ := hex.DecodeString(txid)
 
 	// get from Prepared Transactions
-	preparedTx, ok := node.preparedTxs[txid]
+	preparedTx, ok := s.node.preparedTxs[txid]
 	from := preparedTx.From
 
 	fmt.Printf("TxID: %x\n", TxID)
@@ -314,7 +314,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	tx := blockchain.SignUTXOTransaction(preparedTx.Transaction, txSignatures, &UTXOSet)
 
 	// network update
-	currentNodeAddress := fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID)
+	currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
 	// mining block: now and with miner's help
@@ -323,7 +323,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 		cbTx := blockchain.NewCoinbaseTX(from, "")
 		txs := []*blockchain.Transaction{cbTx, tx}
 
-		newBlock := node.blockchain.MineBlock(txs)
+		newBlock := s.node.blockchain.MineBlock(txs)
 		if newBlock != nil {
 			UTXOSet.Update(newBlock)
 		} else {
@@ -335,7 +335,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 			for _, value := range KnownNodes {
 				fmt.Printf("value: %s\n", value)
 				if value != currentNodeAddress {
-					sendVersion(value, currentNodeAddress, node.blockchain)
+					sendVersion(value, currentNodeAddress, s.node.blockchain)
 				}
 			}
 		}
@@ -350,7 +350,7 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// remove from Prepared-Transactions
-	delete(node.preparedTxs, txid)
+	delete(s.node.preparedTxs, txid)
 
 	resp := map[string]interface{}{
 		"success": respsuccess,
@@ -359,9 +359,9 @@ func (node *Node) sign(w http.ResponseWriter, r *http.Request) {
 }
 
 // inner usage
-func (node *Node) printBlockchain(w http.ResponseWriter, r *http.Request) {
+func (s *RestServer) printBlockchain(w http.ResponseWriter, r *http.Request) {
 
-	bci := node.blockchain.Iterator()
+	bci := s.node.blockchain.Iterator()
 	chain := make([]*blockchain.Block, 0)
 
 	for {
@@ -391,11 +391,11 @@ func (node *Node) printBlockchain(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, resp)
 }
 
-func (node *Node) getBlock(w http.ResponseWriter, r *http.Request) {
+func (s *RestServer) getBlock(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	blockHash := vars["hash"]
 	//TODO: зачем итеретор? попробовать выбрать по ключу
-	bci := node.blockchain.Iterator()
+	bci := s.node.blockchain.Iterator()
 	var result *blockchain.Block
 
 	for {
@@ -445,8 +445,54 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 	//fmt.Printf("response: %v\n", response)
 }
 
+type appError struct {
+	Error      string `json:"error"`
+	Message    string `json:"message"`
+	HttpStatus int    `json:"status"`
+	ExitCode   int    `json:"exitcode"`
+}
+
+type errorResource struct {
+	Data appError `json:"data"`
+}
+
+func displayAppError(w http.ResponseWriter, handlerError error, message string, code int, exitCode int) {
+	errObj := appError{
+		Error:      "nil",
+		Message:    message,
+		HttpStatus: code,
+		ExitCode:   exitCode,
+	}
+
+	if handlerError != nil {
+		errObj.Error = handlerError.Error()
+	}
+
+	fmt.Printf("[app error]: %s\n", handlerError)
+
+	respondWithJSON(w, code, errorResource{Data: errObj})
+}
+
 func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
 	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
 	w.WriteHeader(status)
 	io.WriteString(w, msg)
 }
+
+//func (node *Node) writeResponse(w http.ResponseWriter, b []byte) {
+//	w.Header().Set("Content-Type", "application/json")
+//	w.Write(b)
+//}
+
+//func (node *Node) error(w http.ResponseWriter, err error, message string) {
+//	node.logError(err)
+
+//	b, err := json.Marshal(&ErrorResponse{
+//		Error: message,
+//	})
+//	if err != nil {
+//		node.logError(err)
+//	}
+
+//	node.writeResponse(w, b)
+//}

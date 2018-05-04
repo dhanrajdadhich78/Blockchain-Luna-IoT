@@ -1,23 +1,21 @@
 package app
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 
-	"github.com/betacraft/yaag/middleware"
-	"github.com/betacraft/yaag/yaag"
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
-
 	bc "wizeBlock/wizeNode/blockchain"
 )
+
+// TODO: refactoring
+//       doing: REST Server, Mutex?
+//       todo: TCP Server
+//       todo: blockchain, preparedTxs
+//       todo: logger
 
 type ErrorResponse struct {
 	Error string `json:"error"`
@@ -29,20 +27,25 @@ type PreparedTransaction struct {
 }
 
 type Node struct {
-	*http.ServeMux
+	//*http.ServeMux
+	restServer *RestServer
+
+	nodeID  string
+	nodeADD string
+	apiADD  string
 
 	blockchain  *bc.Blockchain
 	preparedTxs map[string]*PreparedTransaction
 
-	mu      sync.RWMutex
-	logger  *log.Logger
-	apiAddr string
-	nodeID  string
-	nodeADD string
+	mu     sync.RWMutex
+	logger *log.Logger
 }
 
-func NewNode(nodeID string) *Node {
-	return &Node{
+func NewNode(nodeADD, nodeID, apiADD string) *Node {
+	newNode := &Node{
+		nodeADD:     nodeADD,
+		nodeID:      nodeID,
+		apiADD:      apiADD,
 		blockchain:  bc.NewBlockchain(nodeID),
 		preparedTxs: make(map[string]*PreparedTransaction),
 		mu:          sync.RWMutex{},
@@ -52,99 +55,36 @@ func NewNode(nodeID string) *Node {
 			log.Ldate|log.Ltime,
 		),
 	}
+	newNode.restServer = NewRestServer(newNode, apiADD)
+	return newNode
 }
-
-func (node *Node) newApiServer() *http.Server {
-	//mux := http.NewServeMux()
-	//mux.HandleFunc("/blocks", node.blocksHandler)
-	//mux.HandleFunc("/mineBlock", node.mineBlockHandler)
-	//mux.HandleFunc("/peers", node.peersHandler)
-	//mux.HandleFunc("/addPeer", node.addPeerHandler)
-
-	yaag.Init(&yaag.Config{On: true, DocTitle: "Gorilla Mux", DocPath: "./apidoc/apidoc.html"})
-	router := mux.NewRouter()
-
-	//router.Handle("/apidoc", http.FileServer(http.Dir("./apidoc")))
-	router.PathPrefix("/doc/").Handler(http.StripPrefix("/doc/", http.FileServer(http.Dir("./apidoc"))))
-	router.HandleFunc("/", middleware.HandleFunc(node.sayHello)).Methods("GET")
-
-	// inner usage
-	router.HandleFunc("/blockchain/print", middleware.HandleFunc(node.printBlockchain)).Methods("GET")
-	router.HandleFunc("/block/{hash}", middleware.HandleFunc(node.getBlock)).Methods("GET")
-
-	// DEPRECATED: inner usage
-	// TODO: what is middleware.HandleFunc() doing here?
-	//router.HandleFunc("/wallet/new", middleware.HandleFunc(node.deprecatedWalletCreate)).Methods("POST")
-	// DEPRECATED: inner usage
-	//router.HandleFunc("/wallets/list", middleware.HandleFunc(node.deprecatedWalletsList)).Methods("GET")
-
-	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
-
-	// send transaction steps: prepare/sign
-	router.HandleFunc("/prepare", middleware.HandleFunc(node.prepare)).Methods("POST")
-	router.HandleFunc("/sign", middleware.HandleFunc(node.sign)).Methods("POST")
-
-	// DEPRECATED: inner usage
-	// TODO: why there is not middleware.HandleFunc()?
-	//router.HandleFunc("/send", middleware.HandleFunc(node.deprecatedSend)).Methods("POST")
-
-	corsHandler := cors.Default().Handler(router)
-
-	return &http.Server{
-		Handler: corsHandler,
-		Addr:    ":" + node.apiAddr,
-	}
-}
-
-//func (node *Node) newP2PServer() *http.Server {
-//	return &http.Server{
-//		Handler: websocket.Handler(func(ws *websocket.Conn) {
-//			conn := NewConn(ws)
-//			node.log("connect to peer:", conn.remoteHost())
-//			node.addConn(conn)
-//			node.p2pHandler(conn)
-//		}),
-//		Addr: *p2pAddr,
-//	}
-//	return
-//}
 
 func (node *Node) Run(minerAddress string) {
-	apiSrv := node.newApiServer()
+	fmt.Println("nodeADD:", node.nodeADD, "nodeID:", node.nodeID, "apiADD:", node.apiADD)
 
-	go func() {
-		node.log("start HTTP server for API")
+	// REST Server start
+	if err := node.restServer.Start(); err != nil {
+		fmt.Printf("Failed to start HTTP service: %s", err.Error())
+	}
 
-		if err := apiSrv.ListenAndServe(); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	fmt.Println("apiAddr:", node.apiAddr, "nodeID:", node.nodeID, "nodeADD:", node.nodeADD)
-
+	// Node Server start
 	tcpSrv := NewServer(node, minerAddress)
 	go func() {
 		node.log("start TCP server")
 		tcpSrv.Start()
 	}()
 
-	//p2pSrv := node.newP2PServer()
-	//go func() {
-	//	node.log("start WebSocket server for P2P")
-	//	if err := p2pSrv.ListenAndServe(); err != nil {
-	//		log.Fatal(err)
-	//	}
-	//}()
-
+	// TODO: refactoring exits from all routines
 	signalCh := make(chan os.Signal)
 	signal.Notify(signalCh, syscall.SIGTERM)
 	for {
 		s := <-signalCh
 		if s == syscall.SIGTERM {
 			node.log("stop servers")
-			apiSrv.Shutdown(context.Background())
+			// FIXME
+			//apiSrv.Shutdown(context.Background())
+			node.restServer.Close()
 			tcpSrv.Stop()
-			//p2pSrv.Shutdown(context.Background())
 		}
 	}
 }
@@ -155,22 +95,4 @@ func (node *Node) log(v ...interface{}) {
 
 func (node *Node) logError(err error) {
 	node.log("[ERROR]", err)
-}
-
-func (node *Node) writeResponse(w http.ResponseWriter, b []byte) {
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(b)
-}
-
-func (node *Node) error(w http.ResponseWriter, err error, message string) {
-	node.logError(err)
-
-	b, err := json.Marshal(&ErrorResponse{
-		Error: message,
-	})
-	if err != nil {
-		node.logError(err)
-	}
-
-	node.writeResponse(w, b)
 }

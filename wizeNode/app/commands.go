@@ -339,10 +339,7 @@ func CmdStartNode(c *cli.Context) (err error) {
 		if crypto.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
 			//StartServer(nodeID, minerAddress, apiAddress)
-			node := NewNode(nodeID)
-			node.apiAddr = apiAddress
-			node.nodeID = nodeID
-			node.nodeADD = nodeADD
+			node := NewNode(nodeADD, nodeID, apiAddress)
 			node.Run(minerAddress)
 		} else {
 			log.Panic("Wrong miner address!")
@@ -350,10 +347,7 @@ func CmdStartNode(c *cli.Context) (err error) {
 	}
 	//StartServer(nodeID, minerAddress, apiAddress)
 
-	node := NewNode(nodeID)
-	node.apiAddr = apiAddress
-	node.nodeID = nodeID
-	node.nodeADD = nodeADD
+	node := NewNode(nodeADD, nodeID, apiAddress)
 	node.Run(minerAddress)
 	return nil
 }
