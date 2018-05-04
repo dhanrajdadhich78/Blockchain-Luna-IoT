@@ -16,6 +16,10 @@ import (
 	"wizeBlock/wizeNode/wallet"
 )
 
+// TODO: refactoring - names, funcs
+// TODO: add logging & error handling
+// TODO: actual and deprecated APIs
+
 type Prepare struct {
 	From   string
 	To     string
@@ -478,6 +482,10 @@ func sendErrorMessage(w http.ResponseWriter, msg string, status int) {
 	w.WriteHeader(status)
 	io.WriteString(w, msg)
 }
+
+//type ErrorResponse struct {
+//	Error string `json:"error"`
+//}
 
 //func (node *Node) writeResponse(w http.ResponseWriter, b []byte) {
 //	w.Header().Set("Content-Type", "application/json")

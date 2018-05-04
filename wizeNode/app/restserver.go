@@ -14,6 +14,10 @@ import (
 
 // TODO: refactoring - names, funcs
 // TODO: add logging & error handling
+// TODO: Start and Close rethink
+// TODO: what is middleware.HandleFunc() doing here?
+// TODO: CORS refactoring
+// TODO: refactoring exits from all routines
 
 // RestServer provides HTTP service.
 type RestServer struct {

@@ -17,9 +17,14 @@ import (
 //       todo: blockchain, preparedTxs
 //       todo: logger
 
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
+// TODO: dataDir?
+// TODO: minterAddress?
+// TODO: known (other) nodes?
+// TODO: NodeNet?
+// TODO: NodeClient
+
+// TODO: NodeBlockchain!
+// TODO: NodeTransactions!
 
 type PreparedTransaction struct {
 	From        string
