@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"encoding/hex"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net"
@@ -14,15 +13,17 @@ import (
 	b "wizeBlock/wizeNode/blockchain"
 )
 
-const protocol = "tcp"
-const nodeVersion = 1
-const commandLength = 12
-const timeFormat = "03:04:05.000000"
+// TODO: divide server_tcp onto nodeserver and nodeclient
+// TODO: constants and util functions to network module
+// TODO: KnownNodes to nodenetwork module
 
-var KnownNodes = []string{"wize1:3000"}
+const timeFormat = "15:04:05.000000"
+
+//var KnownNodes = []string{"localhost:3000"}
 
 type TCPServer struct {
-	node          *Node
+	Node *Node
+
 	nodeID        string
 	nodeADD       string
 	nodeAddress   string
@@ -38,7 +39,7 @@ type TCPServer struct {
 
 func NewServer(node *Node, minerAddress string) *TCPServer {
 	return &TCPServer{
-		node:            node,
+		Node:            node,
 		nodeID:          node.nodeID,
 		nodeADD:         node.nodeADD,
 		nodeAddress:     fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID),
@@ -51,7 +52,7 @@ func NewServer(node *Node, minerAddress string) *TCPServer {
 
 func NewServerForTest(nodeADD, nodeID, minerAddress string) *TCPServer {
 	return &TCPServer{
-		node:            nil,
+		Node:            nil,
 		nodeID:          nodeID,
 		nodeADD:         nodeADD,
 		nodeAddress:     fmt.Sprintf("localhost:%s", nodeID),
@@ -67,19 +68,20 @@ func (s *TCPServer) Start() {
 	fmt.Println("TCPServer Start")
 
 	var err error
-	s.ln, err = net.Listen(protocol, s.nodeAddress)
+	s.ln, err = net.Listen(Protocol, s.nodeAddress)
 	if err != nil {
 		fmt.Println(err)
 		//log.Panic(err)
 	}
 	//defer server.ln.Close()
 
-	fmt.Println("A nodeAddress:", s.nodeAddress, "knownNodes:", KnownNodes)
+	fmt.Println("A nodeAddress:", s.nodeAddress, "knownNodes:", s.Node.Network.Nodes)
 	//s.bc = s.node.blockchain
 
-	if s.nodeAddress != KnownNodes[0] {
-		sendVersion(KnownNodes[0], s.nodeAddress, s.bc)
-	}
+	// FIXME: knownNodes
+	//if s.nodeAddress != KnownNodes[0] {
+	//	s.Node.Client.SendVersion(KnownNodes[0], s.nodeAddress, s.bc)
+	//}
 
 	for {
 		conn, err := s.ln.Accept()
@@ -96,7 +98,7 @@ func (s *TCPServer) handleConnection(conn net.Conn) {
 	if err != nil {
 		log.Panic(err)
 	}
-	command := bytesToCommand(request[:commandLength])
+	command := BytesToCommand(request[:CommandLength])
 	nanonow := time.Now().Format(timeFormat)
 	fmt.Printf("nodeID: %s, %s: Received %s command\n", s.nodeID, nanonow, command)
 
@@ -131,200 +133,52 @@ func (s *TCPServer) Stop() {
 	}
 }
 
-type addr struct {
-	AddrList []string
-}
-
-type block struct {
-	AddrFrom string
-	Block    []byte
-}
-
-type getblocks struct {
-	AddrFrom string
-}
-
-type getdata struct {
-	AddrFrom string
-	Type     string
-	ID       []byte
-}
-
-type inv struct {
-	AddrFrom string
-	Type     string
-	Items    [][]byte
-}
-
-type tx struct {
-	AddFrom     string
-	Transaction []byte
-}
-
-type verzzion struct {
-	Version    int
-	BestHeight int
-	AddrFrom   string
-}
-
-func commandToBytes(command string) []byte {
-	var bytes [commandLength]byte
-
-	for i, c := range command {
-		bytes[i] = byte(c)
-	}
-
-	return bytes[:]
-}
-
-func bytesToCommand(bytes []byte) string {
-	var command []byte
-
-	for _, b := range bytes {
-		if b != 0x0 {
-			command = append(command, b)
-		}
-	}
-
-	return fmt.Sprintf("%s", command)
-}
-
-func extractCommand(request []byte) []byte {
-	return request[:commandLength]
-}
-
-func gobEncode(data interface{}) []byte {
-	var buff bytes.Buffer
-
-	enc := gob.NewEncoder(&buff)
-	err := enc.Encode(data)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	return buff.Bytes()
-}
-
-func nodeIsKnown(addr string) bool {
-	for _, node := range KnownNodes {
-		if node == addr {
-			return true
-		}
-	}
-
-	return false
-}
-
-func sendData(address string, data []byte) {
-	conn, err := net.Dial(protocol, address)
-	if err != nil {
-		fmt.Printf("%s is not available\n", address)
-		var updatedNodes []string
-
-		for _, node := range KnownNodes {
-			if node != address {
-				updatedNodes = append(updatedNodes, node)
-			}
-		}
-
-		KnownNodes = updatedNodes
-
-		return
-	}
-	defer conn.Close()
-
-	_, err = io.Copy(conn, bytes.NewReader(data))
-	if err != nil {
-		log.Panic(err)
-	}
-}
-
-func requestBlocks(nodeAddress string) {
-	for _, node := range KnownNodes {
-		sendGetBlocks(node, nodeAddress)
-	}
-}
-
-func sendAddr(address, nodeAddress string) {
-	nodes := addr{KnownNodes}
-	nodes.AddrList = append(nodes.AddrList, nodeAddress)
-	payload := gobEncode(nodes)
-	request := append(commandToBytes("addr"), payload...)
-
-	sendData(address, request)
-}
-
-func sendBlock(address, nodeAddress string, b *b.Block) {
-	data := block{nodeAddress, b.Serialize()}
-	payload := gobEncode(data)
-	request := append(commandToBytes("block"), payload...)
-
-	sendData(address, request)
-}
-
-func sendInv(address, nodeAddress, kind string, items [][]byte) {
-	inventory := inv{nodeAddress, kind, items}
-	payload := gobEncode(inventory)
-	request := append(commandToBytes("inv"), payload...)
-
-	sendData(address, request)
-}
-
-func sendGetBlocks(address, nodeAddress string) {
-	payload := gobEncode(getblocks{nodeAddress})
-	request := append(commandToBytes("getblocks"), payload...)
-
-	sendData(address, request)
-}
-
-func sendGetData(address, nodeAddress, kind string, id []byte) {
-	payload := gobEncode(getdata{nodeAddress, kind, id})
-	request := append(commandToBytes("getdata"), payload...)
-
-	sendData(address, request)
-}
-
-func SendTx(address, nodeAddress string, tnx *b.Transaction) {
-	data := tx{nodeAddress, tnx.Serialize()}
-	payload := gobEncode(data)
-	request := append(commandToBytes("tx"), payload...)
-
-	sendData(address, request)
-}
-
-func sendVersion(address, nodeAddress string, bc *b.Blockchain) {
-	bestHeight := bc.GetBestHeight()
-	payload := gobEncode(verzzion{nodeVersion, bestHeight, nodeAddress})
-
-	request := append(commandToBytes("version"), payload...)
-
-	sendData(address, request)
-}
-
 func (s *TCPServer) handleAddr(request []byte) {
 	var buff bytes.Buffer
-	var payload addr
+	var payload ComAddr
 
-	buff.Write(request[commandLength:])
+	buff.Write(request[CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	KnownNodes = append(KnownNodes, payload.AddrList...)
+	// FIXME: knownNodes
+	//KnownNodes = append(KnownNodes, payload.AddrList...)
+	//nanonow := time.Now().Format(timeFormat)
+	//fmt.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(KnownNodes))
+	//for _, node := range KnownNodes {
+	//	s.Node.Client.SendGetBlocks(node, s.nodeAddress)
+	//}
+
+	fmt.Printf("Received nodes %s", payload.AddrList)
+
+	addednodes := []NodeAddr{}
+	for _, node := range payload.AddrList {
+		if s.Node.Network.AddNodeToKnown(node) {
+			addednodes = append(addednodes, node)
+		}
+	}
+
 	nanonow := time.Now().Format(timeFormat)
-	fmt.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(KnownNodes))
-	requestBlocks(s.nodeAddress)
+	fmt.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(s.Node.Network.Nodes))
+	fmt.Printf("Send version to %d new nodes\n", len(addednodes))
+
+	if len(addednodes) > 0 {
+		// send own version to all new found nodes. maybe they have some more blocks
+		// and they will add me to known nodes after this
+		s.Node.SendVersionToNodes(addednodes)
+	}
 }
 
 // OLDTODO: проверять остаток на балансе с учетом незамайненых транзакций,
 //          во избежание двойного использования выходов
 func (s *TCPServer) handleBlock(request []byte) {
 	var buff bytes.Buffer
-	var payload block
+	var payload ComBlock
 
-	buff.Write(request[commandLength:])
+	buff.Write(request[CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
@@ -343,7 +197,7 @@ func (s *TCPServer) handleBlock(request []byte) {
 	// OLDTODO: add validation of block
 	if len(s.blocksInTransit) > 0 {
 		blockHash := s.blocksInTransit[0]
-		sendGetData(payload.AddrFrom, s.nodeAddress, "block", blockHash)
+		s.Node.Client.SendGetData(payload.AddrFrom, "block", blockHash)
 
 		s.blocksInTransit = s.blocksInTransit[1:]
 	} else {
@@ -355,9 +209,9 @@ func (s *TCPServer) handleBlock(request []byte) {
 
 func (s *TCPServer) handleInv(request []byte) {
 	var buff bytes.Buffer
-	var payload inv
+	var payload ComInv
 
-	buff.Write(request[commandLength:])
+	buff.Write(request[CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
@@ -372,7 +226,7 @@ func (s *TCPServer) handleInv(request []byte) {
 		s.blocksInTransit = payload.Items
 
 		blockHash := payload.Items[0]
-		sendGetData(payload.AddrFrom, s.nodeAddress, "block", blockHash)
+		s.Node.Client.SendGetData(payload.AddrFrom, "block", blockHash)
 
 		newInTransit := [][]byte{}
 		for _, b := range s.blocksInTransit {
@@ -387,16 +241,16 @@ func (s *TCPServer) handleInv(request []byte) {
 		txID := payload.Items[0]
 
 		if s.mempool[hex.EncodeToString(txID)].ID == nil {
-			sendGetData(payload.AddrFrom, s.nodeAddress, "tx", txID)
+			s.Node.Client.SendGetData(payload.AddrFrom, "tx", txID)
 		}
 	}
 }
 
 func (s *TCPServer) handleGetBlocks(request []byte) {
 	var buff bytes.Buffer
-	var payload getblocks
+	var payload ComGetBlocks
 
-	buff.Write(request[commandLength:])
+	buff.Write(request[CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
@@ -404,14 +258,14 @@ func (s *TCPServer) handleGetBlocks(request []byte) {
 	}
 
 	blocks := s.bc.GetBlockHashes()
-	sendInv(payload.AddrFrom, s.nodeAddress, "block", blocks)
+	s.Node.Client.SendInv(payload.AddrFrom, "block", blocks)
 }
 
 func (s *TCPServer) handleGetData(request []byte) {
 	var buff bytes.Buffer
-	var payload getdata
+	var payload ComGetData
 
-	buff.Write(request[commandLength:])
+	buff.Write(request[CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
@@ -424,23 +278,23 @@ func (s *TCPServer) handleGetData(request []byte) {
 			return
 		}
 
-		sendBlock(payload.AddrFrom, s.nodeAddress, &block)
+		s.Node.Client.SendBlock(payload.AddrFrom, &block)
 	}
 
 	if payload.Type == "tx" {
 		txID := hex.EncodeToString(payload.ID)
 		tx := s.mempool[txID]
 
-		SendTx(payload.AddrFrom, s.nodeAddress, &tx)
+		s.Node.Client.SendTx(payload.AddrFrom, &tx)
 		// delete(mempool, txID)
 	}
 }
 
 func (s *TCPServer) handleTx(request []byte) {
 	var buff bytes.Buffer
-	var payload tx
+	var payload ComTx
 
-	buff.Write(request[commandLength:])
+	buff.Write(request[CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
@@ -457,11 +311,13 @@ func (s *TCPServer) handleTx(request []byte) {
 	s.mempool[hex.EncodeToString(tx.ID)] = tx
 	//}
 
-	if s.nodeAddress == KnownNodes[0] {
-		fmt.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, KnownNodes)
-		for _, node := range KnownNodes {
-			if node != s.nodeAddress && node != payload.AddFrom {
-				sendInv(node, s.nodeAddress, "tx", [][]byte{tx.ID})
+	//if s.nodeAddress == KnownNodes[0] {
+	if s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
+		fmt.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, s.Node.Network.Nodes)
+		for _, node := range s.Node.Network.Nodes {
+			if !node.CompareToAddress(s.Node.Client.NodeAddress) &&
+				!node.CompareToAddress(payload.AddFrom) {
+				s.Node.Client.SendInv(node, "tx", [][]byte{tx.ID})
 			}
 		}
 	} else {
@@ -540,9 +396,9 @@ func (s *TCPServer) handleTx(request []byte) {
 				delete(s.mempool, txID)
 			}
 
-			for _, node := range KnownNodes {
-				if node != s.nodeAddress {
-					sendInv(node, s.nodeAddress, "block", [][]byte{newBlock.Hash})
+			for _, node := range s.Node.Network.Nodes {
+				if !node.CompareToAddress(s.Node.Client.NodeAddress) {
+					s.Node.Client.SendInv(node, "block", [][]byte{newBlock.Hash})
 				}
 			}
 
@@ -555,9 +411,9 @@ func (s *TCPServer) handleTx(request []byte) {
 
 func (s *TCPServer) handleVersion(request []byte) {
 	var buff bytes.Buffer
-	var payload verzzion
+	var payload ComVersion
 
-	buff.Write(request[commandLength:])
+	buff.Write(request[CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
@@ -568,14 +424,10 @@ func (s *TCPServer) handleVersion(request []byte) {
 	foreignerBestHeight := payload.BestHeight
 
 	if myBestHeight < foreignerBestHeight {
-		sendGetBlocks(payload.AddrFrom, s.nodeAddress)
+		s.Node.Client.SendGetBlocks(payload.AddrFrom)
 	} else if myBestHeight > foreignerBestHeight {
-		sendVersion(payload.AddrFrom, s.nodeAddress, s.bc)
+		s.Node.Client.SendVersion(payload.AddrFrom, myBestHeight)
 	}
 
-	// sendAddr(payload.AddrFrom)
-	if !nodeIsKnown(payload.AddrFrom) {
-		fmt.Printf("A new node %s is connected\n", payload.AddrFrom)
-		KnownNodes = append(KnownNodes, payload.AddrFrom)
-	}
+	s.Node.CheckAddressKnown(payload.AddrFrom)
 }
