@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
@@ -142,7 +143,9 @@ func (s *RestServer) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 	respsuccess := true
 
 	//
-	currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
+	//currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
+	port, _ := strconv.Atoi(s.node.nodeID)
+	currentNodeAddress := NodeAddr{Host: s.node.nodeADD, Port: port}
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
 	if mineNow {
@@ -158,15 +161,16 @@ func (s *RestServer) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
-		SendTx(KnownNodes[0], s.node.nodeID, tx)
+		knownNode0 := s.node.Network.Nodes[0]
+		s.node.Client.SendTx(knownNode0, tx)
 	}
 
 	//
 	if respsuccess {
-		for _, value := range KnownNodes {
-			fmt.Printf("value: %s\n", value)
-			if value != currentNodeAddress {
-				sendVersion(value, currentNodeAddress, s.node.blockchain)
+		for _, node := range s.node.Network.Nodes {
+			fmt.Printf("node: %s\n", node)
+			if !node.CompareToAddress(currentNodeAddress) {
+				s.node.Client.SendVersion(node, s.node.blockchain.GetBestHeight())
 			}
 		}
 	}
@@ -318,7 +322,9 @@ func (s *RestServer) sign(w http.ResponseWriter, r *http.Request) {
 	tx := blockchain.SignUTXOTransaction(preparedTx.Transaction, txSignatures, &UTXOSet)
 
 	// network update
-	currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
+	//currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
+	port, _ := strconv.Atoi(s.node.nodeID)
+	currentNodeAddress := NodeAddr{Host: s.node.nodeADD, Port: port}
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
 	// mining block: now and with miner's help
@@ -336,10 +342,10 @@ func (s *RestServer) sign(w http.ResponseWriter, r *http.Request) {
 
 		// network update
 		if respsuccess {
-			for _, value := range KnownNodes {
-				fmt.Printf("value: %s\n", value)
-				if value != currentNodeAddress {
-					sendVersion(value, currentNodeAddress, s.node.blockchain)
+			for _, node := range s.node.Network.Nodes {
+				fmt.Printf("node: %s\n", node)
+				if !node.CompareToAddress(currentNodeAddress) {
+					s.node.Client.SendVersion(node, s.node.blockchain.GetBestHeight())
 				}
 			}
 		}
@@ -349,8 +355,9 @@ func (s *RestServer) sign(w http.ResponseWriter, r *http.Request) {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
 
-		fmt.Printf("Send Tx: %x, from %s, to: %s\n", tx.ID, KnownNodes[0], currentNodeAddress)
-		SendTx(KnownNodes[0], currentNodeAddress, tx)
+		knownNode0 := s.node.Network.Nodes[0]
+		fmt.Printf("Send Tx: %x, from %s, to: %s\n", tx.ID, knownNode0, currentNodeAddress)
+		s.node.Client.SendTx(knownNode0, tx)
 	}
 
 	// remove from Prepared-Transactions

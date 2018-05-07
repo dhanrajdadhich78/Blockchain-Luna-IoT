@@ -30,7 +30,7 @@ type RestServer struct {
 func NewRestServer(node *Node, addr string) *RestServer {
 	return &RestServer{
 		node: node,
-		addr: addr,
+		addr: ":" + addr,
 	}
 }
 
@@ -73,7 +73,7 @@ func (s *RestServer) Start() error {
 
 	server := http.Server{
 		Handler: n,
-		Addr:    ":" + s.node.apiADD,
+		Addr:    s.addr,
 	}
 
 	ln, err := net.Listen("tcp", s.addr)

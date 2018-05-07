@@ -258,7 +258,7 @@ func CmdSend(c *cli.Context) (err error) {
 	} else {
 		// TODO: проверять остаток на балансе с учетом незамайненых транзакций,
 		// во избежание двойного использования выходов
-		SendTx(KnownNodes[0], nodeID, tx)
+		//SendTx(KnownNodes[0], nodeID, tx)
 	}
 
 	fmt.Println("Success!")
