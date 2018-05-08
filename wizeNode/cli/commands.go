@@ -1,18 +1,19 @@
-package app
+package cli
 
 import (
 	"encoding/hex"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"time"
 
 	"github.com/urfave/cli"
 
-	"wizeBlock/wizeNode/blockchain"
-	"wizeBlock/wizeNode/crypto"
-	"wizeBlock/wizeNode/wallet"
+	"wizeBlock/wizeNode/core/blockchain"
+	"wizeBlock/wizeNode/core/crypto"
+	"wizeBlock/wizeNode/core/log"
+	"wizeBlock/wizeNode/core/wallet"
+	"wizeBlock/wizeNode/node"
 )
 
 // TODO: all commands should moved to another file module
@@ -154,7 +155,7 @@ func CommandNotFound(c *cli.Context, command string) {
 // CommandBefore implements action before run command
 func CommandBefore(c *cli.Context) error {
 	if c.GlobalBool("debug") {
-		LogDebug.Enabled = true
+		log.Debug.Enabled = true
 	}
 	return nil
 }
@@ -227,10 +228,12 @@ func CmdSend(c *cli.Context) (err error) {
 	mineNow := c.Bool("mine")
 
 	if !crypto.ValidateAddress(from) {
-		log.Panic("ERROR: Sender address is not valid")
+		log.Fatal.Println("ERROR: Sender address is not valid")
+		return
 	}
 	if !crypto.ValidateAddress(to) {
-		log.Panic("ERROR: Recipient address is not valid")
+		log.Fatal.Println("ERROR: Recipient address is not valid")
+		return
 	}
 
 	bc := blockchain.NewBlockchain(nodeID)
@@ -239,7 +242,8 @@ func CmdSend(c *cli.Context) (err error) {
 
 	wallets, err := wallet.NewWallets(nodeID)
 	if err != nil {
-		log.Panic(err)
+		log.Fatal.Printf("Error: %s", err)
+		return
 	}
 	wallet := wallets.GetWallet(from)
 
@@ -330,24 +334,24 @@ func CmdGetBlock(c *cli.Context) (err error) {
 func CmdStartNode(c *cli.Context) (err error) {
 	nodeADD := c.GlobalString("nodeADD")
 	nodeID := c.GlobalString("nodeID")
-	LogInfo.Printf("Starting node %s:%s", nodeADD, nodeID)
+	log.Info.Printf("Starting node %s:%s", nodeADD, nodeID)
 
 	minerAddress := c.String("miner")
 	apiAddress := c.String("api")
 
 	if len(minerAddress) > 0 {
 		if crypto.ValidateAddress(minerAddress) {
-			LogDebug.Println("Mining is on. Address to receive rewards: ", minerAddress)
+			log.Debug.Println("Mining is on. Address to receive rewards: ", minerAddress)
 			//StartServer(nodeID, minerAddress, apiAddress)
-			node := NewNode(nodeADD, nodeID, apiAddress)
-			node.Run(minerAddress)
+			newNode := node.NewNode(nodeADD, nodeID, apiAddress)
+			newNode.Run(minerAddress)
 		} else {
-			LogWarn.Println("Wrong miner address!")
+			log.Warn.Println("Wrong miner address!")
 		}
 	}
 	//StartServer(nodeID, minerAddress, apiAddress)
 
-	node := NewNode(nodeADD, nodeID, apiAddress)
-	node.Run(minerAddress)
+	newNode := node.NewNode(nodeADD, nodeID, apiAddress)
+	newNode.Run(minerAddress)
 	return nil
 }

@@ -1,4 +1,4 @@
-package app
+package node
 
 import (
 	"bytes"
@@ -9,7 +9,9 @@ import (
 	"net"
 	"time"
 
-	b "wizeBlock/wizeNode/blockchain"
+	"wizeBlock/wizeNode/core/blockchain"
+	"wizeBlock/wizeNode/core/log"
+	"wizeBlock/wizeNode/core/network"
 )
 
 // DONE: divide server_tcp onto nodeserver and nodeclient
@@ -29,12 +31,12 @@ type NodeServer struct {
 
 	// TODO: to redesign
 	blocksInTransit [][]byte
-	mempool         map[string]b.Transaction
+	mempool         map[string]blockchain.Transaction
 
 	// TODO: to redesign
 	ln   net.Listener
 	conn net.Conn
-	bc   *b.Blockchain
+	bc   *blockchain.Blockchain
 }
 
 func NewServer(node *Node, minerAddress string) *NodeServer {
@@ -45,7 +47,7 @@ func NewServer(node *Node, minerAddress string) *NodeServer {
 		nodeAddress:     fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID),
 		miningAddress:   minerAddress,
 		blocksInTransit: [][]byte{},
-		mempool:         make(map[string]b.Transaction),
+		mempool:         make(map[string]blockchain.Transaction),
 		bc:              node.blockchain,
 	}
 }
@@ -59,24 +61,24 @@ func NewServerForTest(nodeADD, nodeID, minerAddress string) *NodeServer {
 		nodeAddress:     fmt.Sprintf("localhost:%s", nodeID),
 		miningAddress:   minerAddress,
 		blocksInTransit: [][]byte{},
-		mempool:         make(map[string]b.Transaction),
-		bc:              b.NewBlockchain(nodeID),
+		mempool:         make(map[string]blockchain.Transaction),
+		bc:              blockchain.NewBlockchain(nodeID),
 	}
 }
 
 // StartServer starts a node
 func (s *NodeServer) Start() {
 	var err error
-	s.ln, err = net.Listen(Protocol, s.nodeAddress)
+	s.ln, err = net.Listen(network.Protocol, s.nodeAddress)
 	if err != nil {
-		LogWarn.Printf("NodeServer start error: %s", err)
+		log.Warn.Printf("NodeServer start error: %s", err)
 		return
 	}
 	// TODO: should we uncomment or delete this?
 	//defer server.ln.Close()
 
-	LogInfo.Println("NodeServer was started")
-	LogDebug.Printf("nodeAddress: %s, knownNodes: %v", s.nodeAddress, s.Node.Network.Nodes)
+	log.Info.Println("NodeServer was started")
+	log.Debug.Printf("nodeAddress: %s, knownNodes: %v", s.nodeAddress, s.Node.Network.Nodes)
 	//s.bc = s.node.blockchain
 
 	// TODO: should we send ComVersion at the start?
@@ -87,7 +89,7 @@ func (s *NodeServer) Start() {
 	for {
 		conn, err := s.ln.Accept()
 		if err != nil {
-			LogWarn.Printf("NodeServer accept error: %s", err)
+			log.Warn.Printf("NodeServer accept error: %s", err)
 			break
 		}
 		go s.handleConnection(conn)
@@ -97,12 +99,12 @@ func (s *NodeServer) Start() {
 func (s *NodeServer) handleConnection(conn net.Conn) {
 	request, err := ioutil.ReadAll(conn)
 	if err != nil {
-		LogWarn.Printf("NodeServer read request error: %s", err)
+		log.Warn.Printf("NodeServer read request error: %s", err)
 		return
 	}
-	command := BytesToCommand(request[:CommandLength])
+	command := network.BytesToCommand(request[:network.CommandLength])
 	nanonow := time.Now().Format(timeFormat)
-	LogDebug.Printf("nodeID: %s, %s: Received %s command\n", s.nodeID, nanonow, command)
+	log.Debug.Printf("nodeID: %s, %s: Received %s command\n", s.nodeID, nanonow, command)
 
 	switch command {
 	case "addr":
@@ -120,7 +122,7 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 	case "version":
 		s.handleVersion(request)
 	default:
-		LogWarn.Println("Unknown command!")
+		log.Warn.Println("Unknown command!")
 	}
 
 	conn.Close()
@@ -137,13 +139,13 @@ func (s *NodeServer) Stop() {
 
 func (s *NodeServer) handleAddr(request []byte) {
 	var buff bytes.Buffer
-	var payload ComAddr
+	var payload network.ComAddr
 
-	buff.Write(request[CommandLength:])
+	buff.Write(request[network.CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		LogWarn.Println(err)
+		log.Warn.Println(err)
 		return
 	}
 
@@ -155,10 +157,10 @@ func (s *NodeServer) handleAddr(request []byte) {
 	//	s.Node.Client.SendGetBlocks(node, s.nodeAddress)
 	//}
 
-	LogDebug.Printf("Received nodes %s", payload.AddrList)
+	log.Debug.Printf("Received nodes %s", payload.AddrList)
 
 	// TODO: check this logic
-	addednodes := []NodeAddr{}
+	addednodes := []network.NodeAddr{}
 	for _, node := range payload.AddrList {
 		if s.Node.Network.AddNodeToKnown(node) {
 			addednodes = append(addednodes, node)
@@ -166,8 +168,8 @@ func (s *NodeServer) handleAddr(request []byte) {
 	}
 
 	nanonow := time.Now().Format(timeFormat)
-	LogDebug.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(s.Node.Network.Nodes))
-	LogDebug.Printf("Send version to %d new nodes\n", len(addednodes))
+	log.Debug.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(s.Node.Network.Nodes))
+	log.Debug.Printf("Send version to %d new nodes\n", len(addednodes))
 
 	if len(addednodes) > 0 {
 		// send own version to all new found nodes. maybe they have some more blocks
@@ -180,24 +182,24 @@ func (s *NodeServer) handleAddr(request []byte) {
 //          во избежание двойного использования выходов
 func (s *NodeServer) handleBlock(request []byte) {
 	var buff bytes.Buffer
-	var payload ComBlock
+	var payload network.ComBlock
 
-	buff.Write(request[CommandLength:])
+	buff.Write(request[network.CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		LogWarn.Println(err)
+		log.Warn.Println(err)
 		return
 	}
 
 	blockData := payload.Block
-	block := b.DeserializeBlock(blockData)
+	block := blockchain.DeserializeBlock(blockData)
 
 	nanonow := time.Now().Format(timeFormat)
-	LogDebug.Printf("nodeID: %s, %s: Received a new block!\n", s.nodeID, nanonow)
+	log.Debug.Printf("nodeID: %s, %s: Received a new block!\n", s.nodeID, nanonow)
 	s.bc.AddBlock(block)
 
-	LogDebug.Printf("nodeID: %s, %s: Added block %x\n", s.nodeID, nanonow, block.Hash)
+	log.Debug.Printf("nodeID: %s, %s: Added block %x\n", s.nodeID, nanonow, block.Hash)
 
 	// OLDTODO: add validation of block
 	if len(s.blocksInTransit) > 0 {
@@ -206,7 +208,7 @@ func (s *NodeServer) handleBlock(request []byte) {
 
 		s.blocksInTransit = s.blocksInTransit[1:]
 	} else {
-		UTXOSet := b.UTXOSet{s.bc}
+		UTXOSet := blockchain.UTXOSet{s.bc}
 		// OLDTODO: use UTXOSet.Update() instead UTXOSet.Reindex
 		UTXOSet.Reindex()
 	}
@@ -214,19 +216,19 @@ func (s *NodeServer) handleBlock(request []byte) {
 
 func (s *NodeServer) handleInv(request []byte) {
 	var buff bytes.Buffer
-	var payload ComInv
+	var payload network.ComInv
 
-	buff.Write(request[CommandLength:])
+	buff.Write(request[network.CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		LogWarn.Println(err)
+		log.Warn.Println(err)
 		return
 	}
 
 	nanonow := time.Now().Format(timeFormat)
-	LogDebug.Printf("nodeID: %s, %s: Received inventory with %d %s\n", s.nodeID, nanonow, len(payload.Items), payload.Type)
-	LogDebug.Printf("len(mempool): %d\n", len(s.mempool))
+	log.Debug.Printf("nodeID: %s, %s: Received inventory with %d %s\n", s.nodeID, nanonow, len(payload.Items), payload.Type)
+	log.Debug.Printf("len(mempool): %d\n", len(s.mempool))
 
 	if payload.Type == "block" {
 		s.blocksInTransit = payload.Items
@@ -254,13 +256,13 @@ func (s *NodeServer) handleInv(request []byte) {
 
 func (s *NodeServer) handleGetBlocks(request []byte) {
 	var buff bytes.Buffer
-	var payload ComGetBlocks
+	var payload network.ComGetBlocks
 
-	buff.Write(request[CommandLength:])
+	buff.Write(request[network.CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		LogWarn.Println(err)
+		log.Warn.Println(err)
 		return
 	}
 
@@ -270,13 +272,13 @@ func (s *NodeServer) handleGetBlocks(request []byte) {
 
 func (s *NodeServer) handleGetData(request []byte) {
 	var buff bytes.Buffer
-	var payload ComGetData
+	var payload network.ComGetData
 
-	buff.Write(request[CommandLength:])
+	buff.Write(request[network.CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		LogFatal.Println(err)
+		log.Fatal.Println(err)
 		return
 	}
 
@@ -300,29 +302,29 @@ func (s *NodeServer) handleGetData(request []byte) {
 
 func (s *NodeServer) handleTx(request []byte) {
 	var buff bytes.Buffer
-	var payload ComTx
+	var payload network.ComTx
 
-	buff.Write(request[CommandLength:])
+	buff.Write(request[network.CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		LogFatal.Println(err)
+		log.Fatal.Println(err)
 		return
 	}
 
 	txData := payload.Transaction
-	tx := b.DeserializeTransaction(txData)
-	LogDebug.Printf("handleTx: [%x] miningAddress: %s\n", tx.ID, s.miningAddress)
+	tx := blockchain.DeserializeTransaction(txData)
+	log.Debug.Printf("handleTx: [%x] miningAddress: %s\n", tx.ID, s.miningAddress)
 
 	// TODO: mempool should be just for miners?
 	//if len(s.miningAddress) > 0 {
-	LogDebug.Printf("Added to pool %d Tx: [%x]\n", len(s.mempool), tx.ID)
+	log.Debug.Printf("Added to pool %d Tx: [%x]\n", len(s.mempool), tx.ID)
 	s.mempool[hex.EncodeToString(tx.ID)] = tx
 	//}
 
 	//if s.nodeAddress == KnownNodes[0] {
 	if s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
-		LogDebug.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, s.Node.Network.Nodes)
+		log.Debug.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, s.Node.Network.Nodes)
 		for _, node := range s.Node.Network.Nodes {
 			if !node.CompareToAddress(s.Node.Client.NodeAddress) &&
 				!node.CompareToAddress(payload.AddFrom) {
@@ -331,12 +333,12 @@ func (s *NodeServer) handleTx(request []byte) {
 		}
 	} else {
 		// OLDTODO: changing count of transaction for mining
-		LogDebug.Printf("miningAddress: %s, len(mempool): %d\n", s.miningAddress, len(s.mempool))
+		log.Debug.Printf("miningAddress: %s, len(mempool): %d\n", s.miningAddress, len(s.mempool))
 		// FIXME: len of mempool?
 		if len(s.mempool) >= 1 && len(s.miningAddress) > 0 {
 		MineTransactions:
-			LogDebug.Println("MineTransactions...")
-			var txs []*b.Transaction
+			log.Debug.Println("MineTransactions...")
+			var txs []*blockchain.Transaction
 
 			for id := range s.mempool {
 				tx := s.mempool[id]
@@ -347,7 +349,7 @@ func (s *NodeServer) handleTx(request []byte) {
 			}
 
 			if len(txs) == 0 {
-				LogDebug.Println("All transactions are invalid! Waiting for new ones...")
+				log.Debug.Println("All transactions are invalid! Waiting for new ones...")
 				return
 			}
 
@@ -388,17 +390,17 @@ func (s *NodeServer) handleTx(request []byte) {
 				}
 			*/
 
-			cbTx := b.NewCoinbaseTX(s.miningAddress, "")
+			cbTx := blockchain.NewCoinbaseTX(s.miningAddress, "")
 			txs = append(txs, cbTx)
 
 			newBlock := s.bc.MineBlock(txs)
-			UTXOSet := b.UTXOSet{s.bc}
+			UTXOSet := blockchain.UTXOSet{s.bc}
 			// OLDTODO: use UTXOSet.Update() instead UTXOSet.Reindex
 			UTXOSet.Reindex()
 
 			nanonow := time.Now().Format(timeFormat)
-			LogDebug.Printf("nodeID: %s, %s: New block is mined!", s.nodeID, nanonow)
-			LogDebug.Printf("New block with %d tx is mined!\n", len(txs))
+			log.Debug.Printf("nodeID: %s, %s: New block is mined!", s.nodeID, nanonow)
+			log.Debug.Printf("New block with %d tx is mined!\n", len(txs))
 
 			for _, tx := range txs {
 				txID := hex.EncodeToString(tx.ID)
@@ -420,13 +422,13 @@ func (s *NodeServer) handleTx(request []byte) {
 
 func (s *NodeServer) handleVersion(request []byte) {
 	var buff bytes.Buffer
-	var payload ComVersion
+	var payload network.ComVersion
 
-	buff.Write(request[CommandLength:])
+	buff.Write(request[network.CommandLength:])
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		LogFatal.Println(err)
+		log.Fatal.Println(err)
 		return
 	}
 

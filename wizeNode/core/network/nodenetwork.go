@@ -1,4 +1,4 @@
-package app
+package network
 
 // This manages list of known nodes by a node
 type NodeNetwork struct {

@@ -3,7 +3,7 @@ package wallet
 import (
 	"fmt"
 
-	"wizeBlock/wizeNode/crypto"
+	"wizeBlock/wizeNode/core/crypto"
 )
 
 // Wallet stores private and public keys

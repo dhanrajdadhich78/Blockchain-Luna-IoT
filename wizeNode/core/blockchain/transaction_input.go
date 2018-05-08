@@ -3,7 +3,7 @@ package blockchain
 import (
 	"bytes"
 
-	"wizeBlock/wizeNode/crypto"
+	"wizeBlock/wizeNode/core/crypto"
 )
 
 // TXInput represents a transaction input

@@ -10,7 +10,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	"wizeBlock/wizeNode/crypto"
+	"wizeBlock/wizeNode/core/crypto"
 )
 
 const dbFile = "files/db%s/wizebit.db"

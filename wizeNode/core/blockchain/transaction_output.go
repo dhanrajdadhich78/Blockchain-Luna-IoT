@@ -5,7 +5,7 @@ import (
 	"encoding/gob"
 	"log"
 
-	"wizeBlock/wizeNode/crypto"
+	"wizeBlock/wizeNode/core/crypto"
 )
 
 // TXOutput represents a transaction output

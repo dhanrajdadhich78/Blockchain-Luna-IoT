@@ -1,11 +1,12 @@
-package app
+package network
 
 import (
 	"bytes"
 	"io"
 	"net"
 
-	bc "wizeBlock/wizeNode/blockchain"
+	corebch "wizeBlock/wizeNode/core/blockchain"
+	"wizeBlock/wizeNode/core/log"
 )
 
 type NodeClient struct {
@@ -57,7 +58,7 @@ func (c *NodeClient) SetNodeAddress(address NodeAddr) {
 func (c *NodeClient) SendData(address NodeAddr, data []byte) {
 	conn, err := net.Dial(Protocol, address.NodeAddrToString())
 	if err != nil {
-		LogWarn.Printf("%s is not available\n", address)
+		log.Warn.Printf("%s is not available\n", address)
 
 		// TODO: should we update known nodes
 		//var updatedNodes []string
@@ -74,9 +75,9 @@ func (c *NodeClient) SendData(address NodeAddr, data []byte) {
 
 	_, err = io.Copy(conn, bytes.NewReader(data))
 	if err != nil {
-		LogWarn.Printf("Send data error: %s", err)
+		log.Warn.Printf("Send data error: %s", err)
 	}
-	LogDebug.Printf("Send data: %x", data)
+	log.Debug.Printf("Send data: %x", data)
 }
 
 // TODO: add SendAddr request
@@ -88,7 +89,7 @@ func (c *NodeClient) SendData(address NodeAddr, data []byte) {
 //	c.SendData(address, request)
 //}
 
-func (c *NodeClient) SendBlock(address NodeAddr, block *bc.Block) {
+func (c *NodeClient) SendBlock(address NodeAddr, block *corebch.Block) {
 	data := ComBlock{c.NodeAddress, block.Serialize()}
 	payload, _ := GobEncode(data)
 	request := append(CommandToBytes("block"), payload...)
@@ -114,7 +115,7 @@ func (c *NodeClient) SendGetData(address NodeAddr, kind string, id []byte) {
 	c.SendData(address, request)
 }
 
-func (c *NodeClient) SendTx(address NodeAddr, tnx *bc.Transaction) {
+func (c *NodeClient) SendTx(address NodeAddr, tnx *corebch.Transaction) {
 	data := ComTx{c.NodeAddress, tnx.Serialize()}
 	payload, _ := GobEncode(data)
 	request := append(CommandToBytes("tx"), payload...)

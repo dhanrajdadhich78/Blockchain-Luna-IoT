@@ -1,4 +1,4 @@
-package app
+package node
 
 import (
 	"encoding/hex"
@@ -12,9 +12,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"wizeBlock/wizeNode/blockchain"
-	"wizeBlock/wizeNode/crypto"
-	"wizeBlock/wizeNode/wallet"
+	"wizeBlock/wizeNode/core/blockchain"
+	"wizeBlock/wizeNode/core/crypto"
+	"wizeBlock/wizeNode/core/network"
+	"wizeBlock/wizeNode/core/wallet"
 )
 
 // TODO: refactoring - names, funcs
@@ -145,7 +146,7 @@ func (s *RestServer) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 	//
 	//currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
 	port, _ := strconv.Atoi(s.node.nodeID)
-	currentNodeAddress := NodeAddr{Host: s.node.nodeADD, Port: port}
+	currentNodeAddress := network.NodeAddr{Host: s.node.nodeADD, Port: port}
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
 	if mineNow {
@@ -324,7 +325,7 @@ func (s *RestServer) sign(w http.ResponseWriter, r *http.Request) {
 	// network update
 	//currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
 	port, _ := strconv.Atoi(s.node.nodeID)
-	currentNodeAddress := NodeAddr{Host: s.node.nodeADD, Port: port}
+	currentNodeAddress := network.NodeAddr{Host: s.node.nodeADD, Port: port}
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
 	// mining block: now and with miner's help

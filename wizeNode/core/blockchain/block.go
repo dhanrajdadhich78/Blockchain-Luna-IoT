@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"wizeBlock/wizeNode/crypto"
+	"wizeBlock/wizeNode/core/crypto"
 )
 
 // Block represents a block in the blockchain

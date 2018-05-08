@@ -1,5 +1,5 @@
 // Package tlog is a "toggled logger" that can be enabled and disabled and provides coloring.
-package app
+package log
 
 import (
 	"encoding/json"
@@ -85,19 +85,19 @@ func (l *toggledLogger) Println(v ...interface{}) {
 
 // Debug logs debug messages
 // Can be enabled by passing "-d"
-var LogDebug *toggledLogger
+var Debug *toggledLogger
 
 // Info logs informational message
 // Can be disabled by passing "-q"
-var LogInfo *toggledLogger
+var Info *toggledLogger
 
 // Warn logs warnings,
 // meaning nothing serious by itself but might indicate problems.
 // Passing "-wpanic" will make this function panic after printing the message.
-var LogWarn *toggledLogger
+var Warn *toggledLogger
 
 // Fatal error, we are about to exit
-var LogFatal *toggledLogger
+var Fatal *toggledLogger
 
 func init() {
 	if terminal.IsTerminal(int(os.Stdout.Fd())) {
@@ -109,22 +109,22 @@ func init() {
 		ColorYellow = "\033[33m"
 	}
 
-	LogDebug = &toggledLogger{
+	Debug = &toggledLogger{
 		Logger: log.New(os.Stdout, "DEBUG ", log.Ltime|log.Lshortfile),
 	}
-	LogInfo = &toggledLogger{
+	Info = &toggledLogger{
 		Enabled: true,
 		Logger:  log.New(os.Stdout, "INFO  ", log.Ltime|log.Lshortfile),
 		prefix:  ColorGreen,
 		postfix: ColorReset,
 	}
-	LogWarn = &toggledLogger{
+	Warn = &toggledLogger{
 		Enabled: true,
 		Logger:  log.New(os.Stderr, "WARN  ", log.Ltime|log.Lshortfile),
 		prefix:  ColorYellow,
 		postfix: ColorReset,
 	}
-	LogFatal = &toggledLogger{
+	Fatal = &toggledLogger{
 		Enabled: true,
 		Logger:  log.New(os.Stderr, "FATAL ", log.Ltime|log.Lshortfile),
 		prefix:  ColorRed,
@@ -136,7 +136,7 @@ func init() {
 func (l *toggledLogger) SwitchToSyslog(p syslog.Priority) {
 	w, err := syslog.New(p, ProgramName)
 	if err != nil {
-		LogWarn.Printf("SwitchToSyslog: %v", err)
+		Warn.Printf("SwitchToSyslog: %v", err)
 	} else {
 		l.SetOutput(w)
 	}
@@ -147,7 +147,7 @@ func (l *toggledLogger) SwitchToSyslog(p syslog.Priority) {
 func SwitchLoggerToSyslog(p syslog.Priority) {
 	w, err := syslog.New(p, ProgramName)
 	if err != nil {
-		LogWarn.Printf("SwitchLoggerToSyslog: %v", err)
+		Warn.Printf("SwitchLoggerToSyslog: %v", err)
 	} else {
 		log.SetPrefix("go-fuse: ")
 		// Disable printing the timestamp, syslog already provides that
