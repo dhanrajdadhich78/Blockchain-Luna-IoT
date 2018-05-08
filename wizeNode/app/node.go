@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
@@ -13,15 +11,15 @@ import (
 
 // TODO: refactoring
 //       done: REST Server, Mutex?
-//       todo: TCP Server
+//       doing: TCP Server
 //       todo: blockchain, preparedTxs
-//       todo: logger
+//       doing: logger
 
 // TODO: dataDir?
 // TODO: minterAddress?
-// TODO: known (other) nodes?
-// TODO: NodeNet?
-// TODO: NodeClient
+// DOING: known (other) nodes - NodeNetwork
+// DOING: Network?
+// DOING: NodeClient
 
 // TODO: NodeBlockchain!
 // TODO: NodeTransactions!
@@ -32,19 +30,19 @@ type PreparedTransaction struct {
 }
 
 type Node struct {
-	restServer *RestServer
-
 	Network NodeNetwork
 	Client  *NodeClient
 
+	Rest *RestServer
+
+	// FIXME: to delete
 	nodeADD string
 	nodeID  string
 	apiADD  string
 
+	// FIXME: NodeBlockchain, NodeTransactions
 	blockchain  *bc.Blockchain
 	preparedTxs map[string]*PreparedTransaction
-
-	logger *log.Logger
 }
 
 func NewNode(nodeADD, nodeID, apiADD string) *Node {
@@ -54,19 +52,14 @@ func NewNode(nodeADD, nodeID, apiADD string) *Node {
 		apiADD:      apiADD,
 		blockchain:  bc.NewBlockchain(nodeID),
 		preparedTxs: make(map[string]*PreparedTransaction),
-		logger: log.New(
-			os.Stdout,
-			"node: ",
-			log.Ldate|log.Ltime,
-		),
 	}
 
-	newNode.restServer = NewRestServer(newNode, apiADD)
+	newNode.Rest = NewRestServer(newNode, apiADD)
 
 	// HACK: KnownNodes
 	newNode.Network.SetNodes([]NodeAddr{
 		NodeAddr{
-			Host: "localhost",
+			Host: "wize1",
 			Port: 3000,
 		},
 	}, true)
@@ -79,7 +72,6 @@ func NewNode(nodeADD, nodeID, apiADD string) *Node {
 		Host: nodeADD,
 		Port: port,
 	}
-
 	newNode.Client.SetNodeAddress(addr)
 
 	return newNode
@@ -104,7 +96,7 @@ func (node *Node) InitClient() error {
 func (node *Node) CheckAddressKnown(addr NodeAddr) {
 	if !node.Network.CheckIsKnown(addr) {
 		// send him all addresses
-		fmt.Printf("sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
+		LogDebug.Printf("sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
 
 		node.Network.AddNodeToKnown(addr)
 	}
@@ -129,17 +121,17 @@ func (node *Node) SendVersionToNodes(nodes []NodeAddr) {
 }
 
 func (node *Node) Run(minerAddress string) {
-	fmt.Println("nodeADD:", node.nodeADD, "nodeID:", node.nodeID, "apiADD:", node.apiADD)
+	LogDebug.Printf("nodeADD: %s, nodeID: %s apiADD: %s", node.nodeADD, node.nodeID, node.apiADD)
 
 	// REST Server start
-	if err := node.restServer.Start(); err != nil {
-		fmt.Printf("Failed to start HTTP service: %s", err.Error())
+	if err := node.Rest.Start(); err != nil {
+		LogFatal.Printf("Failed to start HTTP service: %s", err)
 	}
 
 	// Node Server start
 	tcpSrv := NewServer(node, minerAddress)
 	go func() {
-		node.log("start TCP server")
+		LogInfo.Println("Start NodeServer")
 		tcpSrv.Start()
 	}()
 
@@ -149,19 +141,11 @@ func (node *Node) Run(minerAddress string) {
 	for {
 		s := <-signalCh
 		if s == syscall.SIGTERM {
-			node.log("stop servers")
+			LogInfo.Println("Stop servers")
 			// FIXME
 			//apiSrv.Shutdown(context.Background())
-			node.restServer.Close()
+			node.Rest.Close()
 			tcpSrv.Stop()
 		}
 	}
-}
-
-func (node *Node) log(v ...interface{}) {
-	node.logger.Println(v)
-}
-
-func (node *Node) logError(err error) {
-	node.log("[ERROR]", err)
 }

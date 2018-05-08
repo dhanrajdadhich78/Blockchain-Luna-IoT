@@ -154,7 +154,7 @@ func CommandNotFound(c *cli.Context, command string) {
 // CommandBefore implements action before run command
 func CommandBefore(c *cli.Context) error {
 	if c.GlobalBool("debug") {
-		//tlog.Debug.Enabled = true
+		LogDebug.Enabled = true
 	}
 	return nil
 }
@@ -330,19 +330,19 @@ func CmdGetBlock(c *cli.Context) (err error) {
 func CmdStartNode(c *cli.Context) (err error) {
 	nodeADD := c.GlobalString("nodeADD")
 	nodeID := c.GlobalString("nodeID")
-	fmt.Printf("Starting node %s:%s\n", nodeADD, nodeID)
+	LogInfo.Printf("Starting node %s:%s", nodeADD, nodeID)
 
 	minerAddress := c.String("miner")
 	apiAddress := c.String("api")
 
 	if len(minerAddress) > 0 {
 		if crypto.ValidateAddress(minerAddress) {
-			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
+			LogDebug.Println("Mining is on. Address to receive rewards: ", minerAddress)
 			//StartServer(nodeID, minerAddress, apiAddress)
 			node := NewNode(nodeADD, nodeID, apiAddress)
 			node.Run(minerAddress)
 		} else {
-			log.Panic("Wrong miner address!")
+			LogWarn.Println("Wrong miner address!")
 		}
 	}
 	//StartServer(nodeID, minerAddress, apiAddress)

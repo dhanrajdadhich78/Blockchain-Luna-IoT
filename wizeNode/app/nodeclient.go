@@ -2,12 +2,10 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"log"
 	"net"
 
-	b "wizeBlock/wizeNode/blockchain"
+	bc "wizeBlock/wizeNode/blockchain"
 )
 
 type NodeClient struct {
@@ -59,9 +57,9 @@ func (c *NodeClient) SetNodeAddress(address NodeAddr) {
 func (c *NodeClient) SendData(address NodeAddr, data []byte) {
 	conn, err := net.Dial(Protocol, address.NodeAddrToString())
 	if err != nil {
-		fmt.Printf("%s is not available\n", address)
+		LogWarn.Printf("%s is not available\n", address)
 
-		// FIXME
+		// TODO: should we update known nodes
 		//var updatedNodes []string
 		//for _, node := range KnownNodes {
 		//	if node != address {
@@ -76,25 +74,24 @@ func (c *NodeClient) SendData(address NodeAddr, data []byte) {
 
 	_, err = io.Copy(conn, bytes.NewReader(data))
 	if err != nil {
-		log.Panic(err)
+		LogWarn.Printf("Send data error: %s", err)
 	}
+	LogDebug.Printf("Send data: %x", data)
 }
 
-// FIXME
+// TODO: add SendAddr request
 //func (c *NodeClient) SendAddr(address NodeAddr, nodeAddress string) {
 //	nodes := ComAddr{KnownNodes}
 //	nodes.AddrList = append(nodes.AddrList, nodeAddress)
 //	payload, _ := GobEncode(nodes)
 //	request := append(CommandToBytes("addr"), payload...)
-//
 //	c.SendData(address, request)
 //}
 
-func (c *NodeClient) SendBlock(address NodeAddr, b *b.Block) {
-	data := ComBlock{c.NodeAddress, b.Serialize()}
+func (c *NodeClient) SendBlock(address NodeAddr, block *bc.Block) {
+	data := ComBlock{c.NodeAddress, block.Serialize()}
 	payload, _ := GobEncode(data)
 	request := append(CommandToBytes("block"), payload...)
-
 	c.SendData(address, request)
 }
 
@@ -102,37 +99,30 @@ func (c *NodeClient) SendInv(address NodeAddr, kind string, items [][]byte) {
 	inventory := ComInv{c.NodeAddress, kind, items}
 	payload, _ := GobEncode(inventory)
 	request := append(CommandToBytes("inv"), payload...)
-
 	c.SendData(address, request)
 }
 
 func (c *NodeClient) SendGetBlocks(address NodeAddr) {
 	payload, _ := GobEncode(ComGetBlocks{c.NodeAddress})
 	request := append(CommandToBytes("getblocks"), payload...)
-
 	c.SendData(address, request)
 }
 
 func (c *NodeClient) SendGetData(address NodeAddr, kind string, id []byte) {
 	payload, _ := GobEncode(ComGetData{c.NodeAddress, kind, id})
 	request := append(CommandToBytes("getdata"), payload...)
-
 	c.SendData(address, request)
 }
 
-func (c *NodeClient) SendTx(address NodeAddr, tnx *b.Transaction) {
+func (c *NodeClient) SendTx(address NodeAddr, tnx *bc.Transaction) {
 	data := ComTx{c.NodeAddress, tnx.Serialize()}
 	payload, _ := GobEncode(data)
 	request := append(CommandToBytes("tx"), payload...)
-
 	c.SendData(address, request)
 }
 
 func (c *NodeClient) SendVersion(address NodeAddr, bestHeight int) {
-	//bestHeight := bc.GetBestHeight()
 	payload, _ := GobEncode(ComVersion{NodeVersion, bestHeight, c.NodeAddress})
-
 	request := append(CommandToBytes("version"), payload...)
-
 	c.SendData(address, request)
 }

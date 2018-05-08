@@ -6,39 +6,39 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"time"
 
 	b "wizeBlock/wizeNode/blockchain"
 )
 
-// TODO: divide server_tcp onto nodeserver and nodeclient
-// TODO: constants and util functions to network module
-// TODO: KnownNodes to nodenetwork module
+// DONE: divide server_tcp onto nodeserver and nodeclient
+// DONE: constants and util functions to network module
+// DOING: KnownNodes to nodenetwork module
 
 const timeFormat = "15:04:05.000000"
 
-//var KnownNodes = []string{"localhost:3000"}
-
-type TCPServer struct {
+type NodeServer struct {
 	Node *Node
 
+	// TODO: to delete
 	nodeID        string
 	nodeADD       string
 	nodeAddress   string
 	miningAddress string
 
+	// TODO: to redesign
 	blocksInTransit [][]byte
 	mempool         map[string]b.Transaction
 
+	// TODO: to redesign
 	ln   net.Listener
 	conn net.Conn
 	bc   *b.Blockchain
 }
 
-func NewServer(node *Node, minerAddress string) *TCPServer {
-	return &TCPServer{
+func NewServer(node *Node, minerAddress string) *NodeServer {
+	return &NodeServer{
 		Node:            node,
 		nodeID:          node.nodeID,
 		nodeADD:         node.nodeADD,
@@ -50,8 +50,9 @@ func NewServer(node *Node, minerAddress string) *TCPServer {
 	}
 }
 
-func NewServerForTest(nodeADD, nodeID, minerAddress string) *TCPServer {
-	return &TCPServer{
+// TODO: should we support this?
+func NewServerForTest(nodeADD, nodeID, minerAddress string) *NodeServer {
+	return &NodeServer{
 		Node:            nil,
 		nodeID:          nodeID,
 		nodeADD:         nodeADD,
@@ -64,21 +65,21 @@ func NewServerForTest(nodeADD, nodeID, minerAddress string) *TCPServer {
 }
 
 // StartServer starts a node
-func (s *TCPServer) Start() {
-	fmt.Println("TCPServer Start")
-
+func (s *NodeServer) Start() {
 	var err error
 	s.ln, err = net.Listen(Protocol, s.nodeAddress)
 	if err != nil {
-		fmt.Println(err)
-		//log.Panic(err)
+		LogWarn.Printf("NodeServer start error: %s", err)
+		return
 	}
+	// TODO: should we uncomment or delete this?
 	//defer server.ln.Close()
 
-	fmt.Println("A nodeAddress:", s.nodeAddress, "knownNodes:", s.Node.Network.Nodes)
+	LogInfo.Println("NodeServer was started")
+	LogDebug.Printf("nodeAddress: %s, knownNodes: %v", s.nodeAddress, s.Node.Network.Nodes)
 	//s.bc = s.node.blockchain
 
-	// FIXME: knownNodes
+	// TODO: should we send ComVersion at the start?
 	//if s.nodeAddress != KnownNodes[0] {
 	//	s.Node.Client.SendVersion(KnownNodes[0], s.nodeAddress, s.bc)
 	//}
@@ -86,21 +87,22 @@ func (s *TCPServer) Start() {
 	for {
 		conn, err := s.ln.Accept()
 		if err != nil {
-			fmt.Println(err)
+			LogWarn.Printf("NodeServer accept error: %s", err)
 			break
 		}
 		go s.handleConnection(conn)
 	}
 }
 
-func (s *TCPServer) handleConnection(conn net.Conn) {
+func (s *NodeServer) handleConnection(conn net.Conn) {
 	request, err := ioutil.ReadAll(conn)
 	if err != nil {
-		log.Panic(err)
+		LogWarn.Printf("NodeServer read request error: %s", err)
+		return
 	}
 	command := BytesToCommand(request[:CommandLength])
 	nanonow := time.Now().Format(timeFormat)
-	fmt.Printf("nodeID: %s, %s: Received %s command\n", s.nodeID, nanonow, command)
+	LogDebug.Printf("nodeID: %s, %s: Received %s command\n", s.nodeID, nanonow, command)
 
 	switch command {
 	case "addr":
@@ -118,13 +120,13 @@ func (s *TCPServer) handleConnection(conn net.Conn) {
 	case "version":
 		s.handleVersion(request)
 	default:
-		fmt.Println("Unknown command!")
+		LogWarn.Println("Unknown command!")
 	}
 
 	conn.Close()
 }
 
-func (s *TCPServer) Stop() {
+func (s *NodeServer) Stop() {
 	if s.ln != nil {
 		s.ln.Close()
 	}
@@ -133,7 +135,7 @@ func (s *TCPServer) Stop() {
 	}
 }
 
-func (s *TCPServer) handleAddr(request []byte) {
+func (s *NodeServer) handleAddr(request []byte) {
 	var buff bytes.Buffer
 	var payload ComAddr
 
@@ -141,10 +143,11 @@ func (s *TCPServer) handleAddr(request []byte) {
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		log.Panic(err)
+		LogWarn.Println(err)
+		return
 	}
 
-	// FIXME: knownNodes
+	// TODO: check this logic
 	//KnownNodes = append(KnownNodes, payload.AddrList...)
 	//nanonow := time.Now().Format(timeFormat)
 	//fmt.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(KnownNodes))
@@ -152,8 +155,9 @@ func (s *TCPServer) handleAddr(request []byte) {
 	//	s.Node.Client.SendGetBlocks(node, s.nodeAddress)
 	//}
 
-	fmt.Printf("Received nodes %s", payload.AddrList)
+	LogDebug.Printf("Received nodes %s", payload.AddrList)
 
+	// TODO: check this logic
 	addednodes := []NodeAddr{}
 	for _, node := range payload.AddrList {
 		if s.Node.Network.AddNodeToKnown(node) {
@@ -162,8 +166,8 @@ func (s *TCPServer) handleAddr(request []byte) {
 	}
 
 	nanonow := time.Now().Format(timeFormat)
-	fmt.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(s.Node.Network.Nodes))
-	fmt.Printf("Send version to %d new nodes\n", len(addednodes))
+	LogDebug.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(s.Node.Network.Nodes))
+	LogDebug.Printf("Send version to %d new nodes\n", len(addednodes))
 
 	if len(addednodes) > 0 {
 		// send own version to all new found nodes. maybe they have some more blocks
@@ -174,7 +178,7 @@ func (s *TCPServer) handleAddr(request []byte) {
 
 // OLDTODO: проверять остаток на балансе с учетом незамайненых транзакций,
 //          во избежание двойного использования выходов
-func (s *TCPServer) handleBlock(request []byte) {
+func (s *NodeServer) handleBlock(request []byte) {
 	var buff bytes.Buffer
 	var payload ComBlock
 
@@ -182,17 +186,18 @@ func (s *TCPServer) handleBlock(request []byte) {
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		log.Panic(err)
+		LogWarn.Println(err)
+		return
 	}
 
 	blockData := payload.Block
 	block := b.DeserializeBlock(blockData)
 
 	nanonow := time.Now().Format(timeFormat)
-	fmt.Printf("nodeID: %s, %s: Received a new block!\n", s.nodeID, nanonow)
+	LogDebug.Printf("nodeID: %s, %s: Received a new block!\n", s.nodeID, nanonow)
 	s.bc.AddBlock(block)
 
-	fmt.Printf("nodeID: %s, %s: Added block %x\n", s.nodeID, nanonow, block.Hash)
+	LogDebug.Printf("nodeID: %s, %s: Added block %x\n", s.nodeID, nanonow, block.Hash)
 
 	// OLDTODO: add validation of block
 	if len(s.blocksInTransit) > 0 {
@@ -207,7 +212,7 @@ func (s *TCPServer) handleBlock(request []byte) {
 	}
 }
 
-func (s *TCPServer) handleInv(request []byte) {
+func (s *NodeServer) handleInv(request []byte) {
 	var buff bytes.Buffer
 	var payload ComInv
 
@@ -215,12 +220,13 @@ func (s *TCPServer) handleInv(request []byte) {
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		log.Panic(err)
+		LogWarn.Println(err)
+		return
 	}
 
 	nanonow := time.Now().Format(timeFormat)
-	fmt.Printf("nodeID: %s, %s: Received inventory with %d %s\n", s.nodeID, nanonow, len(payload.Items), payload.Type)
-	fmt.Printf("len(mempool): %d\n", len(s.mempool))
+	LogDebug.Printf("nodeID: %s, %s: Received inventory with %d %s\n", s.nodeID, nanonow, len(payload.Items), payload.Type)
+	LogDebug.Printf("len(mempool): %d\n", len(s.mempool))
 
 	if payload.Type == "block" {
 		s.blocksInTransit = payload.Items
@@ -246,7 +252,7 @@ func (s *TCPServer) handleInv(request []byte) {
 	}
 }
 
-func (s *TCPServer) handleGetBlocks(request []byte) {
+func (s *NodeServer) handleGetBlocks(request []byte) {
 	var buff bytes.Buffer
 	var payload ComGetBlocks
 
@@ -254,14 +260,15 @@ func (s *TCPServer) handleGetBlocks(request []byte) {
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		log.Panic(err)
+		LogWarn.Println(err)
+		return
 	}
 
 	blocks := s.bc.GetBlockHashes()
 	s.Node.Client.SendInv(payload.AddrFrom, "block", blocks)
 }
 
-func (s *TCPServer) handleGetData(request []byte) {
+func (s *NodeServer) handleGetData(request []byte) {
 	var buff bytes.Buffer
 	var payload ComGetData
 
@@ -269,7 +276,8 @@ func (s *TCPServer) handleGetData(request []byte) {
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		log.Panic(err)
+		LogFatal.Println(err)
+		return
 	}
 
 	if payload.Type == "block" {
@@ -290,7 +298,7 @@ func (s *TCPServer) handleGetData(request []byte) {
 	}
 }
 
-func (s *TCPServer) handleTx(request []byte) {
+func (s *NodeServer) handleTx(request []byte) {
 	var buff bytes.Buffer
 	var payload ComTx
 
@@ -298,22 +306,23 @@ func (s *TCPServer) handleTx(request []byte) {
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		log.Panic(err)
+		LogFatal.Println(err)
+		return
 	}
 
 	txData := payload.Transaction
 	tx := b.DeserializeTransaction(txData)
-	fmt.Printf("handleTx: [%x] miningAddress: %s\n", tx.ID, s.miningAddress)
+	LogDebug.Printf("handleTx: [%x] miningAddress: %s\n", tx.ID, s.miningAddress)
 
 	// TODO: mempool should be just for miners?
 	//if len(s.miningAddress) > 0 {
-	fmt.Printf("Added to pool %d Tx: [%x]\n", len(s.mempool), tx.ID)
+	LogDebug.Printf("Added to pool %d Tx: [%x]\n", len(s.mempool), tx.ID)
 	s.mempool[hex.EncodeToString(tx.ID)] = tx
 	//}
 
 	//if s.nodeAddress == KnownNodes[0] {
 	if s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
-		fmt.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, s.Node.Network.Nodes)
+		LogDebug.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, s.Node.Network.Nodes)
 		for _, node := range s.Node.Network.Nodes {
 			if !node.CompareToAddress(s.Node.Client.NodeAddress) &&
 				!node.CompareToAddress(payload.AddFrom) {
@@ -322,11 +331,11 @@ func (s *TCPServer) handleTx(request []byte) {
 		}
 	} else {
 		// OLDTODO: changing count of transaction for mining
-		fmt.Printf("miningAddress: %s, len(mempool): %d\n", s.miningAddress, len(s.mempool))
+		LogDebug.Printf("miningAddress: %s, len(mempool): %d\n", s.miningAddress, len(s.mempool))
 		// FIXME: len of mempool?
 		if len(s.mempool) >= 1 && len(s.miningAddress) > 0 {
 		MineTransactions:
-			fmt.Println("MineTransactions...")
+			LogDebug.Println("MineTransactions...")
 			var txs []*b.Transaction
 
 			for id := range s.mempool {
@@ -338,7 +347,7 @@ func (s *TCPServer) handleTx(request []byte) {
 			}
 
 			if len(txs) == 0 {
-				fmt.Println("All transactions are invalid! Waiting for new ones...")
+				LogDebug.Println("All transactions are invalid! Waiting for new ones...")
 				return
 			}
 
@@ -388,8 +397,8 @@ func (s *TCPServer) handleTx(request []byte) {
 			UTXOSet.Reindex()
 
 			nanonow := time.Now().Format(timeFormat)
-			fmt.Printf("nodeID: %s, %s: New block is mined!", s.nodeID, nanonow)
-			fmt.Printf("New block with %d tx is mined!\n", len(txs))
+			LogDebug.Printf("nodeID: %s, %s: New block is mined!", s.nodeID, nanonow)
+			LogDebug.Printf("New block with %d tx is mined!\n", len(txs))
 
 			for _, tx := range txs {
 				txID := hex.EncodeToString(tx.ID)
@@ -409,7 +418,7 @@ func (s *TCPServer) handleTx(request []byte) {
 	}
 }
 
-func (s *TCPServer) handleVersion(request []byte) {
+func (s *NodeServer) handleVersion(request []byte) {
 	var buff bytes.Buffer
 	var payload ComVersion
 
@@ -417,7 +426,8 @@ func (s *TCPServer) handleVersion(request []byte) {
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&payload)
 	if err != nil {
-		log.Panic(err)
+		LogFatal.Println(err)
+		return
 	}
 
 	myBestHeight := s.bc.GetBestHeight()
