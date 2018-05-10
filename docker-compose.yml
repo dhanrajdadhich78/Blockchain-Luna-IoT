@@ -20,6 +20,7 @@ services:
       USER_ADDRESS: ${USER_ADDRESS}
       PASSWORD: ${PASSWORD}
       SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
       MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: startnode
     ports:
