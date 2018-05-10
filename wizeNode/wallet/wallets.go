@@ -1,4 +1,4 @@
-package blockchain
+package wallet
 
 import (
 	"bytes"
@@ -10,7 +10,17 @@ import (
 	"os"
 )
 
+// FIXME: wallet.dat should be only for central nodes (masternode?) and miner nodes(?)
+// NOW: admin (master) wallet/address
+// NOW: miner wallet/address
 const walletFile = "files/wallet%s/wallet.dat"
+
+// USECASE: just for deprecated functions like
+// REST: deprecatedWalletCreate
+// REST: deprecatedWalletsList
+// CLI: createWallet
+// CLI: listAddresses
+// CLI: getWallet
 
 // Wallets stores a collection of wallets
 type Wallets struct {
@@ -49,10 +59,6 @@ func (ws *Wallets) GetAddresses() []string {
 }
 
 // GetWallet returns a Wallet by its address
-//func (ws Wallets) GetWallet(address string) Wallet {
-//	return *ws.Wallets[address]
-//}
-// TODO: check this method
 func (ws Wallets) GetWallet(address string) *Wallet {
 	return ws.Wallets[address]
 }
@@ -70,7 +76,9 @@ func (ws *Wallets) LoadFromFile(nodeID string) error {
 	}
 
 	var wallets Wallets
+	// FIXME: should we use this Register?
 	gob.Register(elliptic.P256())
+
 	decoder := gob.NewDecoder(bytes.NewReader(fileContent))
 	err = decoder.Decode(&wallets)
 	if err != nil {
@@ -87,6 +95,7 @@ func (ws Wallets) SaveToFile(nodeID string) {
 	var content bytes.Buffer
 	walletFile := fmt.Sprintf(walletFile, nodeID)
 
+	// FIXME: should we use this Register?
 	gob.Register(elliptic.P256())
 
 	encoder := gob.NewEncoder(&content)

@@ -11,7 +11,10 @@ import (
 	"os"
 	"strconv"
 	"time"
-	blockchain "wizeBlock/wizeNode/blockchain"
+
+	"wizeBlock/wizeNode/blockchain"
+	"wizeBlock/wizeNode/crypto"
+	"wizeBlock/wizeNode/wallet"
 )
 
 func (cli *CLI) printUsage() {
@@ -36,7 +39,7 @@ func (cli *CLI) printUsage() {
 }
 
 func (cli *CLI) createBlockchain(address string, nodeID string) {
-	if !blockchain.ValidateAddress(address) {
+	if !crypto.ValidateAddress(address) {
 		log.Panic("ERROR: Address is not valid")
 	}
 	bc := blockchain.CreateBlockchain(address, nodeID)
@@ -48,30 +51,37 @@ func (cli *CLI) createBlockchain(address string, nodeID string) {
 }
 
 func (cli *CLI) createWallet(nodeID string) {
-	wallets, _ := blockchain.NewWallets(nodeID)
+	wallets, _ := wallet.NewWallets(nodeID)
 	address := wallets.CreateWallet()
 	wallets.SaveToFile(nodeID)
-	wallet := wallets.GetWallet(address)
+	walletNew := wallets.GetWallet(address)
 
 	fmt.Printf("Your new address: %s\n", address)
-	fmt.Println("Private key: ", hex.EncodeToString(wallet.GetPrivateKey()))
-	fmt.Println("Public key: ", hex.EncodeToString(wallet.GetPublicKey()))
+	fmt.Println("Private key: ", hex.EncodeToString(walletNew.GetPrivateKey()))
+	fmt.Println("Public key: ", hex.EncodeToString(walletNew.GetPublicKey()))
 }
 
 func (cli *CLI) getBalance(address string, nodeID string) {
 	bc := blockchain.NewBlockchain(nodeID)
 	// TODO-34
-	balance := GetWalletCredits(address, nodeID, bc)
+	balance := bc.GetWalletBalance(address)
 
 	fmt.Printf("Balance of '%s': %d\n", address, balance)
 }
 
 func (cli *CLI) listAddresses(nodeID string) {
-	wallets, err := blockchain.NewWallets(nodeID)
-	if err != nil {
-		log.Panic(err)
+	var addresses []string = []string{}
+
+	if nodeID == "3100" {
+		bc := blockchain.NewBlockchain("3000")
+		addresses = bc.GetAddresses()
+	} else {
+		wallets, err := wallet.NewWallets(nodeID)
+		if err != nil {
+			log.Panic(err)
+		}
+		addresses = wallets.GetAddresses()
 	}
-	addresses := wallets.GetAddresses()
 
 	for _, address := range addresses {
 		fmt.Println(address)
@@ -79,7 +89,7 @@ func (cli *CLI) listAddresses(nodeID string) {
 }
 
 func (cli *CLI) getWallet(address string, nodeID string) {
-	wallets, err := blockchain.NewWallets(nodeID)
+	wallets, err := wallet.NewWallets(nodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -126,10 +136,10 @@ func (cli *CLI) reindexUTXO(nodeID string) {
 }
 
 func (cli *CLI) send(from, to string, amount int, nodeID string, mineNow bool) {
-	if !blockchain.ValidateAddress(from) {
+	if !crypto.ValidateAddress(from) {
 		log.Panic("ERROR: Sender address is not valid")
 	}
-	if !blockchain.ValidateAddress(to) {
+	if !crypto.ValidateAddress(to) {
 		log.Panic("ERROR: Recipient address is not valid")
 	}
 
@@ -207,7 +217,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) { //TODO:
 	///////////////////////////////
 
 	if len(minerAddress) > 0 {
-		if blockchain.ValidateAddress(minerAddress) {
+		if crypto.ValidateAddress(minerAddress) {
 			fmt.Println("Mining is on. Address to receive rewards: ", minerAddress)
 			//StartServer(nodeID, minerAddress, apiAddr)
 			node := NewNode(nodeID)

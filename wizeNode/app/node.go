@@ -23,11 +23,16 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+type PreparedTransaction struct {
+	From        string
+	Transaction *bc.Transaction
+}
+
 type Node struct {
 	*http.ServeMux
 
 	blockchain  *bc.Blockchain
-	preparedTxs map[string]*bc.Transaction
+	preparedTxs map[string]*PreparedTransaction
 
 	mu      sync.RWMutex
 	logger  *log.Logger
@@ -39,7 +44,7 @@ type Node struct {
 func NewNode(nodeID string) *Node {
 	return &Node{
 		blockchain:  bc.NewBlockchain(nodeID),
-		preparedTxs: make(map[string]*bc.Transaction),
+		preparedTxs: make(map[string]*PreparedTransaction),
 		mu:          sync.RWMutex{},
 		logger: log.New(
 			os.Stdout,
@@ -69,18 +74,19 @@ func (node *Node) newApiServer() *http.Server {
 
 	// DEPRECATED: inner usage
 	// TODO: what is middleware.HandleFunc() doing here?
-	router.HandleFunc("/wallet/new", middleware.HandleFunc(node.createWallet)).Methods("POST")
+	//router.HandleFunc("/wallet/new", middleware.HandleFunc(node.deprecatedWalletCreate)).Methods("POST")
 	// DEPRECATED: inner usage
-	router.HandleFunc("/wallets/list", middleware.HandleFunc(node.listWallets)).Methods("GET")
+	//router.HandleFunc("/wallets/list", middleware.HandleFunc(node.deprecatedWalletsList)).Methods("GET")
 
 	router.HandleFunc("/wallet/{hash}", middleware.HandleFunc(node.getWallet)).Methods("GET")
+
 	// send transaction steps: prepare/sign
-	router.HandleFunc("/prepare", node.prepare).Methods("POST")
-	router.HandleFunc("/sign", node.sign).Methods("POST")
+	router.HandleFunc("/prepare", middleware.HandleFunc(node.prepare)).Methods("POST")
+	router.HandleFunc("/sign", middleware.HandleFunc(node.sign)).Methods("POST")
 
 	// DEPRECATED: inner usage
 	// TODO: why there is not middleware.HandleFunc()?
-	router.HandleFunc("/send", node.send).Methods("POST")
+	//router.HandleFunc("/send", middleware.HandleFunc(node.deprecatedSend)).Methods("POST")
 
 	corsHandler := cors.Default().Handler(router)
 

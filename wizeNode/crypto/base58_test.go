@@ -1,8 +1,7 @@
-package utils
+package crypto
 
 import (
 	"testing"
-	s "wizeBlock/wizeNode/services"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,7 +15,7 @@ func TestBase58(t *testing.T) {
 		checksum := Checksum(versionedPayload)
 
 		fullPayload := append(versionedPayload, checksum...)
-		address := s.Base58Encode(fullPayload)
+		address := Base58Encode(fullPayload)
 
 		assert.Equal(
 			t,
