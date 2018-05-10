@@ -68,7 +68,7 @@ func (s *TCPServer) Start() {
 	fmt.Println("TCPServer Start")
 
 	var err error
-	s.ln, err = net.Listen(protocol, s.nodeAddress)
+	s.ln, err = net.Listen(protocol, "127.0.0.1:3000")
 	if err != nil {
 		fmt.Println(err)
 		//log.Panic(err)
