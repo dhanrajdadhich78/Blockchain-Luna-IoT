@@ -187,7 +187,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) { //TODO:
 	//register server in masternode
 	///////////////////////////////
 
-	url := "http://" + os.Getenv("MASTERNODE") + ":8888/hello/blockchain"
+	url := "http://" + os.Getenv("DIGEST_NODE") + ":8888/hello/blockchain"
 	values := map[string]string{
 		"Address":   os.Getenv("USER_ADDRESS"),
 		"PrivKey":   os.Getenv("USER_PRIVKEY"),
