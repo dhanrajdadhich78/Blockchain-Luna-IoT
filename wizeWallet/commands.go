@@ -8,8 +8,8 @@ import (
 
 	"github.com/urfave/cli"
 
-	"wizeBlock/wizeNode/crypto"
-	"wizeBlock/wizeNode/wallet"
+	"wizeBlock/wizeNode/core/crypto"
+	"wizeBlock/wizeNode/core/wallet"
 )
 
 var blockApi = NewBlockApi()
