@@ -193,7 +193,7 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) { //TODO:
 		"PrivKey":   os.Getenv("USER_PRIVKEY"),
 		"Pubkey":    os.Getenv("USER_PUBKEY"),
 		"AES":       os.Getenv("PASSWORD"),
-		"Url":       "http://" + nodeAddress,
+		"Url":       "http://" + os.Getenv("PUBLIC_IP") + ":4000/",
 		"ServerKey": os.Getenv("SERVER_KEY"),
 	}
 
