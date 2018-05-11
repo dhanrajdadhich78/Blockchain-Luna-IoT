@@ -20,30 +20,25 @@ type MerkleNode struct {
 func NewMerkleTree(data [][]byte) *MerkleTree {
 	var nodes []MerkleNode
 
-	//if len(data)%2 != 0 {
-	// append node until number is power of 2
-	if (len(data) & (len(data) - 1)) != 0 {
+	if len(data)%2 != 0 {
 		data = append(data, data[len(data)-1])
-		//fmt.Println(data)
+
 	}
 
 	for _, datum := range data {
 		node := NewMerkleNode(nil, nil, datum)
-		//fmt.Println(node)
 		nodes = append(nodes, *node)
 	}
 
-	//for i := 0; i < len(data)/2; i++ {
-	// up level until there is only 1 node
-	for len(nodes) > 1 {
+	for i := 0; i < len(data)/2; i++ {
 		var newLevel []MerkleNode
 
 		for j := 0; j < len(nodes); j += 2 {
-			//fmt.Println(j)
-			//fmt.Println(&nodes[j])
-			//fmt.Println(&nodes[j+1])
 			node := NewMerkleNode(&nodes[j], &nodes[j+1], nil)
 			newLevel = append(newLevel, *node)
+		}
+		if len(newLevel)%2 != 0 {
+			newLevel = append(newLevel, newLevel[len(newLevel)-1])
 		}
 
 		nodes = newLevel
