@@ -3,12 +3,14 @@ package crypto
 import (
 	"crypto/elliptic"
 	"crypto/rand"
-	//"encoding/hex"
+	"encoding/hex"
 	"io"
-	"log"
+	//"log"
 	"math/big"
 
 	"github.com/btccom/secp256k1-go/secp256k1"
+
+	"wizeBlock/wizeNode/core/log"
 )
 
 // TODO: C library & cgo for different platforms
@@ -99,7 +101,7 @@ func GetPrivateKey(c elliptic.Curve, privateKey []byte) (*PrivateKey, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Verifying was successful\n")
+	log.Warn.Printf("Verifying was successful\n")
 
 	// get the public key
 	_, publicKeyStruct, err := secp256k1.EcPubkeyCreate(ctx, privateKey[:])
@@ -183,15 +185,16 @@ func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool {
 	params := uint(secp256k1.ContextSign | secp256k1.ContextVerify)
 	ctx, err := secp256k1.ContextCreate(params)
 	if err != nil {
-		log.Printf("Error: %s", err)
+		log.Warn.Printf("Error: %s", err)
 		return false
 	}
 	//log.Printf("%+v\n", ctx)
 
 	signature := append(r.Bytes(), s.Bytes()...)
+	log.Info.Printf("Signature Compact: %s\n", hex.EncodeToString(signature[:]))
 	_, ecdsaSignature, err := secp256k1.EcdsaSignatureParseCompact(ctx, signature)
 	if err != nil {
-		log.Printf("Error: %s", err)
+		log.Warn.Printf("Error: %s", err)
 		return false
 	}
 
@@ -199,16 +202,16 @@ func Verify(pub *PublicKey, hash []byte, r, s *big.Int) bool {
 	publicKey[0] = 0x04
 	publicKey = append(publicKey, pub.X.Bytes()...)
 	publicKey = append(publicKey, pub.Y.Bytes()...)
-	//log.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
+	log.Info.Printf("Public Key: %s\n", hex.EncodeToString(publicKey))
 	_, publicKeyStruct, err := secp256k1.EcPubkeyParse(ctx, publicKey)
 	if err != nil {
-		log.Printf("Error: %s", err)
+		log.Warn.Printf("Error: %s", err)
 		return false
 	}
 
 	ret, err := secp256k1.EcdsaVerify(ctx, ecdsaSignature, hash, publicKeyStruct)
 	if err != nil {
-		log.Printf("Error: %s", err)
+		log.Warn.Printf("Error: %s", err)
 		return false
 	}
 	//log.Println("ret", ret)

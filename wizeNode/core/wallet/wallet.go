@@ -35,20 +35,14 @@ func CreateWallet(privateKey []byte) (*Wallet, error) {
 
 // GetAddress returns wallet address
 func (w Wallet) GetAddress() []byte {
-	pubKeyHash := crypto.HashPubKey(w.PublicKey)
-
-	versionedPayload := append([]byte{crypto.Version}, pubKeyHash...)
-	checksum := crypto.Checksum(versionedPayload)
-
-	fullPayload := append(versionedPayload, checksum...)
-	address := crypto.Base58Encode(fullPayload)
-
-	return address
+	return crypto.GetAddress(w.PublicKey)
 }
 
 func (w Wallet) GetPrivateKey() []byte {
 	return w.PrivateKey.D.Bytes()
 }
+
+// FIXME
 func (w Wallet) GetPublicKey() []byte {
 	//public := append(w.PrivateKey.X.Bytes(), w.PrivateKey.Y.Bytes()...)
 	public := w.PublicKey
