@@ -75,7 +75,6 @@ func TestNewMerkleTree(t *testing.T) {
 }
 
 func TestNewMerkleTreeк5(t *testing.T) {
-	//TODO: do not work with 8 nodes - rewrite
 	data := [][]byte{
 		[]byte("node1"),
 		[]byte("node2"),
@@ -114,7 +113,6 @@ func TestNewMerkleTreeк5(t *testing.T) {
 }
 
 func TestNewMerkleTree6(t *testing.T) {
-	//TODO: do not work with 8 nodes - rewrite
 	data := [][]byte{
 		[]byte("node1"),
 		[]byte("node2"),
@@ -130,14 +128,11 @@ func TestNewMerkleTree6(t *testing.T) {
 	n04 := NewMerkleNode(nil, nil, data[3])
 	n05 := NewMerkleNode(nil, nil, data[4])
 	n06 := NewMerkleNode(nil, nil, data[5])
-	//n07 := NewMerkleNode(nil, nil, data[5])
-	//n08 := NewMerkleNode(nil, nil, data[5])
 
 	// Level 1
 	n11 := NewMerkleNode(n01, n02, nil)
 	n12 := NewMerkleNode(n03, n04, nil)
 	n13 := NewMerkleNode(n05, n06, nil)
-	//n14 := NewMerkleNode(n07, n08, nil)
 
 	// Level 2
 	n21 := NewMerkleNode(n11, n12, nil)
