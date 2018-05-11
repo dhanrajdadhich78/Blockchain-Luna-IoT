@@ -5,6 +5,8 @@ import (
 	"math/big"
 )
 
+// TODO: see github.com/btcsuite/btcutil/base58
+
 var b58Alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
 
 // Base58Encode encodes a byte array to Base58

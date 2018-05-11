@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"io"
-	//"log"
 	"math/big"
 
 	"github.com/btccom/secp256k1-go/secp256k1"
@@ -13,10 +12,13 @@ import (
 	"wizeBlock/wizeNode/core/log"
 )
 
+// TODO: rename to secp256k1
+// TODO: add struct, or add functions to PrivateKey like crypto/ecdsa
 // TODO: C library & cgo for different platforms
 // TODO: working with contexts
 
 // TODO: should we add curve?
+// TODO: add more math with curve?
 type PublicKey struct {
 	elliptic.Curve
 	X, Y *big.Int
