@@ -78,13 +78,15 @@ func (s *NodeServer) Start() {
 	//defer server.ln.Close()
 
 	log.Info.Println("NodeServer was started")
-	log.Debug.Printf("nodeAddress: %s, knownNodes: %v", s.nodeAddress, s.Node.Network.Nodes)
+	log.Info.Printf("nodeAddress: %s, knownNodes: %v", s.nodeAddress, s.Node.Network.Nodes)
 	//s.bc = s.node.blockchain
 
 	// TODO: should we send ComVersion at the start?
-	//if s.nodeAddress != KnownNodes[0] {
-	//	s.Node.Client.SendVersion(KnownNodes[0], s.nodeAddress, s.bc)
-	//}
+	log.Info.Printf("Compare node address [%s] with 0-node [%s]\n", s.Node.Client.NodeAddress, s.Node.Network.Nodes[0])
+	if !s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
+		log.Info.Printf("Send version\n")
+		s.Node.Client.SendVersion(s.Node.Network.Nodes[0], s.bc.GetBestHeight())
+	}
 
 	for {
 		conn, err := s.ln.Accept()
@@ -441,5 +443,7 @@ func (s *NodeServer) handleVersion(request []byte) {
 		s.Node.Client.SendVersion(payload.AddrFrom, myBestHeight)
 	}
 
+	// sendAddr(payload.AddrFrom)
+	log.Info.Printf("Check address known for %s\n", payload.AddrFrom)
 	s.Node.CheckAddressKnown(payload.AddrFrom)
 }

@@ -24,6 +24,11 @@ func (n NodeAddr) NodeAddrToString() string {
 	return n.Host + ":" + strconv.Itoa(n.Port)
 }
 
+// Convert to string in format host:port
+func (n NodeAddr) String() string {
+	return n.Host + ":" + strconv.Itoa(n.Port)
+}
+
 // Compare to other node address if is same
 func (n NodeAddr) CompareToAddress(addr NodeAddr) bool {
 	h1 := strings.Trim(addr.Host, " ")

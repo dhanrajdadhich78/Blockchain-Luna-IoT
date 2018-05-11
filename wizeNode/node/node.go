@@ -95,12 +95,15 @@ func (node *Node) InitClient() error {
  * and send list of all addresses to that node
  */
 func (node *Node) CheckAddressKnown(addr network.NodeAddr) {
+	log.Info.Printf("Check address known [%s]\n", addr)
+	log.Info.Printf("All known nodes: %+v\n", node.Network.Nodes)
 	if !node.Network.CheckIsKnown(addr) {
 		// send him all addresses
-		log.Debug.Printf("sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
+		log.Info.Printf("Sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
 
 		node.Network.AddNodeToKnown(addr)
 	}
+	log.Info.Printf("Updated known nodes: %+v\n", node.Network.Nodes)
 }
 
 /*
