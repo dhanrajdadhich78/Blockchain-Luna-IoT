@@ -45,9 +45,17 @@ func Base58Decode(input []byte) []byte {
 
 	decoded := result.Bytes()
 
+	// Fix decoded slice to 20 + (addressChecksumLen) bytes
+	for {
+		if len(decoded) == (20 + addressChecksumLen) {
+			break
+		}
+		decoded = append([]byte{0x00}, decoded...)
+	}
+
 	// Fix address version processing in Base58 encoding/decoding
 	if input[0] == b58Alphabet[0] {
-		decoded = append([]byte{0x00}, decoded...)
+		decoded = append([]byte{Version}, decoded...)
 	}
 
 	return decoded
