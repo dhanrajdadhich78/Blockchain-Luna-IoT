@@ -73,7 +73,47 @@ func TestNewMerkleTree(t *testing.T) {
 
 	assert.Equal(t, rootHash, fmt.Sprintf("%x", mTree.RootNode.Data), "Merkle tree root hash is correct")
 }
-func TestNewMerkleTree12(t *testing.T) {
+
+func TestNewMerkleTreeк5(t *testing.T) {
+	//TODO: do not work with 8 nodes - rewrite
+	data := [][]byte{
+		[]byte("node1"),
+		[]byte("node2"),
+		[]byte("node3"),
+		[]byte("node4"),
+		[]byte("node5"),
+	}
+	// Level 0
+	n01 := NewMerkleNode(nil, nil, data[0])
+	n02 := NewMerkleNode(nil, nil, data[1])
+	n03 := NewMerkleNode(nil, nil, data[2])
+	n04 := NewMerkleNode(nil, nil, data[3])
+	n05 := NewMerkleNode(nil, nil, data[4])
+	n06 := NewMerkleNode(nil, nil, data[4])
+	n07 := NewMerkleNode(nil, nil, data[4])
+	n08 := NewMerkleNode(nil, nil, data[4])
+
+	// Level 1
+	n11 := NewMerkleNode(n01, n02, nil)
+	n12 := NewMerkleNode(n03, n04, nil)
+	n13 := NewMerkleNode(n05, n06, nil)
+	n14 := NewMerkleNode(n07, n08, nil)
+
+	// Level 2
+	n21 := NewMerkleNode(n11, n12, nil)
+	n22 := NewMerkleNode(n13, n14, nil)
+
+	// Level 3
+	n31 := NewMerkleNode(n21, n22, nil)
+	fmt.Println(n31)
+
+	rootHash := fmt.Sprintf("%x", n31.Data)
+	mTree := NewMerkleTree(data)
+
+	assert.Equal(t, rootHash, fmt.Sprintf("%x", mTree.RootNode.Data), "Merkle tree root hash is correct")
+}
+
+func TestNewMerkleTree6(t *testing.T) {
 	//TODO: do not work with 8 nodes - rewrite
 	data := [][]byte{
 		[]byte("node1"),
