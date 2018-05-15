@@ -184,36 +184,11 @@ func (cli *CLI) startNode(nodeID, minerAddress string, apiAddr string) { //TODO:
 	nodeADD := os.Getenv("NODE_ADD")
 
 	///////////////////////////////
-	//register server in masternode
+	//register server in digest node
 	///////////////////////////////
 
-	url := "http://" + os.Getenv("DIGEST_NODE") + ":8888/hello/blockchain"
-	values := map[string]string{
-		"Address":   os.Getenv("USER_ADDRESS"),
-		"PrivKey":   os.Getenv("USER_PRIVKEY"),
-		"Pubkey":    os.Getenv("USER_PUBKEY"),
-		"AES":       os.Getenv("PASSWORD"),
-		"Url":       "http://" + os.Getenv("PUBLIC_IP") + ":4000/",
-		"ServerKey": os.Getenv("SERVER_KEY"),
-	}
+	regDigest()
 
-	jsonValue, _ := json.Marshal(values)
-	//var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
-	//req.Header.Set("X-Custom-Header", "myvalue")
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
-
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
 	///////////////////////////////
 
 	if len(minerAddress) > 0 {
