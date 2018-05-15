@@ -5,7 +5,7 @@ import (
 	"io"
 	"net"
 
-	corebch "wizeBlock/wizeNode/core/blockchain"
+	"wizeBlock/wizeNode/core/blockchain"
 	"wizeBlock/wizeNode/core/log"
 )
 
@@ -89,7 +89,7 @@ func (c *NodeClient) SendData(address NodeAddr, data []byte) {
 //	c.SendData(address, request)
 //}
 
-func (c *NodeClient) SendBlock(address NodeAddr, block *corebch.Block) {
+func (c *NodeClient) SendBlock(address NodeAddr, block *blockchain.Block) {
 	data := ComBlock{c.NodeAddress, block.Serialize()}
 	payload, _ := GobEncode(data)
 	request := append(CommandToBytes("block"), payload...)
@@ -115,7 +115,7 @@ func (c *NodeClient) SendGetData(address NodeAddr, kind string, id []byte) {
 	c.SendData(address, request)
 }
 
-func (c *NodeClient) SendTx(address NodeAddr, tnx *corebch.Transaction) {
+func (c *NodeClient) SendTx(address NodeAddr, tnx *blockchain.Transaction) {
 	data := ComTx{c.NodeAddress, tnx.Serialize()}
 	payload, _ := GobEncode(data)
 	request := append(CommandToBytes("tx"), payload...)
