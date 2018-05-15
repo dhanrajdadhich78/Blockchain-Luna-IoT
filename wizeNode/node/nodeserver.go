@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"encoding/hex"
-	"fmt"
 	"io/ioutil"
 	"net"
 	"time"
@@ -21,81 +20,114 @@ import (
 const timeFormat = "15:04:05.000000"
 
 type NodeServer struct {
-	Node *Node
+	Node        *Node
+	NodeAddress network.NodeAddr
 
-	// TODO: to delete
-	nodeID        string
-	nodeADD       string
-	nodeAddress   string
-	miningAddress string
+	minerAddress string
 
 	// TODO: to redesign
 	blocksInTransit [][]byte
+	bc              *blockchain.Blockchain
 	mempool         map[string]blockchain.Transaction
 
 	// TODO: to redesign
-	ln   net.Listener
-	conn net.Conn
-	bc   *blockchain.Blockchain
+	conn                net.Conn
+	StopMainChan        chan struct{}
+	StopMainConfirmChan chan struct{}
 }
 
 func NewServer(node *Node, minerAddress string) *NodeServer {
 	return &NodeServer{
 		Node:            node,
-		nodeID:          node.nodeID,
-		nodeADD:         node.nodeADD,
-		nodeAddress:     fmt.Sprintf("%s:%s", node.nodeADD, node.nodeID),
-		miningAddress:   minerAddress,
+		NodeAddress:     node.NodeAddress,
+		minerAddress:    minerAddress,
 		blocksInTransit: [][]byte{},
 		mempool:         make(map[string]blockchain.Transaction),
 		bc:              node.blockchain,
 	}
 }
 
-// TODO: should we support this?
-func NewServerForTest(nodeADD, nodeID, minerAddress string) *NodeServer {
-	return &NodeServer{
-		Node:            nil,
-		nodeID:          nodeID,
-		nodeADD:         nodeADD,
-		nodeAddress:     fmt.Sprintf("localhost:%s", nodeID),
-		miningAddress:   minerAddress,
-		blocksInTransit: [][]byte{},
-		mempool:         make(map[string]blockchain.Transaction),
-		bc:              blockchain.NewBlockchain(nodeID),
-	}
-}
+// TESTS: should we support this?
+//func NewServerForTest(nodeADD, nodeID, minerAddress string) *NodeServer {
+//	return &NodeServer{
+//		Node:            nil,
+//		nodeID:          nodeID,
+//		nodeADD:         nodeADD,
+//		minerAddress:    minerAddress,
+//		blocksInTransit: [][]byte{},
+//		mempool:         make(map[string]blockchain.Transaction),
+//		bc:              blockchain.NewBlockchain(nodeID),
+//	}
+//}
 
-// StartServer starts a node
-func (s *NodeServer) Start() {
-	var err error
-	s.ln, err = net.Listen(network.Protocol, s.nodeAddress)
+// Start a node server
+func (s *NodeServer) Start(serverStartResult chan string) error {
+	log.Info.Println("Prepare server to start ", s.NodeAddress.NodeAddrToString())
+
+	ln, err := net.Listen(network.Protocol, s.Node.NodeAddress.String())
 	if err != nil {
-		log.Warn.Printf("NodeServer start error: %s", err)
-		return
+		serverStartResult <- err.Error()
+		close(s.StopMainConfirmChan)
+
+		log.Warn.Println("Fail to start port listening ", err.Error())
+		return err
 	}
-	// TODO: should we uncomment or delete this?
-	//defer server.ln.Close()
+	defer ln.Close()
+
+	s.Node.Client.SetNodeAddress(s.NodeAddress)
 
 	log.Info.Println("NodeServer was started")
-	log.Info.Printf("nodeAddress: %s, knownNodes: %v", s.nodeAddress, s.Node.Network.Nodes)
+	log.Info.Printf("nodeAddress: %s, knownNodes: %v", s.Node.NodeAddress, s.Node.Network.Nodes)
 	//s.bc = s.node.blockchain
 
-	// TODO: should we send ComVersion at the start?
+	// TODO: P2P: should we send ComVersion at the start?
+
+	///s.Node.SendVersionToNodes([]netlib.NodeAddr{})
+
 	log.Info.Printf("Compare node address [%s] with 0-node [%s]\n", s.Node.Client.NodeAddress, s.Node.Network.Nodes[0])
 	if !s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
 		log.Info.Printf("Send version\n")
 		s.Node.Client.SendVersion(s.Node.Network.Nodes[0], s.bc.GetBestHeight())
 	}
 
+	// notify node about server started fine
+	serverStartResult <- ""
+
 	for {
-		conn, err := s.ln.Accept()
+		conn, err := ln.Accept()
+
 		if err != nil {
 			log.Warn.Printf("NodeServer accept error: %s", err)
+			return err
+		}
+
+		// check if it is a time to stop this loop
+		stop := false
+
+		// check if a channel is still open
+		// it can be closed in goroutine when receive external stop signal
+		select {
+		case _, ok := <-s.StopMainChan:
+			if !ok {
+				stop = true
+			}
+		default:
+		}
+
+		if stop {
+			// complete all tasks, save data if needed
+			ln.Close()
+
+			close(s.StopMainConfirmChan)
+
+			log.Info.Println("Stop Listing Network. Correct exit")
 			break
 		}
+
 		go s.handleConnection(conn)
 	}
+
+	return nil
 }
 
 func (s *NodeServer) handleConnection(conn net.Conn) {
@@ -106,7 +138,7 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 	}
 	command := network.BytesToCommand(request[:network.CommandLength])
 	nanonow := time.Now().Format(timeFormat)
-	log.Debug.Printf("nodeID: %s, %s: Received %s command\n", s.nodeID, nanonow, command)
+	log.Debug.Printf("nodeID: %s, %s: Received %s command\n", s.Node.NodeID, nanonow, command)
 
 	switch command {
 	case "addr":
@@ -131,9 +163,6 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 }
 
 func (s *NodeServer) Stop() {
-	if s.ln != nil {
-		s.ln.Close()
-	}
 	if s.bc != nil && s.bc.Db != nil {
 		s.bc.Db.Close()
 	}
@@ -170,7 +199,7 @@ func (s *NodeServer) handleAddr(request []byte) {
 	}
 
 	nanonow := time.Now().Format(timeFormat)
-	log.Debug.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.nodeID, nanonow, len(s.Node.Network.Nodes))
+	log.Debug.Printf("nodeID: %s, %s: There are %d known nodes now!\n", s.Node.NodeID, nanonow, len(s.Node.Network.Nodes))
 	log.Debug.Printf("Send version to %d new nodes\n", len(addednodes))
 
 	if len(addednodes) > 0 {
@@ -198,10 +227,10 @@ func (s *NodeServer) handleBlock(request []byte) {
 	block := blockchain.DeserializeBlock(blockData)
 
 	nanonow := time.Now().Format(timeFormat)
-	log.Debug.Printf("nodeID: %s, %s: Received a new block!\n", s.nodeID, nanonow)
+	log.Debug.Printf("nodeID: %s, %s: Received a new block!\n", s.Node.NodeID, nanonow)
 	s.bc.AddBlock(block)
 
-	log.Debug.Printf("nodeID: %s, %s: Added block %x\n", s.nodeID, nanonow, block.Hash)
+	log.Debug.Printf("nodeID: %s, %s: Added block %x\n", s.Node.NodeID, nanonow, block.Hash)
 
 	// OLDTODO: add validation of block
 	if len(s.blocksInTransit) > 0 {
@@ -229,7 +258,7 @@ func (s *NodeServer) handleInv(request []byte) {
 	}
 
 	nanonow := time.Now().Format(timeFormat)
-	log.Debug.Printf("nodeID: %s, %s: Received inventory with %d %s\n", s.nodeID, nanonow, len(payload.Items), payload.Type)
+	log.Debug.Printf("nodeID: %s, %s: Received inventory with %d %s\n", s.Node.NodeID, nanonow, len(payload.Items), payload.Type)
 	log.Debug.Printf("len(mempool): %d\n", len(s.mempool))
 
 	if payload.Type == "block" {
@@ -316,7 +345,7 @@ func (s *NodeServer) handleTx(request []byte) {
 
 	txData := payload.Transaction
 	tx := blockchain.DeserializeTransaction(txData)
-	log.Debug.Printf("handleTx: [%x] miningAddress: %s\n", tx.ID, s.miningAddress)
+	log.Debug.Printf("handleTx: [%x] minerAddress: %s\n", tx.ID, s.minerAddress)
 
 	// TODO: mempool should be just for miners?
 	//if len(s.miningAddress) > 0 {
@@ -326,7 +355,7 @@ func (s *NodeServer) handleTx(request []byte) {
 
 	//if s.nodeAddress == KnownNodes[0] {
 	if s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
-		log.Debug.Printf("nodeID: %s, knownNodes: %v\n", s.nodeID, s.Node.Network.Nodes)
+		log.Debug.Printf("nodeID: %s, knownNodes: %v\n", s.Node.NodeID, s.Node.Network.Nodes)
 		for _, node := range s.Node.Network.Nodes {
 			if !node.CompareToAddress(s.Node.Client.NodeAddress) &&
 				!node.CompareToAddress(payload.AddFrom) {
@@ -335,9 +364,9 @@ func (s *NodeServer) handleTx(request []byte) {
 		}
 	} else {
 		// OLDTODO: changing count of transaction for mining
-		log.Debug.Printf("miningAddress: %s, len(mempool): %d\n", s.miningAddress, len(s.mempool))
+		log.Debug.Printf("minerAddress: %s, len(mempool): %d\n", s.minerAddress, len(s.mempool))
 		// FIXME: len of mempool?
-		if len(s.mempool) >= 1 && len(s.miningAddress) > 0 {
+		if len(s.mempool) >= 1 && len(s.minerAddress) > 0 {
 		MineTransactions:
 			log.Debug.Println("MineTransactions...")
 			var txs []*blockchain.Transaction
@@ -392,7 +421,7 @@ func (s *NodeServer) handleTx(request []byte) {
 				}
 			*/
 
-			cbTx := blockchain.NewCoinbaseTX(s.miningAddress, "")
+			cbTx := blockchain.NewCoinbaseTX(s.minerAddress, "")
 			txs = append(txs, cbTx)
 
 			newBlock := s.bc.MineBlock(txs)
@@ -401,7 +430,7 @@ func (s *NodeServer) handleTx(request []byte) {
 			UTXOSet.Reindex()
 
 			nanonow := time.Now().Format(timeFormat)
-			log.Debug.Printf("nodeID: %s, %s: New block is mined!", s.nodeID, nanonow)
+			log.Debug.Printf("nodeID: %s, %s: New block is mined!", s.Node.NodeID, nanonow)
 			log.Debug.Printf("New block with %d tx is mined!\n", len(txs))
 
 			for _, tx := range txs {

@@ -8,13 +8,11 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 
 	"wizeBlock/wizeNode/core/blockchain"
 	"wizeBlock/wizeNode/core/crypto"
-	"wizeBlock/wizeNode/core/network"
 	"wizeBlock/wizeNode/core/wallet"
 )
 
@@ -45,7 +43,7 @@ type Send struct {
 }
 
 func (s *RestServer) sayHello(w http.ResponseWriter, r *http.Request) {
-	respondWithJSON(w, http.StatusOK, "Hello wize "+s.node.nodeADD)
+	respondWithJSON(w, http.StatusOK, "Hello wize "+s.node.NodeAddress.String())
 }
 
 func (s *RestServer) getWallet(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +59,7 @@ func (s *RestServer) getWallet(w http.ResponseWriter, r *http.Request) {
 
 // DEPRECATED: inner usage
 func (s *RestServer) deprecatedWalletsList(w http.ResponseWriter, r *http.Request) {
-	wallets, err := wallet.NewWallets(s.node.nodeID)
+	wallets, err := wallet.NewWallets(s.node.NodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -75,9 +73,9 @@ func (s *RestServer) deprecatedWalletsList(w http.ResponseWriter, r *http.Reques
 
 // DEPRECATED: inner usage
 func (s *RestServer) deprecatedWalletCreate(w http.ResponseWriter, r *http.Request) {
-	wallets, _ := wallet.NewWallets(s.node.nodeID)
+	wallets, _ := wallet.NewWallets(s.node.NodeID)
 	address := wallets.CreateWallet()
-	wallets.SaveToFile(s.node.nodeID)
+	wallets.SaveToFile(s.node.NodeID)
 	wallet := wallets.GetWallet(address)
 
 	//fmt.Printf("Your new address: %s\n", address)
@@ -128,7 +126,7 @@ func (s *RestServer) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 
 	UTXOSet := blockchain.UTXOSet{s.node.blockchain}
 
-	wallets, err := wallet.NewWallets(s.node.nodeID)
+	wallets, err := wallet.NewWallets(s.node.NodeID)
 	if err != nil {
 		log.Panic(err)
 	}
@@ -144,9 +142,7 @@ func (s *RestServer) deprecatedSend(w http.ResponseWriter, r *http.Request) {
 	respsuccess := true
 
 	//
-	//currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
-	port, _ := strconv.Atoi(s.node.nodeID)
-	currentNodeAddress := network.NodeAddr{Host: s.node.nodeADD, Port: port}
+	currentNodeAddress := s.node.NodeAddress
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
 	if mineNow {
@@ -323,9 +319,7 @@ func (s *RestServer) sign(w http.ResponseWriter, r *http.Request) {
 	tx := blockchain.SignUTXOTransaction(preparedTx.Transaction, txSignatures, &UTXOSet)
 
 	// network update
-	//currentNodeAddress := fmt.Sprintf("%s:%s", s.node.nodeADD, s.node.nodeID)
-	port, _ := strconv.Atoi(s.node.nodeID)
-	currentNodeAddress := network.NodeAddr{Host: s.node.nodeADD, Port: port}
+	currentNodeAddress := s.node.NodeAddress
 	fmt.Printf("currentNodeAddress: %s\n", currentNodeAddress)
 
 	// mining block: now and with miner's help

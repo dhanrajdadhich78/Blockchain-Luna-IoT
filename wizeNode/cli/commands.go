@@ -12,6 +12,7 @@ import (
 	"wizeBlock/wizeNode/core/blockchain"
 	"wizeBlock/wizeNode/core/crypto"
 	"wizeBlock/wizeNode/core/log"
+	"wizeBlock/wizeNode/core/network"
 	"wizeBlock/wizeNode/core/wallet"
 	"wizeBlock/wizeNode/node"
 )
@@ -36,9 +37,9 @@ var GlobalFlags = []cli.Flag{
 		Usage:  "Node address",
 		EnvVar: "NODE_ADD",
 	},
-	cli.StringFlag{
+	cli.IntFlag{
 		Name:   "nodeID",
-		Value:  "3000",
+		Value:  3000,
 		Usage:  "Node ID (port)",
 		EnvVar: "NODE_ID",
 	},
@@ -137,7 +138,7 @@ var Commands = []cli.Command{
 			},
 			cli.StringFlag{
 				Name:  "api",
-				Value: "4000",
+				Value: ":4000",
 				Usage: "",
 			},
 		},
@@ -332,26 +333,30 @@ func CmdGetBlock(c *cli.Context) (err error) {
 
 // p2p network commands
 func CmdStartNode(c *cli.Context) (err error) {
-	nodeADD := c.GlobalString("nodeADD")
-	nodeID := c.GlobalString("nodeID")
-	log.Info.Printf("Starting node %s:%s", nodeADD, nodeID)
+	nodeID := c.GlobalInt("nodeID")
+	nodeAddr := network.NodeAddr{
+		Host: c.GlobalString("nodeADD"),
+		Port: nodeID,
+	}
+	log.Info.Printf("Starting node %s", nodeAddr)
 
-	minerAddress := c.String("miner")
-	apiAddress := c.String("api")
+	// FIXME: it is just apiPort
+	apiAddr := c.String("api")
 
-	if len(minerAddress) > 0 {
-		if crypto.ValidateAddress(minerAddress) {
-			log.Debug.Println("Mining is on. Address to receive rewards: ", minerAddress)
-			//StartServer(nodeID, minerAddress, apiAddress)
-			newNode := node.NewNode(nodeADD, nodeID, apiAddress)
-			newNode.Run(minerAddress)
+	// FIXME: minerWalletAddress to Node, not to NodeServer
+	minerWalletAddress := c.String("miner")
+
+	if len(minerWalletAddress) > 0 {
+		if crypto.ValidateAddress(minerWalletAddress) {
+			log.Info.Println("Mining is on. Address to receive rewards: ", minerWalletAddress)
 		} else {
 			log.Warn.Println("Wrong miner address!")
+			return fmt.Errorf("Wrong miner address!")
 		}
 	}
-	//StartServer(nodeID, minerAddress, apiAddress)
 
-	newNode := node.NewNode(nodeADD, nodeID, apiAddress)
-	newNode.Run(minerAddress)
+	nodeIDStr := strconv.Itoa(nodeID)
+	newNode := node.NewNode(nodeIDStr, nodeAddr, apiAddr, minerWalletAddress)
+	newNode.Run()
 	return nil
 }

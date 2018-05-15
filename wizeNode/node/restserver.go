@@ -30,7 +30,7 @@ type RestServer struct {
 func NewRestServer(node *Node, addr string) *RestServer {
 	return &RestServer{
 		node: node,
-		addr: ":" + addr,
+		addr: addr,
 	}
 }
 

@@ -3,7 +3,6 @@ package node
 import (
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 
 	"wizeBlock/wizeNode/core/blockchain"
@@ -32,48 +31,44 @@ type PreparedTransaction struct {
 }
 
 type Node struct {
-	Network network.NodeNetwork
-	Client  *network.NodeClient
-	Rest    *RestServer
+	NodeID      string
+	NodeAddress network.NodeAddr
 
-	// FIXME: to delete
-	nodeADD string
-	nodeID  string
-	apiADD  string
+	Network network.NodeNetwork
+	Server  *NodeServer
+	Client  *network.NodeClient
+
+	apiAddr string
+	Rest    *RestServer
 
 	// FIXME: NodeBlockchain, NodeTransactions
 	blockchain  *blockchain.Blockchain
 	preparedTxs map[string]*PreparedTransaction
 }
 
-func NewNode(nodeADD, nodeID, apiADD string) *Node {
+func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddress string) *Node {
 	newNode := &Node{
-		nodeADD:     nodeADD,
-		nodeID:      nodeID,
-		apiADD:      apiADD,
+		NodeID:      nodeID,
+		NodeAddress: nodeAddr,
+		apiAddr:     apiAddr,
 		blockchain:  blockchain.NewBlockchain(nodeID),
 		preparedTxs: make(map[string]*PreparedTransaction),
 	}
 
-	newNode.Rest = NewRestServer(newNode, apiADD)
+	// REST Server constructor
+	newNode.Rest = NewRestServer(newNode, apiAddr)
 
 	// HACK: KnownNodes
 	newNode.Network.SetNodes([]network.NodeAddr{
-		network.NodeAddr{
-			Host: "wize1",
-			Port: 3000,
-		},
+		network.NodeAddr{"wize1", 3000},
 	}, true)
 
-	newNode.InitClient()
+	// Node Server constructor
+	newNode.Server = NewServer(newNode, minerWalletAddress)
 
-	// HACK: Node Address
-	port, _ := strconv.Atoi(nodeID)
-	addr := network.NodeAddr{
-		Host: nodeADD,
-		Port: port,
-	}
-	newNode.Client.SetNodeAddress(addr)
+	// TODO: NewClient(nodeAddr)
+	newNode.InitClient()
+	//newNode.Client.SetNodeAddress(nodeAddr)
 
 	return newNode
 }
@@ -91,8 +86,8 @@ func (node *Node) InitClient() error {
 }
 
 /*
- * Check if the address is known . If not then add to known
- * and send list of all addresses to that node
+ * Check if the address is known. If not then add to known
+ * TODO: and send list of all addresses to that node
  */
 func (node *Node) CheckAddressKnown(addr network.NodeAddr) {
 	log.Info.Printf("Check address known [%s]\n", addr)
@@ -124,20 +119,30 @@ func (node *Node) SendVersionToNodes(nodes []network.NodeAddr) {
 	}
 }
 
-func (node *Node) Run(minerAddress string) {
-	log.Debug.Printf("nodeADD: %s, nodeID: %s apiADD: %s", node.nodeADD, node.nodeID, node.apiADD)
+func (node *Node) Run() {
+	log.Debug.Printf("nodeID: %s, nodeAddress: %s, apiAddr: %s", node.NodeID, node.NodeAddress, node.apiAddr)
+
+	//	// TODO: go routine on exits
+	//	exitChannel := make(chan os.Signal, 1)
+	//	signal.Notify(exitChannel, os.Interrupt, os.Kill, syscall.SIGTERM)
+	//	go func() {
+	//		signalType := <-exitChannel
+	//		signal.Stop(exitChannel)
+
+	//		// before terminating
+	//		log.Info.Println("Received signal type : ", signalType)
+
+	//		// FIXME
+	//		node.Rest.Close()
+	//		node.Server.Stop()
+	//	}()
 
 	// REST Server start
 	if err := node.Rest.Start(); err != nil {
 		log.Fatal.Printf("Failed to start HTTP service: %s", err)
 	}
 
-	// Node Server start
-	tcpSrv := NewServer(node, minerAddress)
-	go func() {
-		log.Info.Println("Start NodeServer")
-		tcpSrv.Start()
-	}()
+	node.RunNodeServer()
 
 	// TODO: refactoring exits from all routines
 	signalCh := make(chan os.Signal)
@@ -149,7 +154,46 @@ func (node *Node) Run(minerAddress string) {
 			// FIXME
 			//apiSrv.Shutdown(context.Background())
 			node.Rest.Close()
-			tcpSrv.Stop()
+			node.Server.Stop()
 		}
 	}
+}
+
+func (node *Node) RunNodeServer() {
+	// the channel to notify main thread about all work done on kill signal
+	nodeServerStopped := make(chan struct{})
+
+	// TODO: go routine on exits
+
+	log.Info.Println("Starting Node Server")
+	serverStartResult := make(chan string)
+
+	// this function wil wait to confirm server started
+	go node.waitServerStarted(serverStartResult)
+
+	err := node.Server.Start(serverStartResult)
+
+	if err == nil {
+		// wait on exits
+		<-nodeServerStopped
+	} else {
+		// if server returned error it means it was not correct closing.
+		// so ending channel was not filled
+		log.Info.Println("Node Server stopped with error: " + err.Error())
+	}
+
+	// wait while response from server is read in "wait" function
+	<-serverStartResult
+
+	log.Info.Println("Node Server Stopped")
+
+	return
+}
+
+func (node *Node) waitServerStarted(serverStartResult chan string) {
+	result := <-serverStartResult
+	if result == "" {
+		result = "y"
+	}
+	close(serverStartResult)
 }
