@@ -34,7 +34,7 @@ type NodeServer struct {
 	StopMainConfirmChan chan struct{}
 }
 
-func NewServer(node *Node, minerAddress string) *NodeServer {
+func NewNodeServer(node *Node, minerAddress string) *NodeServer {
 	return &NodeServer{
 		Node:            node,
 		NodeAddress:     node.NodeAddress,
@@ -79,9 +79,7 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 	//s.bc = s.node.blockchain
 
 	// TODO: P2P: should we send ComVersion at the start?
-
 	///s.Node.SendVersionToNodes([]netlib.NodeAddr{})
-
 	log.Info.Printf("Compare node address [%s] with 0-node [%s]\n", s.Node.Client.NodeAddress, s.Node.Network.Nodes[0])
 	if !s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
 		log.Info.Printf("Send version\n")
@@ -145,7 +143,6 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 	log.Info.Println("New command. Start reading")
 
 	command, request, err := s.readRequest(conn)
-
 	if err != nil {
 		s.sendErrorBack(conn, fmt.Errorf("Network Data Reading Error: "+err.Error()))
 		conn.Close()
@@ -192,7 +189,6 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 
 	if rerr != nil {
 		log.Info.Println("Network Command Handle Error: ", rerr.Error())
-
 		if requestObj.HasResponse {
 			// return error to the client
 			// first byte is bool false to indicate there was error

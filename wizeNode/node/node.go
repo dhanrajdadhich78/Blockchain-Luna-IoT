@@ -10,9 +10,9 @@ import (
 	"wizeBlock/wizeNode/core/network"
 )
 
-// TODO: refactoring
-//       done: REST Server, Mutex?
-//       doing: TCP Server
+// DOING: refactoring
+//       DONE: REST Server, Mutex?
+//       DONE: TCP Server
 //       todo: blockchain, preparedTxs
 //       doing: logger
 
@@ -25,27 +25,31 @@ import (
 // TODO: NodeBlockchain!
 // TODO: NodeTransactions!
 
+// TODO: deprecated in 0.3
 type PreparedTransaction struct {
 	From        string
 	Transaction *blockchain.Transaction
 }
 
+// TODO: public vs private
 type Node struct {
-	NodeID      string
-	NodeAddress network.NodeAddr
+	// TODO: deprecated in 0.3
+	NodeID string
 
-	Network network.NodeNetwork
-	Server  *NodeServer
-	Client  *network.NodeClient
+	NodeAddress network.NodeAddr
+	Network     network.NodeNetwork
+	Client      *network.NodeClient
+	Server      *NodeServer
 
 	apiAddr string
-	Rest    *RestServer
+	rest    *RestServer
 
 	// FIXME: NodeBlockchain, NodeTransactions
 	blockchain  *blockchain.Blockchain
 	preparedTxs map[string]*PreparedTransaction
 }
 
+// TODO: minerWalletAddress should be in the Node struct
 func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddress string) *Node {
 	newNode := &Node{
 		NodeID:      nodeID,
@@ -58,16 +62,16 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 	newNode.Init()
 
 	// REST Server constructor
-	newNode.Rest = NewRestServer(newNode, apiAddr)
+	newNode.rest = NewRestServer(newNode, apiAddr)
 
 	// Node Server constructor
-	newNode.Server = NewServer(newNode, minerWalletAddress)
+	newNode.Server = NewNodeServer(newNode, minerWalletAddress)
 
 	return newNode
 }
 
 func (node *Node) Init() {
-	// HACK: KnownNodes
+	// TODO: P2P - KnownNodes
 	node.Network.SetNodes([]network.NodeAddr{
 		network.NodeAddr{"wize1", 3000},
 	}, true)
@@ -81,20 +85,15 @@ func (node *Node) InitClient() error {
 	if node.Client != nil {
 		return nil
 	}
-
 	client := network.NodeClient{}
 	client.Network = &node.Network
 	node.Client = &client
-
 	return nil
 }
 
-/*
-* Load list of other nodes addresses
- */
 func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
 	if len(list) == 0 && !force {
-		// FIXME
+		// TODO: P2P - load node list
 		//		node.Network.LoadNodes()
 		//		// load nodes from local storage of nodes
 		//		if n.NodeNet.GetCountOfKnownNodes() == 0 && n.BlockchainExist() {
@@ -115,22 +114,6 @@ func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
 }
 
 /*
- * Check if the address is known. If not then add to known
- * TODO: and send list of all addresses to that node
- */
-func (node *Node) CheckAddressKnown(addr network.NodeAddr) {
-	log.Info.Printf("Check address known [%s]\n", addr)
-	log.Info.Printf("All known nodes: %+v\n", node.Network.Nodes)
-	if !node.Network.CheckIsKnown(addr) {
-		// send him all addresses
-		log.Info.Printf("Sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
-
-		node.Network.AddNodeToKnown(addr)
-	}
-	log.Info.Printf("Updated known nodes: %+v\n", node.Network.Nodes)
-}
-
-/*
  * Send own version to all known nodes
  */
 func (node *Node) SendVersionToNodes(nodes []network.NodeAddr) {
@@ -148,10 +131,24 @@ func (node *Node) SendVersionToNodes(nodes []network.NodeAddr) {
 	}
 }
 
+func (node *Node) CheckAddressKnown(addr network.NodeAddr) {
+	log.Info.Printf("Check address known [%s]\n", addr)
+	log.Info.Printf("All known nodes: %+v\n", node.Network.Nodes)
+	if !node.Network.CheckIsKnown(addr) {
+		// TODO: send list of all addresses to that node
+		//log.Info.Printf("Sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
+		//node.Client.SendAddrList(addr, n.NodeNet.Nodes)
+
+		node.Network.AddNodeToKnown(addr)
+	}
+	log.Info.Printf("Updated known nodes: %+v\n", node.Network.Nodes)
+}
+
+// TODO: move to NodeStarter (NodeDaemon) struct?
 func (node *Node) Run() {
 	log.Debug.Printf("nodeID: %s, nodeAddress: %s, apiAddr: %s", node.NodeID, node.NodeAddress, node.apiAddr)
 
-	//	// TODO: go routine on exits
+	// TODO: go routine on exits
 	//	exitChannel := make(chan os.Signal, 1)
 	//	signal.Notify(exitChannel, os.Interrupt, os.Kill, syscall.SIGTERM)
 	//	go func() {
@@ -167,7 +164,7 @@ func (node *Node) Run() {
 	//	}()
 
 	// REST Server start
-	if err := node.Rest.Start(); err != nil {
+	if err := node.rest.Start(); err != nil {
 		log.Fatal.Printf("Failed to start HTTP service: %s", err)
 	}
 
@@ -181,13 +178,13 @@ func (node *Node) Run() {
 		if s == syscall.SIGTERM {
 			// FIXME
 			log.Info.Println("Stop servers")
-			//apiSrv.Shutdown(context.Background())
-			node.Rest.Close()
+			node.rest.Close()
 			node.Server.Stop()
 		}
 	}
 }
 
+// TODO: move to NodeStarter (NodeDaemon) struct?
 func (node *Node) RunNodeServer() {
 	// the channel to notify main thread about all work done on kill signal
 	nodeServerStopped := make(chan struct{})
@@ -219,7 +216,9 @@ func (node *Node) RunNodeServer() {
 	return
 }
 
+// TODO: move to NodeStarter (NodeDaemon) struct?
 func (node *Node) waitServerStarted(serverStartResult chan string) {
+	// TODO: another result string?
 	result := <-serverStartResult
 	if result == "" {
 		result = "y"
