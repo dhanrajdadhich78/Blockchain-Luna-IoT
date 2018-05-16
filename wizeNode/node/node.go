@@ -3,8 +3,6 @@ package node
 import (
 	"os"
 	"os/signal"
-	"strconv"
-	"strings"
 	"syscall"
 
 	"wizeBlock/wizeNode/core/blockchain"
