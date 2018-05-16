@@ -55,22 +55,26 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 		preparedTxs: make(map[string]*PreparedTransaction),
 	}
 
+	newNode.Init()
+
 	// REST Server constructor
 	newNode.Rest = NewRestServer(newNode, apiAddr)
-
-	// HACK: KnownNodes
-	newNode.Network.SetNodes([]network.NodeAddr{
-		network.NodeAddr{"wize1", 3000},
-	}, true)
 
 	// Node Server constructor
 	newNode.Server = NewServer(newNode, minerWalletAddress)
 
-	// TODO: NewClient(nodeAddr)
-	newNode.InitClient()
-	//newNode.Client.SetNodeAddress(nodeAddr)
-
 	return newNode
+}
+
+func (node *Node) Init() {
+	// HACK: KnownNodes
+	node.Network.SetNodes([]network.NodeAddr{
+		network.NodeAddr{"wize1", 3000},
+	}, true)
+
+	// TODO: NewClient(nodeAddr)
+	node.InitClient()
+	//newNode.Client.SetNodeAddress(nodeAddr)
 }
 
 func (node *Node) InitClient() error {
@@ -82,6 +86,31 @@ func (node *Node) InitClient() error {
 	client.Network = &node.Network
 	node.Client = &client
 
+	return nil
+}
+
+/*
+* Load list of other nodes addresses
+ */
+func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
+	if len(list) == 0 && !force {
+		// FIXME
+		//		node.Network.LoadNodes()
+		//		// load nodes from local storage of nodes
+		//		if n.NodeNet.GetCountOfKnownNodes() == 0 && n.BlockchainExist() {
+		//			// there are no any known nodes.
+		//			n.OpenBlockchain("Check genesis block")
+		//			geenesisHash, err := n.NodeBC.BC.GetGenesisBlockHash()
+		//			n.CloseBlockchain()
+
+		//			if err == nil {
+		//				// load them from some external resource
+		//				n.NodeNet.LoadInitialNodes(geenesisHash)
+		//			}
+		//		}
+	} else {
+		node.Network.SetNodes(list, true)
+	}
 	return nil
 }
 
@@ -150,8 +179,8 @@ func (node *Node) Run() {
 	for {
 		s := <-signalCh
 		if s == syscall.SIGTERM {
-			log.Info.Println("Stop servers")
 			// FIXME
+			log.Info.Println("Stop servers")
 			//apiSrv.Shutdown(context.Background())
 			node.Rest.Close()
 			node.Server.Stop()
