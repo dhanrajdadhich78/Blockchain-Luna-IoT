@@ -10,10 +10,16 @@ services:
     volumes:
       - ./wizeNode/files/db3000:/go/src/wizeBlock/wizeNode/files/db3000
       - ./wizeNode/files/wallet3000:/go/src/wizeBlock/wizeNode/files/wallet3000
-    container_name: wize1
+    container_name: wize.${USER_PUBKEY}
     environment:
-      NODE_ID: 3000
-      NODE_ADD: wize1
+      NODE_ID: ${NODE_ID}
+      NODE_ADD: ${NODE_ADD}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: startnode
     ports:
       - "3000:3000"
@@ -36,10 +42,16 @@ services:
     volumes:
       - ./wizeNode/files/db3001:/go/src/wizeBlock/wizeNode/files/db3001
       - ./wizeNode/files/wallet3001:/go/src/wizeBlock/wizeNode/files/wallet3001
-    container_name: wize2
+    container_name: wize.${USER_PUBKEY}
     environment:
-      NODE_ID: 3001
-      NODE_ADD: wize2
+      NODE_ID: ${NODE_ID}
+      NODE_ADD: ${NODE_ADD}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: startnode
     ports:
       - "3001:3000"
@@ -61,10 +73,16 @@ services:
     volumes:
       - ./wizeNode/files/db3002:/go/src/wizeBlock/wizeNode/files/db3002
       - ./wizeNode/files/wallet3002:/go/src/wizeBlock/wizeNode/files/wallet3002
-    container_name: wize3
+    container_name: wize.${USER_PUBKEY}
     environment:
-      NODE_ID: 3002
-      NODE_ADD: wize3
+      NODE_ID: ${NODE_ID}
+      NODE_ADD: ${NODE_ADD}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: startnode -miner 15sT8nDhbQWHEjeZY8PXqjCJHCQ9DZSCS3
     ports:
       - "3002:3000"

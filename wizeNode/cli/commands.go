@@ -353,20 +353,20 @@ func CmdStartNode(c *cli.Context) (err error) {
 	//register server in masternode
 	///////////////////////////////
 
-	url := "http://127.0.0.1:8888/hello/blockchain"
+	url := "http://" + os.Getenv("MASTERNODE") + ":8888/hello/blockchain"
 	values := map[string]string{
 		"Address":   os.Getenv("USER_ADDRESS"),
 		"PrivKey":   os.Getenv("USER_PRIVKEY"),
 		"Pubkey":    os.Getenv("USER_PUBKEY"),
 		"AES":       os.Getenv("PASSWORD"),
 		"Url":       "http://" + nodeAddress,
-		"ServerKey": os.Getenv("USER_PRIVKEY"),
+		"ServerKey": os.Getenv("SERVER_KEY"),
 	}
 
 	jsonValue, _ := json.Marshal(values)
 	//var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
-	req.Header.Set("X-Custom-Header", "myvalue")
+	//req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
