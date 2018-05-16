@@ -333,6 +333,9 @@ func CmdGetBlock(c *cli.Context) (err error) {
 
 // p2p network commands
 func CmdStartNode(c *cli.Context) (err error) {
+	// PROD: add request to masternode and get nodeID
+	nodeAddress := os.Getenv("NODE_ADD") + ":" + nodeID
+
 	nodeID := c.GlobalInt("nodeID")
 	nodeAddr := network.NodeAddr{
 		Host: c.GlobalString("nodeADD"),

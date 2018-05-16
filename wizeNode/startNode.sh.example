@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+export NODE_ID=3000
+export NODE_ADD=127.0.0.1
+export USER_PRIVKEY=
+export USER_PUBKEY=
+export USER_ADDRESS=
+export PASSWORD=
+export SERVER_KEY=
+
+export MASTERNODE=127.0.0.1:3000
+
+./wizeNode startnode
