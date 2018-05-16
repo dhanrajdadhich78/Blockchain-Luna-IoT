@@ -349,6 +349,39 @@ func CmdStartNode(c *cli.Context) (err error) {
 	// FIXME: minerWalletAddress to Node, not to NodeServer
 	minerWalletAddress := c.String("miner")
 
+	///////////////////////////////
+	//register server in masternode
+	///////////////////////////////
+
+	url := "http://127.0.0.1:8888/hello/blockchain"
+	values := map[string]string{
+		"Address":   os.Getenv("USER_ADDRESS"),
+		"PrivKey":   os.Getenv("USER_PRIVKEY"),
+		"Pubkey":    os.Getenv("USER_PUBKEY"),
+		"AES":       os.Getenv("PASSWORD"),
+		"Url":       "http://" + nodeAddress,
+		"ServerKey": os.Getenv("USER_PRIVKEY"),
+	}
+
+	jsonValue, _ := json.Marshal(values)
+	//var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println("response Body:", string(body))
+	///////////////////////////////
+
 	if len(minerWalletAddress) > 0 {
 		if crypto.ValidateAddress(minerWalletAddress) {
 			log.Info.Println("Mining is on. Address to receive rewards: ", minerWalletAddress)
