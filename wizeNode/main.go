@@ -11,7 +11,7 @@ import (
 func main() {
 	app := urfave.NewApp()
 	app.Name = "WizeBlock Node"
-	app.Version = "0.2"
+	app.Version = "0.2.1"
 	app.Usage = "Command-line API for WizeBlock Node"
 
 	app.Flags = cli.GlobalFlags
