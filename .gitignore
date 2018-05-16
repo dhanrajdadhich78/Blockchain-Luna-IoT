@@ -18,3 +18,5 @@ wizeWallet/wallet*.dat
 
 # testing
 wizeNode/blockchain/files
+wizeNode/startnode.sh
+.env
