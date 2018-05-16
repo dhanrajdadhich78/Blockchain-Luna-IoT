@@ -9,7 +9,7 @@ import (
 func main() {
 	app := cli.NewApp()
 	app.Name = "WizeBlock Wallet"
-	app.Version = "0.2"
+	app.Version = "0.2.1"
 	app.Usage = "Command-line API for WizeBlock Wallet"
 
 	app.Flags = GlobalFlags
