@@ -334,11 +334,15 @@ func CmdGetBlock(c *cli.Context) (err error) {
 // p2p network commands
 func CmdStartNode(c *cli.Context) (err error) {
 	nodeID := c.GlobalInt("nodeID")
+	nodeIDStr := strconv.Itoa(nodeID)
 	nodeAddr := network.NodeAddr{
 		Host: c.GlobalString("nodeADD"),
 		Port: nodeID,
 	}
 	log.Info.Printf("Starting node %s", nodeAddr)
+
+	// PROD: add request to masternode and get nodeID
+	//nodeAddress := os.Getenv("NODE_ADD") + ":" + nodeIDStr
 
 	// FIXME: it is just apiPort
 	apiAddr := c.String("api")
@@ -355,7 +359,6 @@ func CmdStartNode(c *cli.Context) (err error) {
 		}
 	}
 
-	nodeIDStr := strconv.Itoa(nodeID)
 	newNode := node.NewNode(nodeIDStr, nodeAddr, apiAddr, minerWalletAddress)
 	newNode.Run()
 	return nil

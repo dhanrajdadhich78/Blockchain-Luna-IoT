@@ -3,6 +3,8 @@ package node
 import (
 	"os"
 	"os/signal"
+	"strconv"
+	"strings"
 	"syscall"
 
 	"wizeBlock/wizeNode/core/blockchain"
@@ -72,8 +74,22 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 
 func (node *Node) Init() {
 	// TODO: P2P - KnownNodes
+
+	// PROD
+	//var KnownNodes = []string{os.Getenv("MASTERNODE")} //TODO: change to valid nodes in production
+	masternode := os.Getenv("MASTERNODE")
+	i := strings.Index(masternode, ":")
+
+	port, err := strconv.Atoi(masternode[i+1:])
+	if err != nil {
+		// PROD: set default port
+		port = 3000
+	}
 	node.Network.SetNodes([]network.NodeAddr{
-		network.NodeAddr{"wize1", 3000},
+		network.NodeAddr{
+			Host: masternode[:i],
+			Port: port,
+		},
 	}, true)
 
 	// TODO: NewClient(nodeAddr)
