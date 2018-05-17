@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"bytes"
@@ -9,14 +9,14 @@ import (
 	"os"
 )
 
-func regDigest() {
-	url := "http://" + os.Getenv("DIGEST_NODE") + ":8888/hello/raft"
+func registerDigest() {
+	url := "http://" + os.Getenv("DIGEST_NODE") + ":8888/hello/blockchain"
 	values := map[string]string{
 		"Address":   os.Getenv("USER_ADDRESS"),
 		"PrivKey":   os.Getenv("USER_PRIVKEY"),
 		"Pubkey":    os.Getenv("USER_PUBKEY"),
 		"AES":       os.Getenv("PASSWORD"),
-		"Url":       "http://" + os.Getenv("PUBLIC_IP") + ":11000",
+		"Url":       "http://" + os.Getenv("PUBLIC_IP") + ":4000",
 		"ServerKey": os.Getenv("SERVER_KEY"),
 	}
 

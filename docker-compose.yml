@@ -68,7 +68,6 @@ services:
 #    depends_on:
 #      - wize1
 
-
 networks:
   front-tier:
   back-tier:

@@ -1,11 +1,20 @@
 .idea/
+raft/raft
+
 wizeNode/log/*
 wizeNode/wizeNode
-code_file/
-code_network/
-raft/raft
-wizeNode/files/db/wizebit*
-wizeNode/files/wallets/wallet_3001.dat
+
+wizeWallet/log/*
+wizeWallet/wizeWallet
+
+# trash
+trash/*
+
+# database
+wizeNode/files/db*/wizebit.db
+wizeNode/files/wallet*/wallet.dat
+
+wizeWallet/wallet*.dat
 
 # testing
 wizeNode/blockchain/files
