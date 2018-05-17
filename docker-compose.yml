@@ -33,7 +33,7 @@ services:
       - front-tier
       - back-tier
     depends_on:
-      - raft3-node
+      - raft1-node
 
   raft1-node:
     build:
