@@ -1,12 +1,8 @@
 package cli
 
 import (
-	"bytes"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"strconv"
 	"time"
@@ -354,38 +350,8 @@ func CmdStartNode(c *cli.Context) (err error) {
 	// FIXME: minerWalletAddress to Node, not to NodeServer
 	minerWalletAddress := c.String("miner")
 
-	///////////////////////////////
-	//register server in masternode
-	///////////////////////////////
-
-	url := "http://" + os.Getenv("DIGEST_NODE") + ":8888/hello/blockchain"
-	values := map[string]string{
-		"Address":   os.Getenv("USER_ADDRESS"),
-		"PrivKey":   os.Getenv("USER_PRIVKEY"),
-		"Pubkey":    os.Getenv("USER_PUBKEY"),
-		"AES":       os.Getenv("PASSWORD"),
-		"Url":       "http://" + os.Getenv("PUBLIC_IP") + ":4000/",
-		"ServerKey": os.Getenv("SERVER_KEY"),
-	}
-
-	jsonValue, _ := json.Marshal(values)
-	//var jsonStr = []byte(`{"title":"Buy cheese and bread for breakfast."}`)
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
-	//req.Header.Set("X-Custom-Header", "myvalue")
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Warn.Printf("Register server in masternode failed with error: %s", err)
-	} else {
-		fmt.Println("response Status:", resp.Status)
-		fmt.Println("response Headers:", resp.Header)
-		body, _ := ioutil.ReadAll(resp.Body)
-		fmt.Println("response Body:", string(body))
-		resp.Body.Close()
-	}
-	///////////////////////////////
+	// register server in masternode
+	registerDigest()
 
 	if len(minerWalletAddress) > 0 {
 		if crypto.ValidateAddress(minerWalletAddress) {
