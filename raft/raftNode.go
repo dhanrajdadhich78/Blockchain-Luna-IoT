@@ -52,6 +52,8 @@ func main() {
 	}
 	os.MkdirAll(raftDir, 0700)
 
+	regDigest()
+
 	s := store.New()
 	s.RaftDir = raftDir
 	s.RaftBind = raftAddr
