@@ -36,12 +36,14 @@ type NodeServer struct {
 
 func NewNodeServer(node *Node, minerAddress string) *NodeServer {
 	return &NodeServer{
-		Node:            node,
-		NodeAddress:     node.NodeAddress,
-		minerAddress:    minerAddress,
-		blocksInTransit: [][]byte{},
-		mempool:         make(map[string]blockchain.Transaction),
-		bc:              node.blockchain,
+		Node:                node,
+		NodeAddress:         node.NodeAddress,
+		minerAddress:        minerAddress,
+		blocksInTransit:     [][]byte{},
+		mempool:             make(map[string]blockchain.Transaction),
+		bc:                  node.blockchain,
+		StopMainChan:        make(chan struct{}),
+		StopMainConfirmChan: make(chan struct{}),
 	}
 }
 
