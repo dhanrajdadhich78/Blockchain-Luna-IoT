@@ -57,8 +57,8 @@ services:
       MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: -id raft1-node -haddr raft1-node:11000 -raddr raft1-node:12000 ~/node
     ports:
-      - "11001:11000"
-      - "12001:12000"
+      - "11000:11000"
+      - "12000:12000"
 #    links:
 #      - wize1:wizeNode-master
 #      - wize2:wizeNode-miner
