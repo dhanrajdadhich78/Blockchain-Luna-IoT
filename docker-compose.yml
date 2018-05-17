@@ -14,11 +14,13 @@ services:
     environment:
       NODE_ID: 3000
       NODE_ADD: wize1
+      PUBLIC_IP: ${PUBLIC_IP}
       USER_PRIVKEY: ${USER_PRIVKEY}
       USER_PUBKEY: ${USER_PUBKEY}
       USER_ADDRESS: ${USER_ADDRESS}
       PASSWORD: ${PASSWORD}
       SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
       MASTERNODE: wize1
       NODE_COMMAND: startnode
     ports:
@@ -46,11 +48,13 @@ services:
     environment:
       NODE_ID: 3001
       NODE_ADD: wize2
+      PUBLIC_IP: ${PUBLIC_IP}
       USER_PRIVKEY: ${USER_PRIVKEY}
       USER_PUBKEY: ${USER_PUBKEY}
       USER_ADDRESS: ${USER_ADDRESS}
       PASSWORD: ${PASSWORD}
       SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
       MASTERNODE: wize1
       NODE_COMMAND: startnode
     ports:
@@ -77,11 +81,13 @@ services:
     environment:
       NODE_ID: 3002
       NODE_ADD: wize3
+      PUBLIC_IP: ${PUBLIC_IP}
       USER_PRIVKEY: ${USER_PRIVKEY}
       USER_PUBKEY: ${USER_PUBKEY}
       USER_ADDRESS: ${USER_ADDRESS}
       PASSWORD: ${PASSWORD}
       SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
       MASTERNODE: wize1
       NODE_COMMAND: startnode -miner 15sT8nDhbQWHEjeZY8PXqjCJHCQ9DZSCS3
     ports:
