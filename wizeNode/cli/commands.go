@@ -346,7 +346,7 @@ func CmdStartNode(c *cli.Context) (err error) {
 	log.Info.Printf("Starting node %s", nodeAddr)
 
 	// PROD: add request to masternode and get nodeID
-	nodeAddress := os.Getenv("NODE_ADD") + ":" + nodeIDStr
+	//nodeAddress := os.Getenv("NODE_ADD") + ":" + nodeIDStr
 
 	// FIXME: it is just apiPort
 	apiAddr := c.String("api")
