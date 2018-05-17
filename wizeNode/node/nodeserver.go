@@ -36,12 +36,14 @@ type NodeServer struct {
 
 func NewNodeServer(node *Node, minerAddress string) *NodeServer {
 	return &NodeServer{
-		Node:            node,
-		NodeAddress:     node.NodeAddress,
-		minerAddress:    minerAddress,
-		blocksInTransit: [][]byte{},
-		mempool:         make(map[string]blockchain.Transaction),
-		bc:              node.blockchain,
+		Node:                node,
+		NodeAddress:         node.NodeAddress,
+		minerAddress:        minerAddress,
+		blocksInTransit:     [][]byte{},
+		mempool:             make(map[string]blockchain.Transaction),
+		bc:                  node.blockchain,
+		StopMainChan:        make(chan struct{}),
+		StopMainConfirmChan: make(chan struct{}),
 	}
 }
 
@@ -65,7 +67,7 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 	ln, err := net.Listen(network.Protocol, s.Node.NodeAddress.String())
 	if err != nil {
 		serverStartResult <- err.Error()
-		close(s.StopMainConfirmChan)
+		//close(s.StopMainConfirmChan)
 
 		log.Warn.Println("Fail to start port listening ", err.Error())
 		return err
@@ -114,7 +116,7 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 			// complete all tasks, save data if needed
 			ln.Close()
 
-			close(s.StopMainConfirmChan)
+			//close(s.StopMainConfirmChan)
 
 			log.Info.Println("Stop Listing Network. Correct exit")
 			break
