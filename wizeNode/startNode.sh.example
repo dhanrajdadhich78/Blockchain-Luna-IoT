@@ -8,6 +8,6 @@ export USER_ADDRESS=
 export PASSWORD=
 export SERVER_KEY=
 
-export MASTERNODE=127.0.0.1:3000
+export MASTERNODE=127.0.0.1
 
 ./wizeNode startnode
