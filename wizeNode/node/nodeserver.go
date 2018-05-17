@@ -65,7 +65,7 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 	ln, err := net.Listen(network.Protocol, s.Node.NodeAddress.String())
 	if err != nil {
 		serverStartResult <- err.Error()
-		close(s.StopMainConfirmChan)
+		//close(s.StopMainConfirmChan)
 
 		log.Warn.Println("Fail to start port listening ", err.Error())
 		return err
@@ -114,7 +114,7 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 			// complete all tasks, save data if needed
 			ln.Close()
 
-			close(s.StopMainConfirmChan)
+			//close(s.StopMainConfirmChan)
 
 			log.Info.Println("Stop Listing Network. Correct exit")
 			break
