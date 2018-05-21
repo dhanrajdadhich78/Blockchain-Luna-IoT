@@ -27,6 +27,12 @@
 			"revisionTime": "2017-09-07T20:20:52Z"
 		},
 		{
+			"checksumSHA1": "yDVluYffoZoOEwDxLCMi3WniRtA=",
+			"path": "github.com/btccom/secp256k1-go/secp256k1",
+			"revision": "f7178bcde5780809c6f819d62c3e7a37c635e749",
+			"revisionTime": "2017-09-20T14:31:46Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
@@ -46,11 +52,23 @@
 			"revisionTime": "2017-01-18T13:43:44Z"
 		},
 		{
+			"checksumSHA1": "ljd3FhYRJ91cLZz3wsH9BQQ2JbA=",
+			"path": "github.com/pkg/errors",
+			"revision": "816c9085562cd7ee03e7f8188a1cfd942858cded",
+			"revisionTime": "2018-03-11T21:45:15Z"
+		},
+		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
 			"origin": "github.com/stretchr/testify/vendor/github.com/pmezard/go-difflib/difflib",
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "be8372ae8ec5c6daaed3cc28ebf73c54b737c240",
 			"revisionTime": "2018-02-02T15:35:43Z"
+		},
+		{
+			"checksumSHA1": "irZ2UaBAK2v3VA/qJ6k2VTtbt4o=",
+			"path": "github.com/rs/cors",
+			"revision": "ff3499d70f672914f2f1518d5713a7f838704b05",
+			"revisionTime": "2018-03-22T22:00:05Z"
 		},
 		{
 			"checksumSHA1": "5QKvAdxb0E47Nzn7iI25AfgAvOI=",
@@ -59,16 +77,40 @@
 			"revisionTime": "2018-02-02T15:35:43Z"
 		},
 		{
+			"checksumSHA1": "9/2qvuFPQxW7ZXzQSOYwqZb5cNg=",
+			"path": "github.com/urfave/cli",
+			"revision": "8e01ec4cd3e2d84ab2fe90d8210528ffbb06d8ff",
+			"revisionTime": "2018-02-26T03:02:53Z"
+		},
+		{
+			"checksumSHA1": "wWhBVw5JhTUIbBstf20hucDfY/o=",
+			"path": "github.com/urfave/negroni",
+			"revision": "22c5532ea862c34fdad414e90f8cc00b4f6f4cab",
+			"revisionTime": "2018-01-30T04:45:49Z"
+		},
+		{
 			"checksumSHA1": "y/oIaxq2d3WPizRZfVjo8RCRYTU=",
 			"path": "golang.org/x/crypto/ripemd160",
 			"revision": "1875d0a70c90e57f11972aefd42276df65e895b9",
 			"revisionTime": "2018-01-27T19:02:20Z"
 		},
 		{
+			"checksumSHA1": "BGm8lKZmvJbf/YOJLeL1rw2WVjA=",
+			"path": "golang.org/x/crypto/ssh/terminal",
+			"revision": "2d027ae1dddd4694d54f7a8b6cbe78dca8720226",
+			"revisionTime": "2018-05-09T20:48:04Z"
+		},
+		{
 			"checksumSHA1": "UcMkfR9zjeKaWAOEddxr1QO3Pfs=",
 			"path": "golang.org/x/sys/unix",
 			"revision": "ff2a66f350cefa5c93a634eadb5d25bb60c85a9c",
 			"revisionTime": "2018-01-26T08:34:12Z"
+		},
+		{
+			"checksumSHA1": "+mZiO0TdI05VboObjo18vs4sEbg=",
+			"path": "golang.org/x/sys/windows",
+			"revision": "7dfd1290c7917b7ba22824b9d24954ab3002fe24",
+			"revisionTime": "2018-05-09T21:44:12Z"
 		}
 	],
 	"rootPath": "wizeBlock/wizeNode"
