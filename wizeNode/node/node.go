@@ -93,7 +93,7 @@ func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
 		if node.Network.GetCountOfKnownNodes() == 0 {
 			// there are no any known nodes.
 			// load them from some external resource
-			node.Network.LoadInitialNodes()
+			node.Network.LoadInitialNodes(node.NodeAddress)
 		}
 	} else {
 		node.Network.LoadNodes(list, true)

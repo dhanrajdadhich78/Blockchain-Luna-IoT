@@ -51,7 +51,7 @@ func (n *NodeNetwork) LoadNodes(nodes []NodeAddr, replace bool) {
 }
 
 // If n any known nodes then it will be loaded from the url on a host
-func (n *NodeNetwork) LoadInitialNodes() error {
+func (n *NodeNetwork) LoadInitialNodes(exceptAddr NodeAddr) error {
 	//response, err := http.Get(InitialNodesList)
 	jsondoc, err := ioutil.ReadFile(InitialNodesList)
 	if err != nil {
@@ -70,6 +70,12 @@ func (n *NodeNetwork) LoadInitialNodes() error {
 	if err != nil {
 		log.Warn.Printf("Failed with unmarshalling initial nodes: %+v", err)
 		return err
+	}
+
+	for i, node := range nodes.Nodes {
+		if node.CompareToAddress(exceptAddr) {
+			nodes.Nodes = append(nodes.Nodes[:i], nodes.Nodes[i+1:]...)
+		}
 	}
 
 	log.Info.Printf("Initial nodes: %+v", nodes)
