@@ -80,13 +80,7 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 	log.Info.Printf("nodeAddress: %s, knownNodes: %v", s.Node.NodeAddress, s.Node.Network.Nodes)
 	//s.bc = s.node.blockchain
 
-	// TODO: P2P: should we send ComVersion at the start?
-	///s.Node.SendVersionToNodes([]netlib.NodeAddr{})
-	log.Info.Printf("Compare node address [%s] with 0-node [%s]\n", s.Node.Client.NodeAddress, s.Node.Network.Nodes[0])
-	if !s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
-		log.Info.Printf("Send version\n")
-		s.Node.Client.SendVersion(s.Node.Network.Nodes[0], s.bc.GetBestHeight())
-	}
+	s.Node.SendVersionToNodes([]network.NodeAddr{})
 
 	// notify node about server started fine
 	serverStartResult <- ""
@@ -246,7 +240,11 @@ func (s *NodeServer) CloneNode() *Node {
 
 	// FIXME: should we just clone not create new object?
 	//node := NewNode(originnode.NodeID, originnode.NodeAddress, originnode.apiAddr, s.minerAddress)
-	node := Node{}
+	node := Node{
+		NodeID:      originnode.NodeID,
+		NodeAddress: originnode.NodeAddress,
+		blockchain:  originnode.blockchain,
+	}
 
 	node.Init()
 	node.Client.SetNodeAddress(s.NodeAddress)

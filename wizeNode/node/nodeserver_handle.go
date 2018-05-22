@@ -56,7 +56,7 @@ func (self *NodeServerRequest) handleAddr() error {
 	//	s.Node.Client.SendGetBlocks(node, s.nodeAddress)
 	//}
 
-	log.Debug.Printf("Received nodes %s", payload.AddrList)
+	log.Info.Printf("Received nodes %s", payload.AddrList)
 
 	// TODO: check this logic
 	addednodes := []network.NodeAddr{}
@@ -67,8 +67,8 @@ func (self *NodeServerRequest) handleAddr() error {
 	}
 
 	nanonow := time.Now().Format(timeFormat)
-	log.Debug.Printf("nodeID: %s, %s: There are %d known nodes now!\n", self.Node.NodeID, nanonow, len(self.Node.Network.Nodes))
-	log.Debug.Printf("Send version to %d new nodes\n", len(addednodes))
+	log.Info.Printf("nodeID: %s, %s: There are %d known nodes now!\n", self.Node.NodeID, nanonow, len(self.Node.Network.Nodes))
+	log.Info.Printf("Send version to %d new nodes\n", len(addednodes))
 
 	if len(addednodes) > 0 {
 		// send own version to all new found nodes. maybe they have some more blocks
@@ -313,21 +313,23 @@ func (self *NodeServerRequest) handleVersion() error {
 		return err
 	}
 
-	//log.Info.Printf("ComVersion: %v\n", payload)
-
-	//log.Info.Printf("self.Server: %v\n", self.Server)
-	//log.Info.Printf("self.Server.bc: %v\n", self.Server.bc)
-
 	myBestHeight := self.Server.bc.GetBestHeight()
 	foreignerBestHeight := payload.BestHeight
 
 	if myBestHeight < foreignerBestHeight {
+		log.Info.Printf("Request blocks from %s\n", payload.AddrFrom)
+
 		self.Node.Client.SendGetBlocks(payload.AddrFrom)
+
 	} else if myBestHeight > foreignerBestHeight {
+		log.Info.Printf("Send my version back to %s\n", payload.AddrFrom)
+
 		self.Node.Client.SendVersion(payload.AddrFrom, myBestHeight)
+
+	} else {
+		log.Info.Printf("Their blockchain is same as my for %s\n", payload.AddrFrom)
 	}
 
-	// sendAddr(payload.AddrFrom)
 	log.Info.Printf("Check address known for %s\n", payload.AddrFrom)
 	self.Server.Node.CheckAddressKnown(payload.AddrFrom)
 
