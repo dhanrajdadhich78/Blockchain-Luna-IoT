@@ -11,25 +11,23 @@ import (
 )
 
 // DOING: refactoring
-//       todo: blockchain, preparedTxs
-//       doing: logger
+//       TODO: blockchain, preparedTxs
+//       TODO: logger
 
-// DOING: known (other) nodes - NodeNetwork
-// DOING: Network?
-// DOING: NodeClient
+// TODO: rethink with Init, InitClient and InitNodes (InitNetwork)
+// TODO: rethink with Run and RunNodeServer/waitServerStarted
+// TODO: rethink with Blockchain and Transactions
+// TODO: rethink with MinerWalletAddress
 
-// TODO: NodeBlockchain!
-// TODO: NodeTransactions!
-
-// TODO: deprecated in 0.3
+// FIXME: deprecated in 0.3
 type PreparedTransaction struct {
 	From        string
 	Transaction *blockchain.Transaction
 }
 
-// TODO: public vs private
+// FIXME: public vs private
 type Node struct {
-	// TODO: deprecated in 0.3
+	// FIXME: deprecated in 0.3
 	NodeID string
 
 	NodeAddress network.NodeAddr

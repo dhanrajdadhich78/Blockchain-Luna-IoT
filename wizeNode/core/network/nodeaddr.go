@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// TODO: remove NodeAddrToString()
+// TODO: add AuthStringLength
+
 const Protocol = "tcp"
 const NodeVersion = 1
 const CommandLength = 12

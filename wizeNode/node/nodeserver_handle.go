@@ -12,6 +12,10 @@ import (
 	"wizeBlock/wizeNode/core/network"
 )
 
+// TODO: rethink with handleVersion
+// TODO: rethink with handleAddr
+// TODO: rethink with Data messages
+
 type NodeServerRequest struct {
 	Node        *Node
 	Server      *NodeServer

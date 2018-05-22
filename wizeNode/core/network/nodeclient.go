@@ -9,6 +9,13 @@ import (
 	"wizeBlock/wizeNode/core/log"
 )
 
+// TODO: SetNodeAddress & CheckNodeAddress
+// TODO: rethink with SendData, add BuildCommandData
+// TODO: rethink with SendVersion
+// TODO: rethink with SendAddr
+// TODO: add NodeAuthStr and BuildCommandDataWithAuth
+// TODO: rethink with Data messages
+
 type NodeClient struct {
 	WalletAddress string
 	NodeAddress   NodeAddr

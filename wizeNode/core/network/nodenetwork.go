@@ -8,6 +8,11 @@ import (
 	"wizeBlock/wizeNode/core/log"
 )
 
+// TODO: rethink with InitialNodesList, NodesListJSON and LoadInitialNodes
+// TODO: rethink with LoadNodes/SetNodes
+// TODO: rethink with NodesList & BoltDB bucket "nodes"
+// TODO: NodeNetworkStorage LoadNodes to GetNodes
+
 const InitialNodesList = "files/initialnodes.json"
 
 // Interface for extra storage for a nodes

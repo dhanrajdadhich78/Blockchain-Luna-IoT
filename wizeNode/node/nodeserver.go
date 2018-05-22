@@ -11,9 +11,9 @@ import (
 	"wizeBlock/wizeNode/core/network"
 )
 
-// DONE: divide server_tcp onto nodeserver and nodeclient
-// DONE: constants and util functions to network module
-// DOING: KnownNodes to nodenetwork module
+// TODO: rethink with NewNodeServer and Start/Stop
+// TODO: rethink with handleConnection and readRequest
+// TODO: rethink with CloneNode and multiple goroutines
 
 const timeFormat = "15:04:05.000000"
 
@@ -122,6 +122,12 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 	return nil
 }
 
+func (s *NodeServer) Stop() {
+	if s.bc != nil && s.bc.Db != nil {
+		s.bc.Db.Close()
+	}
+}
+
 func (s *NodeServer) readRequest(conn net.Conn) (command string, databuffer []byte, err error) {
 	request, err := ioutil.ReadAll(conn)
 	if err != nil {
@@ -222,12 +228,6 @@ func (s *NodeServer) sendErrorBack(conn net.Conn, err error) {
 		if err != nil {
 			log.Warn.Println("Sending response error: ", err.Error())
 		}
-	}
-}
-
-func (s *NodeServer) Stop() {
-	if s.bc != nil && s.bc.Db != nil {
-		s.bc.Db.Close()
 	}
 }
 
