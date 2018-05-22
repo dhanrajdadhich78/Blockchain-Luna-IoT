@@ -2,6 +2,8 @@ package network
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	"io"
 	"net"
 
@@ -9,8 +11,6 @@ import (
 	"wizeBlock/wizeNode/core/log"
 )
 
-// TODO: SetNodeAddress & CheckNodeAddress
-// TODO: rethink with SendData, add BuildCommandData
 // TODO: rethink with SendVersion
 // TODO: rethink with SendAddr
 // TODO: add NodeAuthStr and BuildCommandDataWithAuth
@@ -58,25 +58,69 @@ type ComVersion struct {
 	AddrFrom   NodeAddr
 }
 
+// Set currrent node address , to include itin requests to other nodes
 func (c *NodeClient) SetNodeAddress(address NodeAddr) {
 	c.NodeAddress = address
 }
 
-func (c *NodeClient) SendData(address NodeAddr, data []byte) {
-	conn, err := net.Dial(Protocol, address.NodeAddrToString())
+// Check if node address looks fine
+func (c *NodeClient) CheckNodeAddress(address NodeAddr) error {
+	if address.Port < 1024 {
+		return errors.New("Node Address Port has wrong value")
+	}
+	if address.Port > 65536 {
+		return errors.New("Node Address Port has wrong value")
+	}
+	if address.Host == "" {
+		return errors.New("Node Address Host has wrong value")
+	}
+	return nil
+}
+
+// Builds a command data. It prepares a slice of bytes from given data
+func (c *NodeClient) BuildCommandData(command string, data interface{}) ([]byte, error) {
+	return c.doBuildCommandData(command, data)
+}
+
+// Builds a command data. It prepares a slice of bytes from given data
+func (c *NodeClient) doBuildCommandData(command string, data interface{}) ([]byte, error) {
+	var payload []byte
+	var err error
+
+	if data != nil {
+		payload, err = GobEncode(data)
+
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		//payload = []byte{}
+		return nil, fmt.Errorf("Empty data")
+	}
+
+	request := append(CommandToBytes(command), payload...)
+
+	return request, nil
+}
+
+func (c *NodeClient) SendData(address NodeAddr, data []byte) error {
+	err := c.CheckNodeAddress(address)
 	if err != nil {
-		log.Warn.Printf("%s is not available\n", address)
+		return err
+	}
 
-		// TODO: should we update known nodes
-		//var updatedNodes []string
-		//for _, node := range KnownNodes {
-		//	if node != address {
-		//		updatedNodes = append(updatedNodes, node)
-		//	}
-		//}
-		//KnownNodes = updatedNodes
+	log.Debug.Printf("Sending %d bytes to %s", len(data), address)
+	conn, err := net.Dial(Protocol, address.String())
+	if err != nil {
+		log.Warn.Println("Dial error: ", err.Error())
 
-		return
+		// we can not connect
+		// we could remove this node from known
+		// but this is not always good. we need something more smart here
+		// TODO this needs analysis. if removing of a node is good idea
+		//c.Network.RemoveNodeFromKnown(address)
+
+		return fmt.Errorf("%s is not available\n", address)
 	}
 	defer conn.Close()
 
@@ -84,51 +128,85 @@ func (c *NodeClient) SendData(address NodeAddr, data []byte) {
 	if err != nil {
 		log.Warn.Printf("Send data error: %s", err)
 	}
+
 	log.Debug.Printf("Send data: %x", data)
+
+	return nil
 }
 
-func (c *NodeClient) SendAddr(address NodeAddr, addresses []NodeAddr) {
+func (c *NodeClient) SendAddr(address NodeAddr, addresses []NodeAddr) error {
 	nodes := ComAddr{addresses}
-	payload, _ := GobEncode(nodes)
-	request := append(CommandToBytes("addr"), payload...)
-	c.SendData(address, request)
+
+	request, err := c.BuildCommandData("addr", &nodes)
+	if err != nil {
+		return err
+	}
+
+	return c.SendData(address, request)
 }
 
-func (c *NodeClient) SendBlock(address NodeAddr, block *blockchain.Block) {
+func (c *NodeClient) SendBlock(address NodeAddr, block *blockchain.Block) error {
 	data := ComBlock{c.NodeAddress, block.Serialize()}
-	payload, _ := GobEncode(data)
-	request := append(CommandToBytes("block"), payload...)
-	c.SendData(address, request)
+
+	request, err := c.BuildCommandData("block", &data)
+	if err != nil {
+		return err
+	}
+
+	return c.SendData(address, request)
 }
 
-func (c *NodeClient) SendInv(address NodeAddr, kind string, items [][]byte) {
-	inventory := ComInv{c.NodeAddress, kind, items}
-	payload, _ := GobEncode(inventory)
-	request := append(CommandToBytes("inv"), payload...)
-	c.SendData(address, request)
+func (c *NodeClient) SendInv(address NodeAddr, kind string, items [][]byte) error {
+	data := ComInv{c.NodeAddress, kind, items}
+
+	request, err := c.BuildCommandData("inv", &data)
+	if err != nil {
+		return err
+	}
+
+	return c.SendData(address, request)
 }
 
-func (c *NodeClient) SendGetBlocks(address NodeAddr) {
-	payload, _ := GobEncode(ComGetBlocks{c.NodeAddress})
-	request := append(CommandToBytes("getblocks"), payload...)
-	c.SendData(address, request)
+func (c *NodeClient) SendGetBlocks(address NodeAddr) error {
+	data := ComGetBlocks{c.NodeAddress}
+
+	request, err := c.BuildCommandData("getblocks", &data)
+	if err != nil {
+		return err
+	}
+
+	return c.SendData(address, request)
 }
 
-func (c *NodeClient) SendGetData(address NodeAddr, kind string, id []byte) {
-	payload, _ := GobEncode(ComGetData{c.NodeAddress, kind, id})
-	request := append(CommandToBytes("getdata"), payload...)
-	c.SendData(address, request)
+func (c *NodeClient) SendGetData(address NodeAddr, kind string, id []byte) error {
+	data := ComGetData{c.NodeAddress, kind, id}
+
+	request, err := c.BuildCommandData("getdata", &data)
+	if err != nil {
+		return err
+	}
+
+	return c.SendData(address, request)
 }
 
-func (c *NodeClient) SendTx(address NodeAddr, tnx *blockchain.Transaction) {
+func (c *NodeClient) SendTx(address NodeAddr, tnx *blockchain.Transaction) error {
 	data := ComTx{c.NodeAddress, tnx.Serialize()}
-	payload, _ := GobEncode(data)
-	request := append(CommandToBytes("tx"), payload...)
-	c.SendData(address, request)
+
+	request, err := c.BuildCommandData("tx", &data)
+	if err != nil {
+		return err
+	}
+
+	return c.SendData(address, request)
 }
 
-func (c *NodeClient) SendVersion(address NodeAddr, bestHeight int) {
-	payload, _ := GobEncode(ComVersion{NodeVersion, bestHeight, c.NodeAddress})
-	request := append(CommandToBytes("version"), payload...)
-	c.SendData(address, request)
+func (c *NodeClient) SendVersion(address NodeAddr, bestHeight int) error {
+	data := ComVersion{NodeVersion, bestHeight, c.NodeAddress}
+
+	request, err := c.BuildCommandData("version", &data)
+	if err != nil {
+		return err
+	}
+
+	return c.SendData(address, request)
 }

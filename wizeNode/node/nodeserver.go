@@ -62,7 +62,7 @@ func NewNodeServer(node *Node, minerAddress string) *NodeServer {
 
 // Start a node server
 func (s *NodeServer) Start(serverStartResult chan string) error {
-	log.Info.Println("Prepare server to start ", s.NodeAddress.NodeAddrToString())
+	log.Info.Println("Prepare server to start ", s.NodeAddress)
 
 	ln, err := net.Listen(network.Protocol, s.Node.NodeAddress.String())
 	if err != nil {
