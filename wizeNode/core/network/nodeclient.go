@@ -80,14 +80,12 @@ func (c *NodeClient) SendData(address NodeAddr, data []byte) {
 	log.Debug.Printf("Send data: %x", data)
 }
 
-// TODO: add SendAddr request
-//func (c *NodeClient) SendAddr(address NodeAddr, nodeAddress string) {
-//	nodes := ComAddr{KnownNodes}
-//	nodes.AddrList = append(nodes.AddrList, nodeAddress)
-//	payload, _ := GobEncode(nodes)
-//	request := append(CommandToBytes("addr"), payload...)
-//	c.SendData(address, request)
-//}
+func (c *NodeClient) SendAddr(address NodeAddr, addresses []NodeAddr) {
+	nodes := ComAddr{addresses}
+	payload, _ := GobEncode(nodes)
+	request := append(CommandToBytes("addr"), payload...)
+	c.SendData(address, request)
+}
 
 func (c *NodeClient) SendBlock(address NodeAddr, block *blockchain.Block) {
 	data := ComBlock{c.NodeAddress, block.Serialize()}

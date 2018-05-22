@@ -11,13 +11,9 @@ import (
 )
 
 // DOING: refactoring
-//       DONE: REST Server, Mutex?
-//       DONE: TCP Server
 //       todo: blockchain, preparedTxs
 //       doing: logger
 
-// TODO: dataDir?
-// TODO: minterAddress?
 // DOING: known (other) nodes - NodeNetwork
 // DOING: Network?
 // DOING: NodeClient
@@ -60,6 +56,7 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 	}
 
 	newNode.Init()
+	newNode.InitNodes([]network.NodeAddr{}, false)
 
 	// REST Server constructor
 	newNode.rest = NewRestServer(newNode, apiAddr)
@@ -71,27 +68,7 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 }
 
 func (node *Node) Init() {
-	// TODO: P2P - KnownNodes
-
-	// PROD: masternode
-	//var KnownNodes = []string{os.Getenv("MASTERNODE")} //TODO: change to valid nodes in production
-	masternode := os.Getenv("MASTERNODE")
-	//i := strings.Index(x, ":")
-
-	// PROD: port
-	//port, err := strconv.Atoi(masternode[i+1:])
-	//if err != nil {
-	//	// PROD: set default port
-	//	port = 3000
-	//}
-	port := 3000
-
-	node.Network.SetNodes([]network.NodeAddr{
-		network.NodeAddr{
-			Host: masternode,
-			Port: port,
-		},
-	}, true)
+	node.Network.LoadNodes([]network.NodeAddr{}, true)
 
 	// TODO: NewClient(nodeAddr)
 	node.InitClient()
@@ -108,24 +85,18 @@ func (node *Node) InitClient() error {
 	return nil
 }
 
+/*
+* Load list of other nodes addresses
+ */
 func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
 	if len(list) == 0 && !force {
-		// TODO: P2P - load node list
-		//		node.Network.LoadNodes()
-		//		// load nodes from local storage of nodes
-		//		if n.NodeNet.GetCountOfKnownNodes() == 0 && n.BlockchainExist() {
-		//			// there are no any known nodes.
-		//			n.OpenBlockchain("Check genesis block")
-		//			geenesisHash, err := n.NodeBC.BC.GetGenesisBlockHash()
-		//			n.CloseBlockchain()
-
-		//			if err == nil {
-		//				// load them from some external resource
-		//				n.NodeNet.LoadInitialNodes(geenesisHash)
-		//			}
-		//		}
+		if node.Network.GetCountOfKnownNodes() == 0 {
+			// there are no any known nodes.
+			// load them from some external resource
+			node.Network.LoadInitialNodes()
+		}
 	} else {
-		node.Network.SetNodes(list, true)
+		node.Network.LoadNodes(list, true)
 	}
 	return nil
 }
@@ -134,6 +105,7 @@ func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
  * Send own version to all known nodes
  */
 func (node *Node) SendVersionToNodes(nodes []network.NodeAddr) {
+	log.Info.Printf("blockchain: %+v", node.blockchain)
 	bestHeight := node.blockchain.GetBestHeight()
 
 	if len(nodes) == 0 {
@@ -152,9 +124,8 @@ func (node *Node) CheckAddressKnown(addr network.NodeAddr) {
 	log.Info.Printf("Check address known [%s]\n", addr)
 	log.Info.Printf("All known nodes: %+v\n", node.Network.Nodes)
 	if !node.Network.CheckIsKnown(addr) {
-		// TODO: send list of all addresses to that node
-		//log.Info.Printf("Sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
-		//node.Client.SendAddrList(addr, n.NodeNet.Nodes)
+		log.Info.Printf("Sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
+		node.Client.SendAddr(addr, node.Network.Nodes)
 
 		node.Network.AddNodeToKnown(addr)
 	}
