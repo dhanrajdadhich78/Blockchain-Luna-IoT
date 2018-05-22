@@ -249,7 +249,7 @@ func (s *NodeServer) CloneNode() *Node {
 	node.Init()
 	node.Client.SetNodeAddress(s.NodeAddress)
 	// set list of nodes and skip loading default if this is empty list
-	node.InitNodes(originnode.Network.Nodes, true)
+	node.InitNetwork(originnode.Network.Nodes, true)
 
 	return &node
 }

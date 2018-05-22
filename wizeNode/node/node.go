@@ -1,6 +1,7 @@
 package node
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,7 +15,6 @@ import (
 //       TODO: blockchain, preparedTxs
 //       TODO: logger
 
-// TODO: rethink with Init, InitClient and InitNodes (InitNetwork)
 // TODO: rethink with Run and RunNodeServer/waitServerStarted
 // TODO: rethink with Blockchain and Transactions
 // TODO: rethink with MinerWalletAddress
@@ -54,7 +54,7 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 	}
 
 	newNode.Init()
-	newNode.InitNodes([]network.NodeAddr{}, false)
+	newNode.InitNetwork([]network.NodeAddr{}, false)
 
 	// REST Server constructor
 	newNode.rest = NewRestServer(newNode, apiAddr)
@@ -66,11 +66,13 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 }
 
 func (node *Node) Init() {
-	node.Network.LoadNodes([]network.NodeAddr{}, true)
+	// Nodes list storage
+	dataDir := fmt.Sprintf("files/db%s/", node.NodeID)
+	node.Network.SetExtraManager(NodesListStorage{dataDir})
+	// load list of nodes from config
+	node.Network.SetNodes([]network.NodeAddr{}, true)
 
-	// TODO: NewClient(nodeAddr)
 	node.InitClient()
-	//newNode.Client.SetNodeAddress(nodeAddr)
 }
 
 func (node *Node) InitClient() error {
@@ -86,15 +88,19 @@ func (node *Node) InitClient() error {
 /*
 * Load list of other nodes addresses
  */
-func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
+func (node *Node) InitNetwork(list []network.NodeAddr, force bool) error {
 	if len(list) == 0 && !force {
+		node.Network.LoadNodes()
+
+		// TODO: fix this condition with check Node's Blockchain
+		// load nodes from local storage of nodes
 		if node.Network.GetCountOfKnownNodes() == 0 {
 			// there are no any known nodes.
 			// load them from some external resource
 			node.Network.LoadInitialNodes(node.NodeAddress)
 		}
 	} else {
-		node.Network.LoadNodes(list, true)
+		node.Network.SetNodes(list, true)
 	}
 	return nil
 }

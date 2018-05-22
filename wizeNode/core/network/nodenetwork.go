@@ -8,19 +8,16 @@ import (
 	"wizeBlock/wizeNode/core/log"
 )
 
-// TODO: rethink with InitialNodesList, NodesListJSON and LoadInitialNodes
-// TODO: rethink with LoadNodes/SetNodes
-// TODO: rethink with NodesList & BoltDB bucket "nodes"
-// TODO: NodeNetworkStorage LoadNodes to GetNodes
+// TODO: rethink with LoadInitialNodes and Genesis
 
 const InitialNodesList = "files/initialnodes.json"
 
 // Interface for extra storage for a nodes
 type NodeNetworkStorage interface {
-	LoadNodes(nodeslist *[]NodeAddr) error
+	GetNodes() ([]NodeAddr, error)
 	AddNodeToKnown(addr NodeAddr)
 	RemoveNodeFromKnown(addr NodeAddr)
-	GetCountOfKnownNodes() int
+	GetCountOfKnownNodes() (int, error)
 }
 
 // This manages list of known nodes by a node
@@ -30,7 +27,8 @@ type NodeNetwork struct {
 }
 
 type NodesListJSON struct {
-	Nodes []NodeAddr
+	Nodes   []NodeAddr
+	Genesis string
 }
 
 // Set extra storage for a nodes
@@ -38,8 +36,27 @@ func (n *NodeNetwork) SetExtraManager(storage NodeNetworkStorage) {
 	n.Storage = storage
 }
 
+// Loads list of nodes from storage
+func (n *NodeNetwork) LoadNodes() error {
+	if n.Storage == nil {
+		return nil
+	}
+
+	nodes, err := n.Storage.GetNodes()
+
+	if err != nil {
+		return err
+	}
+
+	for _, node := range nodes {
+		n.Nodes = append(n.Nodes, node)
+	}
+
+	return nil
+}
+
 // Set nodes list. This can be used to do initial nodes loading from  config or so
-func (n *NodeNetwork) LoadNodes(nodes []NodeAddr, replace bool) {
+func (n *NodeNetwork) SetNodes(nodes []NodeAddr, replace bool) {
 	if replace {
 		n.Nodes = nodes
 	} else {
@@ -51,11 +68,11 @@ func (n *NodeNetwork) LoadNodes(nodes []NodeAddr, replace bool) {
 		for _, node := range nodes {
 			n.Storage.AddNodeToKnown(node)
 		}
-		n.Storage.LoadNodes(&n.Nodes)
 	}
 }
 
 // If n any known nodes then it will be loaded from the url on a host
+// Accepts genesis block hash. It will be compared to the hash in JSON doc
 func (n *NodeNetwork) LoadInitialNodes(exceptAddr NodeAddr) error {
 	//response, err := http.Get(InitialNodesList)
 	jsondoc, err := ioutil.ReadFile(InitialNodesList)
