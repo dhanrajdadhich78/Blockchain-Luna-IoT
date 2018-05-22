@@ -8,6 +8,7 @@ services:
 #        app_port: 3000
 #        app_address: wize1
     volumes:
+      - ./wizeNode/files/initialnodes.json:/go/src/wizeBlock/wizeNode/files/initialnodes.json
       - ./wizeNode/files/db3000:/go/src/wizeBlock/wizeNode/files/db3000
       - ./wizeNode/files/wallet3000:/go/src/wizeBlock/wizeNode/files/wallet3000
     container_name: wize1
@@ -42,6 +43,7 @@ services:
 #        app_port: 3001
 #        app_address: wize2
     volumes:
+      - ./wizeNode/files/initialnodes.json:/go/src/wizeBlock/wizeNode/files/initialnodes.json
       - ./wizeNode/files/db3001:/go/src/wizeBlock/wizeNode/files/db3001
       - ./wizeNode/files/wallet3001:/go/src/wizeBlock/wizeNode/files/wallet3001
     container_name: wize2
@@ -75,6 +77,7 @@ services:
 #        app_port: 3002
 #        app_address: wize3
     volumes:
+      - ./wizeNode/files/initialnodes.json:/go/src/wizeBlock/wizeNode/files/initialnodes.json
       - ./wizeNode/files/db3002:/go/src/wizeBlock/wizeNode/files/db3002
       - ./wizeNode/files/wallet3002:/go/src/wizeBlock/wizeNode/files/wallet3002
     container_name: wize3
