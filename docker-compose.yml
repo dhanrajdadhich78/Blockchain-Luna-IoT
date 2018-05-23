@@ -14,6 +14,14 @@ services:
     environment:
       NODE_ID: 3000
       NODE_ADD: wize1
+      PUBLIC_IP: ${PUBLIC_IP}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
+      MASTERNODE: wize1
       NODE_COMMAND: startnode
     ports:
       - "3000:3000"
@@ -40,6 +48,14 @@ services:
     environment:
       NODE_ID: 3001
       NODE_ADD: wize2
+      PUBLIC_IP: ${PUBLIC_IP}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
+      MASTERNODE: wize1
       NODE_COMMAND: startnode
     ports:
       - "3001:3000"
@@ -65,6 +81,14 @@ services:
     environment:
       NODE_ID: 3002
       NODE_ADD: wize3
+      PUBLIC_IP: ${PUBLIC_IP}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
+      MASTERNODE: wize1
       NODE_COMMAND: startnode -miner 15sT8nDhbQWHEjeZY8PXqjCJHCQ9DZSCS3
     ports:
       - "3002:3000"
@@ -89,6 +113,16 @@ services:
       - ./raft/db/raft1:/go/src/wizeBlock/raft/db/raft1
     container_name: raft1-node
     environment:
+      NODE_ID: ${NODE_ID}
+      NODE_ADD: ${NODE_ADD}
+      PUBLIC_IP: ${PUBLIC_IP}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
+      MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: -id raft1-node -haddr raft1-node:11000 -raddr raft1-node:12000 ~/node
     ports:
       - "11001:11000"
@@ -112,6 +146,16 @@ services:
       - ./raft/db/raft2:/go/src/wizeBlock/raft/db/raft2
     container_name: raft2-node
     environment:
+      NODE_ID: ${NODE_ID}
+      NODE_ADD: ${NODE_ADD}
+      PUBLIC_IP: ${PUBLIC_IP}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
+      MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: -id raft2-node -haddr raft2-node:11000 -raddr raft2-node:12000 -join raft1-node:11000 ~/node
     ports:
       - "11002:11000"
@@ -135,6 +179,16 @@ services:
       - ./raft/db/raft3:/go/src/wizeBlock/raft/db/raft3
     container_name: raft3-node
     environment:
+      NODE_ID: ${NODE_ID}
+      NODE_ADD: ${NODE_ADD}
+      PUBLIC_IP: ${PUBLIC_IP}
+      USER_PRIVKEY: ${USER_PRIVKEY}
+      USER_PUBKEY: ${USER_PUBKEY}
+      USER_ADDRESS: ${USER_ADDRESS}
+      PASSWORD: ${PASSWORD}
+      SERVER_KEY: ${SERVER_KEY}
+      DIGEST_NODE: ${DIGEST_NODE}
+      MASTERNODE: ${MASTERNODE}
       NODE_COMMAND: -id raft3-node -haddr raft3-node:11000 -raddr raft3-node:12000 -join raft1-node:11000 ~/node
     ports:
       - "11003:11000"
