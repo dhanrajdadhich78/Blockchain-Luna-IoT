@@ -62,7 +62,7 @@ func NewNodeServer(node *Node, minerAddress string) *NodeServer {
 
 // Start a node server
 func (s *NodeServer) Start(serverStartResult chan string) error {
-	log.Info.Println("Prepare server to start ", s.NodeAddress)
+	log.Info.Println("Prepare Node Server to start ", s.NodeAddress)
 
 	ln, err := net.Listen(network.Protocol, s.Node.NodeAddress.String())
 	if err != nil {
@@ -76,8 +76,8 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 
 	s.Node.Client.SetNodeAddress(s.NodeAddress)
 
-	log.Info.Println("NodeServer was started")
-	log.Info.Printf("nodeAddress: %s, knownNodes: %v", s.Node.NodeAddress, s.Node.Network.Nodes)
+	log.Info.Printf("Node Server [%s] was started, knownNodes: %v",
+		s.Node.NodeAddress, s.Node.Network.Nodes)
 	//s.bc = s.node.blockchain
 
 	s.Node.SendVersionToNodes([]network.NodeAddr{})
@@ -142,7 +142,7 @@ func (s *NodeServer) readRequest(conn net.Conn) (command string, databuffer []by
 
 func (s *NodeServer) handleConnection(conn net.Conn) {
 	starttime := time.Now().UnixNano()
-	log.Info.Println("New command. Start reading")
+	log.Debug.Println("New command. Start reading")
 
 	command, request, err := s.readRequest(conn)
 	if err != nil {
@@ -151,10 +151,10 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 		return
 	}
 
-	log.Info.Printf("Received %s command", command)
+	log.Debug.Printf("Received %s command", command)
 
 	nanonow := time.Now().Format(timeFormat)
-	log.Info.Printf("nodeID: %s, %s: Received %s command\n", s.Node.NodeID, nanonow, command)
+	log.Debug.Printf("nodeID: %s, %s: Received %s command\n", s.Node.NodeID, nanonow, command)
 
 	// FIXME: with constructor
 	requestObj := NodeServerRequest{}
@@ -167,7 +167,7 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 	}
 	request = nil
 
-	log.Info.Printf("RequestObj: %+v\n", requestObj)
+	log.Debug.Printf("RequestObj: %+v\n", requestObj)
 
 	var rerr error
 	switch command {
@@ -212,7 +212,7 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 
 	duration := time.Since(time.Unix(0, starttime))
 	ms := duration.Nanoseconds() / int64(time.Millisecond)
-	log.Info.Printf("Complete processing %s command. Time: %d ms\n", command, ms)
+	log.Debug.Printf("Complete processing %s command. Time: %d ms\n", command, ms)
 
 	conn.Close()
 }

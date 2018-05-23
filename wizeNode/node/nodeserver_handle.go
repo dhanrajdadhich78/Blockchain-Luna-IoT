@@ -60,21 +60,23 @@ func (self *NodeServerRequest) handleAddr() error {
 	//	s.Node.Client.SendGetBlocks(node, s.nodeAddress)
 	//}
 
-	log.Info.Printf("Received nodes %s", payload.AddrList)
+	log.Info.Printf("Node: %p, Received Addr %+v", self.Node, payload.AddrList)
 
 	// TODO: check this logic
 	addednodes := []network.NodeAddr{}
 	for _, node := range payload.AddrList {
-		if self.Node.Network.AddNodeToKnown(node) {
+		if self.Server.Node.Network.AddNodeToKnown(node) {
 			addednodes = append(addednodes, node)
 		}
 	}
 
 	nanonow := time.Now().Format(timeFormat)
-	log.Info.Printf("nodeID: %s, %s: There are %d known nodes now!\n", self.Node.NodeID, nanonow, len(self.Node.Network.Nodes))
-	log.Info.Printf("Send version to %d new nodes\n", len(addednodes))
+	log.Info.Printf("NodeID: %s, %s: There are %d known nodes now: %+v!\n",
+		self.Node.NodeID, nanonow, len(self.Node.Network.Nodes), self.Node.Network.Nodes)
 
 	if len(addednodes) > 0 {
+		log.Info.Printf("Send Versions to new nodes %+v\n", addednodes)
+
 		// send own version to all new found nodes. maybe they have some more blocks
 		// and they will add me to known nodes after this
 		self.Node.SendVersionToNodes(addednodes)
@@ -320,21 +322,24 @@ func (self *NodeServerRequest) handleVersion() error {
 	myBestHeight := self.Server.bc.GetBestHeight()
 	foreignerBestHeight := payload.BestHeight
 
+	log.Info.Printf("Node: %p, Received Version [%d] Height from [%s]",
+		self.Node, payload.BestHeight, payload.AddrFrom)
+
 	if myBestHeight < foreignerBestHeight {
-		log.Info.Printf("Request blocks from %s\n", payload.AddrFrom)
+		//log.Info.Printf("Request blocks from %s\n", payload.AddrFrom)
 
 		self.Node.Client.SendGetBlocks(payload.AddrFrom)
 
 	} else if myBestHeight > foreignerBestHeight {
-		log.Info.Printf("Send my version back to %s\n", payload.AddrFrom)
+		//log.Info.Printf("Send my version back to %s\n", payload.AddrFrom)
 
 		self.Node.Client.SendVersion(payload.AddrFrom, myBestHeight)
 
 	} else {
-		log.Info.Printf("Their blockchain is same as my for %s\n", payload.AddrFrom)
+		//log.Info.Printf("Their blockchain is same as my for %s\n", payload.AddrFrom)
 	}
 
-	log.Info.Printf("Check address known for %s\n", payload.AddrFrom)
+	//log.Info.Printf("Check address known for %s\n", payload.AddrFrom)
 	self.Server.Node.CheckAddressKnown(payload.AddrFrom)
 
 	return nil

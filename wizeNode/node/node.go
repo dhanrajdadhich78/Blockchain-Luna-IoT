@@ -109,7 +109,7 @@ func (node *Node) InitNetwork(list []network.NodeAddr, force bool) error {
  * Send own version to all known nodes
  */
 func (node *Node) SendVersionToNodes(nodes []network.NodeAddr) {
-	log.Info.Printf("blockchain: %+v", node.blockchain)
+	log.Debug.Printf("blockchain: %+v", node.blockchain)
 	bestHeight := node.blockchain.GetBestHeight()
 
 	if len(nodes) == 0 {
@@ -120,20 +120,25 @@ func (node *Node) SendVersionToNodes(nodes []network.NodeAddr) {
 		if n.CompareToAddress(node.Client.NodeAddress) {
 			continue
 		}
+		log.Info.Printf("Send Version [%d] Height to [%s]", bestHeight, n)
 		node.Client.SendVersion(n, bestHeight)
 	}
 }
 
 func (node *Node) CheckAddressKnown(addr network.NodeAddr) {
-	log.Info.Printf("Check address known [%s]\n", addr)
-	log.Info.Printf("All known nodes: %+v\n", node.Network.Nodes)
+	//log.Info.Printf("Check address known [%s]\n", addr)
+	//log.Info.Printf("All known nodes: %+v\n", node.Network.Nodes)
 	if !node.Network.CheckIsKnown(addr) {
-		log.Info.Printf("Sending list of address to %s, %s", addr, node.Network.Nodes)
-		node.Client.SendAddr(addr, node.Network.Nodes)
+		if len(node.Network.Nodes) > 0 {
+			log.Info.Printf("Send Addr %s to %s", node.Network.Nodes, addr)
+			node.Client.SendAddr(addr, node.Network.Nodes)
+		} else {
+			log.Info.Printf("Don't Send Addr because Network Nodes is empty")
+		}
 
 		node.Network.AddNodeToKnown(addr)
+		log.Info.Printf("Updated known nodes: %+v\n", node.Network.Nodes)
 	}
-	log.Info.Printf("Updated known nodes: %+v\n", node.Network.Nodes)
 }
 
 // TODO: move to NodeStarter (NodeDaemon) struct?

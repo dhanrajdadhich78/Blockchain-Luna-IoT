@@ -6,7 +6,7 @@ import (
 
 	"github.com/boltdb/bolt"
 
-	"wizeBlock/wizeNode/core/log"
+	//"wizeBlock/wizeNode/core/log"
 	"wizeBlock/wizeNode/core/network"
 )
 
@@ -18,7 +18,7 @@ type NodesListStorage struct {
 }
 
 func (s NodesListStorage) GetNodes() ([]network.NodeAddr, error) {
-	log.Info.Println("Get nodes...")
+	//log.Info.Println("Get nodes...")
 	db, err := s.openDB()
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (s NodesListStorage) GetNodes() ([]network.NodeAddr, error) {
 }
 
 func (s NodesListStorage) AddNodeToKnown(addr network.NodeAddr) {
-	log.Info.Printf("Add node [%s] to known...", addr)
+	//log.Info.Printf("Add node [%s] to known...", addr)
 	db, err := s.openDB()
 	if err != nil {
 		return
@@ -79,7 +79,7 @@ func (s NodesListStorage) RemoveNodeFromKnown(addr network.NodeAddr) {
 }
 
 func (s NodesListStorage) GetCountOfKnownNodes() (int, error) {
-	log.Info.Println("Get count of known nodes...")
+	//log.Info.Println("Get count of known nodes...")
 	db, err := s.openDB()
 	if err != nil {
 		return 0, err
