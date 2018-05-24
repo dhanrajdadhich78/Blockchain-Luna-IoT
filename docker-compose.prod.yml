@@ -34,7 +34,7 @@ services:
       - front-tier
       - back-tier
     depends_on:
-      - raft3-node
+      - raft1-node
 #    healthcheck:
 #      test: ["CMD", "curl", "-f", "wize1:3000"]
 #      interval: 10s
