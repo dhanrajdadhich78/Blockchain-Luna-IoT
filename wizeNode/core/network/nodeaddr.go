@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// TODO: add AuthStringLength
+
 const Protocol = "tcp"
 const NodeVersion = 1
 const CommandLength = 12
@@ -17,11 +19,6 @@ const CommandLength = 12
 type NodeAddr struct {
 	Host string
 	Port int
-}
-
-// Convert to string in format host:port
-func (n NodeAddr) NodeAddrToString() string {
-	return n.Host + ":" + strconv.Itoa(n.Port)
 }
 
 // Convert to string in format host:port

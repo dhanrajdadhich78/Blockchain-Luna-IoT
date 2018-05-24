@@ -110,24 +110,24 @@ func init() {
 	}
 
 	Debug = &toggledLogger{
-		Logger: log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile),
+		Logger: log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds|log.Lshortfile),
 		prefix: "DEBUG ",
 	}
 	Info = &toggledLogger{
 		Enabled: true,
-		Logger:  log.New(os.Stdout, "", log.LstdFlags|log.Lshortfile),
+		Logger:  log.New(os.Stdout, "", log.Ldate|log.Lmicroseconds|log.Lshortfile),
 		prefix:  ColorGreen + "INFO  ",
 		postfix: ColorReset,
 	}
 	Warn = &toggledLogger{
 		Enabled: true,
-		Logger:  log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile),
+		Logger:  log.New(os.Stderr, "", log.Ldate|log.Lmicroseconds|log.Lshortfile),
 		prefix:  ColorYellow + "WARN  ",
 		postfix: ColorReset,
 	}
 	Fatal = &toggledLogger{
 		Enabled: true,
-		Logger:  log.New(os.Stderr, "", log.LstdFlags|log.Lshortfile),
+		Logger:  log.New(os.Stderr, "", log.Ldate|log.Lmicroseconds|log.Lshortfile),
 		prefix:  ColorRed + "FATAL ",
 		postfix: ColorReset,
 	}

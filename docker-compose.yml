@@ -8,6 +8,7 @@ services:
 #        app_port: 3000
 #        app_address: wize1
     volumes:
+      - ./wizeNode/files/initialnodes.json:/go/src/wizeBlock/wizeNode/files/initialnodes.json
       - ./wizeNode/files/db3000:/go/src/wizeBlock/wizeNode/files/db3000
       - ./wizeNode/files/wallet3000:/go/src/wizeBlock/wizeNode/files/wallet3000
     container_name: wize1
@@ -34,6 +35,11 @@ services:
       - back-tier
     depends_on:
       - raft3-node
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "wize1:3000"]
+#      interval: 10s
+#      timeout: 10s
+#      retries: 5
 
   wize2:
     build:
@@ -42,6 +48,7 @@ services:
 #        app_port: 3001
 #        app_address: wize2
     volumes:
+      - ./wizeNode/files/initialnodes.json:/go/src/wizeBlock/wizeNode/files/initialnodes.json
       - ./wizeNode/files/db3001:/go/src/wizeBlock/wizeNode/files/db3001
       - ./wizeNode/files/wallet3001:/go/src/wizeBlock/wizeNode/files/wallet3001
     container_name: wize2
@@ -56,7 +63,7 @@ services:
       SERVER_KEY: ${SERVER_KEY}
       DIGEST_NODE: ${DIGEST_NODE}
       MASTERNODE: wize1
-      NODE_COMMAND: startnode
+      NODE_COMMAND: startnode -pause 10
     ports:
       - "3001:3000"
       - "4001:4000"
@@ -75,6 +82,7 @@ services:
 #        app_port: 3002
 #        app_address: wize3
     volumes:
+      - ./wizeNode/files/initialnodes.json:/go/src/wizeBlock/wizeNode/files/initialnodes.json
       - ./wizeNode/files/db3002:/go/src/wizeBlock/wizeNode/files/db3002
       - ./wizeNode/files/wallet3002:/go/src/wizeBlock/wizeNode/files/wallet3002
     container_name: wize3
@@ -89,7 +97,7 @@ services:
       SERVER_KEY: ${SERVER_KEY}
       DIGEST_NODE: ${DIGEST_NODE}
       MASTERNODE: wize1
-      NODE_COMMAND: startnode -miner 15sT8nDhbQWHEjeZY8PXqjCJHCQ9DZSCS3
+      NODE_COMMAND: startnode -pause 20 -miner 15sT8nDhbQWHEjeZY8PXqjCJHCQ9DZSCS3
     ports:
       - "3002:3000"
       - "4002:4000"
@@ -101,7 +109,6 @@ services:
       - back-tier
     depends_on:
       - wize1
-
 
   raft1-node:
     build:

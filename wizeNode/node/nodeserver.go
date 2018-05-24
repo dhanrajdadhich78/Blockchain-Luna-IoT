@@ -11,9 +11,9 @@ import (
 	"wizeBlock/wizeNode/core/network"
 )
 
-// DONE: divide server_tcp onto nodeserver and nodeclient
-// DONE: constants and util functions to network module
-// DOING: KnownNodes to nodenetwork module
+// TODO: rethink with NewNodeServer and Start/Stop
+// TODO: rethink with handleConnection and readRequest
+// TODO: rethink with CloneNode and multiple goroutines
 
 const timeFormat = "15:04:05.000000"
 
@@ -62,7 +62,7 @@ func NewNodeServer(node *Node, minerAddress string) *NodeServer {
 
 // Start a node server
 func (s *NodeServer) Start(serverStartResult chan string) error {
-	log.Info.Println("Prepare server to start ", s.NodeAddress.NodeAddrToString())
+	log.Info.Println("Prepare Node Server to start ", s.NodeAddress)
 
 	ln, err := net.Listen(network.Protocol, s.Node.NodeAddress.String())
 	if err != nil {
@@ -76,17 +76,11 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 
 	s.Node.Client.SetNodeAddress(s.NodeAddress)
 
-	log.Info.Println("NodeServer was started")
-	log.Info.Printf("nodeAddress: %s, knownNodes: %v", s.Node.NodeAddress, s.Node.Network.Nodes)
+	log.Info.Printf("Node Server [%s] was started, knownNodes: %v",
+		s.Node.NodeAddress, s.Node.Network.Nodes)
 	//s.bc = s.node.blockchain
 
-	// TODO: P2P: should we send ComVersion at the start?
-	///s.Node.SendVersionToNodes([]netlib.NodeAddr{})
-	log.Info.Printf("Compare node address [%s] with 0-node [%s]\n", s.Node.Client.NodeAddress, s.Node.Network.Nodes[0])
-	if !s.Node.Client.NodeAddress.CompareToAddress(s.Node.Network.Nodes[0]) {
-		log.Info.Printf("Send version\n")
-		s.Node.Client.SendVersion(s.Node.Network.Nodes[0], s.bc.GetBestHeight())
-	}
+	s.Node.SendVersionToNodes([]network.NodeAddr{})
 
 	// notify node about server started fine
 	serverStartResult <- ""
@@ -128,6 +122,12 @@ func (s *NodeServer) Start(serverStartResult chan string) error {
 	return nil
 }
 
+func (s *NodeServer) Stop() {
+	if s.bc != nil && s.bc.Db != nil {
+		s.bc.Db.Close()
+	}
+}
+
 func (s *NodeServer) readRequest(conn net.Conn) (command string, databuffer []byte, err error) {
 	request, err := ioutil.ReadAll(conn)
 	if err != nil {
@@ -142,7 +142,7 @@ func (s *NodeServer) readRequest(conn net.Conn) (command string, databuffer []by
 
 func (s *NodeServer) handleConnection(conn net.Conn) {
 	starttime := time.Now().UnixNano()
-	log.Info.Println("New command. Start reading")
+	log.Debug.Println("New command. Start reading")
 
 	command, request, err := s.readRequest(conn)
 	if err != nil {
@@ -151,10 +151,10 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 		return
 	}
 
-	log.Info.Printf("Received %s command", command)
+	log.Debug.Printf("Received %s command", command)
 
 	nanonow := time.Now().Format(timeFormat)
-	log.Info.Printf("nodeID: %s, %s: Received %s command\n", s.Node.NodeID, nanonow, command)
+	log.Debug.Printf("nodeID: %s, %s: Received %s command\n", s.Node.NodeID, nanonow, command)
 
 	// FIXME: with constructor
 	requestObj := NodeServerRequest{}
@@ -167,7 +167,7 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 	}
 	request = nil
 
-	log.Info.Printf("RequestObj: %+v\n", requestObj)
+	log.Debug.Printf("RequestObj: %+v\n", requestObj)
 
 	var rerr error
 	switch command {
@@ -212,7 +212,7 @@ func (s *NodeServer) handleConnection(conn net.Conn) {
 
 	duration := time.Since(time.Unix(0, starttime))
 	ms := duration.Nanoseconds() / int64(time.Millisecond)
-	log.Info.Printf("Complete processing %s command. Time: %d ms\n", command, ms)
+	log.Debug.Printf("Complete processing %s command. Time: %d ms\n", command, ms)
 
 	conn.Close()
 }
@@ -231,12 +231,6 @@ func (s *NodeServer) sendErrorBack(conn net.Conn, err error) {
 	}
 }
 
-func (s *NodeServer) Stop() {
-	if s.bc != nil && s.bc.Db != nil {
-		s.bc.Db.Close()
-	}
-}
-
 /*
 * Creates clone of a node object. We use this in case if we need separate object
 * for a routine. This prevents conflicts of pointers in different routines
@@ -246,12 +240,16 @@ func (s *NodeServer) CloneNode() *Node {
 
 	// FIXME: should we just clone not create new object?
 	//node := NewNode(originnode.NodeID, originnode.NodeAddress, originnode.apiAddr, s.minerAddress)
-	node := Node{}
+	node := Node{
+		NodeID:      originnode.NodeID,
+		NodeAddress: originnode.NodeAddress,
+		blockchain:  originnode.blockchain,
+	}
 
 	node.Init()
 	node.Client.SetNodeAddress(s.NodeAddress)
 	// set list of nodes and skip loading default if this is empty list
-	node.InitNodes(originnode.Network.Nodes, true)
+	node.InitNetwork(originnode.Network.Nodes, true)
 
 	return &node
 }
