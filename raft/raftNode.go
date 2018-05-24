@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 	"wizeBlock/raft/http"
+	h "wizeBlock/raft/http"
 	"wizeBlock/raft/store"
 )
 
@@ -34,6 +36,7 @@ func init() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] <fart-data-path> \n", os.Args[0])
 		flag.PrintDefaults()
 	}
+	h.StartTime = time.Now()
 }
 
 func main() {
