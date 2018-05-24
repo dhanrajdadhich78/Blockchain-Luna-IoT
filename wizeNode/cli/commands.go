@@ -141,6 +141,11 @@ var Commands = []cli.Command{
 				Value: ":4000",
 				Usage: "",
 			},
+			cli.IntFlag{
+				Name:  "pause",
+				Value: 0,
+				Usage: "",
+			},
 		},
 		Usage:  "Start a node with ID specified in NODE_ID env. var. -miner enables mining",
 		Action: CmdStartNode,
@@ -333,13 +338,21 @@ func CmdGetBlock(c *cli.Context) (err error) {
 
 // p2p network commands
 func CmdStartNode(c *cli.Context) (err error) {
+	pause := c.Int("pause")
+	if pause > 0 {
+		time.Sleep(time.Duration(pause) * time.Second)
+	}
+
 	nodeID := c.GlobalInt("nodeID")
 	nodeIDStr := strconv.Itoa(nodeID)
 	nodeAddr := network.NodeAddr{
 		Host: c.GlobalString("nodeADD"),
 		Port: nodeID,
 	}
-	log.Info.Printf("Starting node %s", nodeAddr)
+	log.Info.Printf("Starting Node %s", nodeAddr)
+
+	// PROD: add request to masternode and get nodeID
+	//nodeAddress := os.Getenv("NODE_ADD") + ":" + nodeIDStr
 
 	// PROD: add request to masternode and get nodeID
 	//nodeAddress := os.Getenv("NODE_ADD") + ":" + nodeIDStr

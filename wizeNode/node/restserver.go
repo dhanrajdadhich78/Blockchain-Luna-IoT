@@ -58,6 +58,8 @@ func (s *RestServer) Start() error {
 	router.HandleFunc("/prepare", s.prepare).Methods("POST")
 	router.HandleFunc("/sign", s.sign).Methods("POST")
 
+	router.HandleFunc("/state", s.echoHandler).Methods("POST")
+
 	// DEPRECATED: inner usage
 	//router.HandleFunc("/wallet/new", s.deprecatedWalletCreate).Methods("POST")
 	//router.HandleFunc("/wallets/list", s.deprecatedWalletsList).Methods("GET")

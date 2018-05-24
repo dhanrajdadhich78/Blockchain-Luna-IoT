@@ -1,6 +1,7 @@
 package node
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,29 +12,22 @@ import (
 )
 
 // DOING: refactoring
-//       DONE: REST Server, Mutex?
-//       DONE: TCP Server
-//       todo: blockchain, preparedTxs
-//       doing: logger
+//       TODO: blockchain, preparedTxs
+//       TODO: logger
 
-// TODO: dataDir?
-// TODO: minterAddress?
-// DOING: known (other) nodes - NodeNetwork
-// DOING: Network?
-// DOING: NodeClient
+// TODO: rethink with Run and RunNodeServer/waitServerStarted
+// TODO: rethink with Blockchain and Transactions
+// TODO: rethink with MinerWalletAddress
 
-// TODO: NodeBlockchain!
-// TODO: NodeTransactions!
-
-// TODO: deprecated in 0.3
+// FIXME: deprecated in 0.3
 type PreparedTransaction struct {
 	From        string
 	Transaction *blockchain.Transaction
 }
 
-// TODO: public vs private
+// FIXME: public vs private
 type Node struct {
-	// TODO: deprecated in 0.3
+	// FIXME: deprecated in 0.3
 	NodeID string
 
 	NodeAddress network.NodeAddr
@@ -60,6 +54,7 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 	}
 
 	newNode.Init()
+	newNode.InitNetwork([]network.NodeAddr{}, false)
 
 	// REST Server constructor
 	newNode.rest = NewRestServer(newNode, apiAddr)
@@ -71,31 +66,14 @@ func NewNode(nodeID string, nodeAddr network.NodeAddr, apiAddr, minerWalletAddre
 }
 
 func (node *Node) Init() {
-	// TODO: P2P - KnownNodes
 
-	// PROD: masternode
-	//var KnownNodes = []string{os.Getenv("MASTERNODE")} //TODO: change to valid nodes in production
-	masternode := os.Getenv("MASTERNODE")
-	//i := strings.Index(x, ":")
+	// Nodes list storage
+	dataDir := fmt.Sprintf("files/db%s/", node.NodeID)
+	node.Network.SetExtraManager(NodesListStorage{dataDir})
+	// load list of nodes from config
+	node.Network.SetNodes([]network.NodeAddr{}, true)
 
-	// PROD: port
-	//port, err := strconv.Atoi(masternode[i+1:])
-	//if err != nil {
-	//	// PROD: set default port
-	//	port = 3000
-	//}
-	port := 3000
-
-	node.Network.SetNodes([]network.NodeAddr{
-		network.NodeAddr{
-			Host: masternode,
-			Port: port,
-		},
-	}, true)
-
-	// TODO: NewClient(nodeAddr)
 	node.InitClient()
-	//newNode.Client.SetNodeAddress(nodeAddr)
 }
 
 func (node *Node) InitClient() error {
@@ -108,22 +86,20 @@ func (node *Node) InitClient() error {
 	return nil
 }
 
-func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
+/*
+* Load list of other nodes addresses
+ */
+func (node *Node) InitNetwork(list []network.NodeAddr, force bool) error {
 	if len(list) == 0 && !force {
-		// TODO: P2P - load node list
-		//		node.Network.LoadNodes()
-		//		// load nodes from local storage of nodes
-		//		if n.NodeNet.GetCountOfKnownNodes() == 0 && n.BlockchainExist() {
-		//			// there are no any known nodes.
-		//			n.OpenBlockchain("Check genesis block")
-		//			geenesisHash, err := n.NodeBC.BC.GetGenesisBlockHash()
-		//			n.CloseBlockchain()
+		node.Network.LoadNodes()
 
-		//			if err == nil {
-		//				// load them from some external resource
-		//				n.NodeNet.LoadInitialNodes(geenesisHash)
-		//			}
-		//		}
+		// TODO: fix this condition with check Node's Blockchain
+		// load nodes from local storage of nodes
+		if node.Network.GetCountOfKnownNodes() == 0 {
+			// there are no any known nodes.
+			// load them from some external resource
+			node.Network.LoadInitialNodes(node.NodeAddress)
+		}
 	} else {
 		node.Network.SetNodes(list, true)
 	}
@@ -134,6 +110,7 @@ func (node *Node) InitNodes(list []network.NodeAddr, force bool) error {
  * Send own version to all known nodes
  */
 func (node *Node) SendVersionToNodes(nodes []network.NodeAddr) {
+	log.Debug.Printf("blockchain: %+v", node.blockchain)
 	bestHeight := node.blockchain.GetBestHeight()
 
 	if len(nodes) == 0 {
@@ -144,21 +121,25 @@ func (node *Node) SendVersionToNodes(nodes []network.NodeAddr) {
 		if n.CompareToAddress(node.Client.NodeAddress) {
 			continue
 		}
+		log.Info.Printf("Send Version [%d] Height to [%s]", bestHeight, n)
 		node.Client.SendVersion(n, bestHeight)
 	}
 }
 
 func (node *Node) CheckAddressKnown(addr network.NodeAddr) {
-	log.Info.Printf("Check address known [%s]\n", addr)
-	log.Info.Printf("All known nodes: %+v\n", node.Network.Nodes)
+	//log.Info.Printf("Check address known [%s]\n", addr)
+	//log.Info.Printf("All known nodes: %+v\n", node.Network.Nodes)
 	if !node.Network.CheckIsKnown(addr) {
-		// TODO: send list of all addresses to that node
-		//log.Info.Printf("Sending list of address to %s, %s", addr.NodeAddrToString(), node.Network.Nodes)
-		//node.Client.SendAddrList(addr, n.NodeNet.Nodes)
+		if len(node.Network.Nodes) > 0 {
+			log.Info.Printf("Send Addr %s to %s", node.Network.Nodes, addr)
+			node.Client.SendAddr(addr, node.Network.Nodes)
+		} else {
+			log.Info.Printf("Don't Send Addr because Network Nodes is empty")
+		}
 
 		node.Network.AddNodeToKnown(addr)
+		log.Info.Printf("Updated known nodes: %+v\n", node.Network.Nodes)
 	}
-	log.Info.Printf("Updated known nodes: %+v\n", node.Network.Nodes)
 }
 
 // TODO: move to NodeStarter (NodeDaemon) struct?

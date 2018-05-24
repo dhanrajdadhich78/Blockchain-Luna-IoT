@@ -5,8 +5,14 @@ import (
 
 	urfave "github.com/urfave/cli"
 
+	"time"
 	"wizeBlock/wizeNode/cli"
+	"wizeBlock/wizeNode/node"
 )
+
+func init() {
+	node.StartTime = time.Now()
+}
 
 func main() {
 	app := urfave.NewApp()
