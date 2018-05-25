@@ -88,6 +88,8 @@ func (s *Service) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		s.handleJoin(w, r)
 	} else if r.URL.Path == "/check" {
 		s.handleCheckRequest(w, r)
+	} else if r.URL.Path == "/state" {
+		s.handleEchoRequest(w, r)
 		//} else if r.URL.Path == "/len" {
 		//	s.handleLenRequest(w, r)
 		//} else if r.URL.Path == "/clear" {

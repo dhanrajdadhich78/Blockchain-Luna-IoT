@@ -1,3 +1,5 @@
+.DS_Store
+
 .idea/
 raft/raft
 
@@ -18,5 +20,6 @@ wizeWallet/wallet*.dat
 
 # testing
 wizeNode/blockchain/files
-wizeNode/startnode.sh
+wizeNode/startNode.sh
 .env
+

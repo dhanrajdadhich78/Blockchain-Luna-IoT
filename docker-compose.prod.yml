@@ -8,9 +8,11 @@ services:
 #        app_port: 3000
 #        app_address: wize1
     volumes:
+
+      - ./wizeNode/files/initialnodes.json:/go/src/wizeBlock/wizeNode/files/initialnodes.json
       - ./wizeNode/files/db3000:/go/src/wizeBlock/wizeNode/files/db3000
       - ./wizeNode/files/wallet3000:/go/src/wizeBlock/wizeNode/files/wallet3000
-    container_name: wize.${USER_PUBKEY}
+    container_name: wize1
     environment:
       NODE_ID: ${NODE_ID}
       NODE_ADD: ${NODE_ADD}
@@ -22,6 +24,7 @@ services:
       SERVER_KEY: ${SERVER_KEY}
       DIGEST_NODE: ${DIGEST_NODE}
       MASTERNODE: ${MASTERNODE}
+
       NODE_COMMAND: startnode
     ports:
       - "3000:3000"
@@ -34,6 +37,13 @@ services:
       - back-tier
     depends_on:
       - raft1-node
+
+#    healthcheck:
+#      test: ["CMD", "curl", "-f", "wize1:3000"]
+#      interval: 10s
+#      timeout: 10s
+#      retries: 5
+
 
   raft1-node:
     build:

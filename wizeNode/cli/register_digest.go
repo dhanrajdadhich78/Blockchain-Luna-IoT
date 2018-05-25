@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"wizeBlock/wizeNode/core/log"
 )
 
 func registerDigest() {
@@ -22,17 +23,19 @@ func registerDigest() {
 
 	jsonValue, _ := json.Marshal(values)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonValue))
+
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		panic(err)
-	}
-	defer resp.Body.Close()
 
-	fmt.Println("response Status:", resp.Status)
-	fmt.Println("response Headers:", resp.Header)
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+		log.Warn.Printf("Register server in masternode failed with error: %s", err)
+	} else {
+		fmt.Println("response Status:", resp.Status)
+		fmt.Println("response Headers:", resp.Header)
+		body, _ := ioutil.ReadAll(resp.Body)
+		fmt.Println("response Body:", string(body))
+		resp.Body.Close()
+	}
 }

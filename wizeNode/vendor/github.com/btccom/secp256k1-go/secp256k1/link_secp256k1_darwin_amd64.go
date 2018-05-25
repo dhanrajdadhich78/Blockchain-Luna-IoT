@@ -17,12 +17,13 @@ static void freePubkeyArray(secp256k1_pubkey **a) {
         free(a);
 }
 */
-// #cgo LDFLAGS: ${SRCDIR}/c-secp256k1/.libs/libsecp256k1.a -lgmp
+// #cgo LDFLAGS: ${SRCDIR}/c-secp256k1/.libs/libsecp256k1_darwin_amd64.a -lgmp
 import "C"
 
 import (
-	"github.com/pkg/errors"
 	"unsafe"
+
+	"github.com/pkg/errors"
 )
 
 const (
