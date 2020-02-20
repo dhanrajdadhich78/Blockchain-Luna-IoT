@@ -12,8 +12,7 @@ const maxAllocSize = 0xFFFFFFF
 var brokenUnaligned bool
 
 func init() {
-	// Simple check to see whether this arch handles unaligned load/stores
-	// correctly.
+	// Simple check to see whether this arch handles unaligned load/stores correctly.
 
 	// ARM9 and older devices require load/stores to be from/to aligned
 	// addresses. If not, the lower 2 bits are cleared and that address is

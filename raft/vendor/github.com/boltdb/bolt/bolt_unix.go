@@ -10,7 +10,7 @@ import (
 	"unsafe"
 )
 
-// flock acquires an advisory lock on a file descriptor.
+// flock acquires an advisory lock on a file descriptor. 
 func flock(db *DB, mode os.FileMode, exclusive bool, timeout time.Duration) error {
 	var t time.Time
 	for {

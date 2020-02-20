@@ -8,8 +8,7 @@ var (
 	// is opened or after it is closed.
 	ErrDatabaseNotOpen = errors.New("database not open")
 
-	// ErrDatabaseOpen is returned when opening a database that is
-	// already open.
+	// ErrDatabaseOpen is returned when opening a database that is already open.
 	ErrDatabaseOpen = errors.New("database already open")
 
 	// ErrInvalid is returned when both meta pages on a database are invalid.

@@ -51,6 +51,7 @@ func (c *Cursor) First() (key []byte, value []byte) {
 
 // Last moves the cursor to the last item in the bucket and returns its key and value.
 // If the bucket is empty then a nil key and value are returned.
+//
 // The returned key and value are only valid for the life of the transaction.
 func (c *Cursor) Last() (key []byte, value []byte) {
 	_assert(c.bucket.tx.db != nil, "tx closed")

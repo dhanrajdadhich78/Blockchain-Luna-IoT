@@ -23,7 +23,6 @@ func getOnlyHash(data string) string {
 	h256 := sha256.New()
 	out := fmt.Sprintf("%s", data)
 	io.WriteString(h256, out)
-
 	return fmt.Sprintf("%x", h256.Sum(nil))
 }
 

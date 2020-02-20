@@ -4,7 +4,7 @@ Bolt [![Coverage Status](https://coveralls.io/repos/boltdb/bolt/badge.svg?branch
 Bolt is a pure Go key/value store inspired by [Howard Chu's][hyc_symas]
 [LMDB project][lmdb]. The goal of the project is to provide a simple,
 fast, and reliable database for projects that don't require a full database
-server such as Postgres or MySQL.
+server such as Postgres or MySQL. 
 
 Since Bolt is meant to be used as such a low-level piece of functionality,
 simplicity is key. The API will be small and only focus on getting values
@@ -20,6 +20,7 @@ test coverage and randomized black box testing are used to ensure database
 consistency and thread safety. Bolt is currently used in high-load production
 environments serving databases as large as 1TB. Many companies such as
 Shopify and Heroku use Bolt-backed services every day.
+
 
 ## A message from the author
 

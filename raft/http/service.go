@@ -13,6 +13,7 @@ import (
 )
 
 // Store is the interface Raft-backed key-value stores must implement.
+
 type Store interface {
 	// Get returns the value for the given key.
 	Get(key string) (string, error)

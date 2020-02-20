@@ -25,6 +25,7 @@ type MetricSink interface {
 }
 
 // BlackholeSink is used to just blackhole messages
+
 type BlackholeSink struct{}
 
 func (*BlackholeSink) SetGauge(key []string, val float32)                              {}

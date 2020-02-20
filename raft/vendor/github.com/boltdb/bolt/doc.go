@@ -10,10 +10,9 @@ optimized for fast read access and does not require recovery in the event of a
 system crash. Transactions which have not finished committing will simply be
 rolled back in the event of a crash.
 
-The design of Bolt is based on Howard Chu's LMDB database project.
+The design of Bolt is based on Howard Chu's LMDB database project. 
 
 Bolt currently works on Windows, Mac OS X, and Linux.
-
 
 Basics
 

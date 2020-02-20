@@ -79,6 +79,7 @@ type DB struct {
 	// If <=0, disables batching.
 	//
 	// Do not change concurrently with calls to Batch.
+	//
 	MaxBatchSize int
 
 	// MaxBatchDelay is the maximum delay before a batch starts.

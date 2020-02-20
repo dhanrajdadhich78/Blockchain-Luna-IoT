@@ -16,6 +16,7 @@ type MetricsSummary struct {
 	Samples   []SampledValue
 }
 
+
 type GaugeValue struct {
 	Name  string
 	Hash  string `json:"-"`

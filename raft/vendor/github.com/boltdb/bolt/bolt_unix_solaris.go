@@ -25,7 +25,7 @@ func flock(db *DB, mode os.FileMode, exclusive bool, timeout time.Duration) erro
 		lock.Start = 0
 		lock.Len = 0
 		lock.Pid = 0
-		lock.Whence = 0
+		lock.Whence = 0 
 		lock.Pid = 0
 		if exclusive {
 			lock.Type = syscall.F_WRLCK

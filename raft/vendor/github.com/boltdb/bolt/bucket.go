@@ -107,7 +107,7 @@ func (b *Bucket) Bucket(name []byte) *Bucket {
 		}
 	}
 
-	// Move cursor to key.
+	// Move cursor to the key.
 	c := b.Cursor()
 	k, v, flags := c.seek(name)
 

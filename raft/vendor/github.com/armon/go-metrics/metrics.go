@@ -25,9 +25,11 @@ func (m *Metrics) SetGaugeWithLabels(key []string, val float32, labels []Label) 
 			key = insert(0, m.HostName, key)
 		}
 	}
+
 	if m.EnableTypePrefix {
 		key = insert(0, "gauge", key)
 	}
+	
 	if m.ServiceName != "" {
 		if m.EnableServiceLabel {
 			labels = append(labels, Label{"service", m.ServiceName})

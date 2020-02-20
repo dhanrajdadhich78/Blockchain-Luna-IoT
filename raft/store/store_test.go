@@ -8,6 +8,7 @@ import (
 )
 
 // Test_StoreOpen tests that the store can be opened.
+
 func Test_StoreOpen(t *testing.T) {
 	s := New()
 	tmpDir, _ := ioutil.TempDir("", "store_test")

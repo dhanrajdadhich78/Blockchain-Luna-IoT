@@ -31,6 +31,7 @@ type InmemSink struct {
 	rateDenom float64
 }
 
+
 // IntervalMetrics stores the aggregated metrics
 // for a specific interval
 type IntervalMetrics struct {

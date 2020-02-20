@@ -8,7 +8,7 @@ import (
 	"unsafe"
 )
 
-// LockFileEx code derived from golang build filemutex_windows.go @ v1.5.1
+// LockFileEx code derived from golang build filemutex_windows.go @ v1.5.1 
 var (
 	modkernel32      = syscall.NewLazyDLL("kernel32.dll")
 	procLockFileEx   = modkernel32.NewProc("LockFileEx")

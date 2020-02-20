@@ -16,7 +16,7 @@ func msync(db *DB) error {
 	if errno != 0 {
 		return errno
 	}
-	return nil
+	return nil 
 }
 
 func fdatasync(db *DB) error {

@@ -26,8 +26,7 @@ type Config struct {
 	FilterDefault   bool     // Whether to allow metrics by default
 }
 
-// Metrics represents an instance of a metrics sink that can
-// be used to emit
+// Metrics represents an instance of a metrics sink that can be used to emit
 type Metrics struct {
 	Config
 	lastNumGC  uint32

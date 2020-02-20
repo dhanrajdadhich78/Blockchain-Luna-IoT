@@ -8,5 +8,6 @@ import (
 
 const (
 	// DefaultSignal is used with DefaultInmemSignal
+	
 	DefaultSignal = syscall.SIGUSR1
 )

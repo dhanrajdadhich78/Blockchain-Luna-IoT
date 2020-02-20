@@ -11,8 +11,7 @@ import (
 )
 
 const (
-	// statsdMaxLen is the maximum size of a packet
-	// to send to statsd
+	// statsdMaxLen is the maximum size of a packet to send to statsd
 	statsdMaxLen = 1400
 )
 

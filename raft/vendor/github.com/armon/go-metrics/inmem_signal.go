@@ -26,6 +26,7 @@ type InmemSignal struct {
 
 // NewInmemSignal creates a new InmemSignal which listens for a given signal,
 // and dumps the current metrics out to a writer
+
 func NewInmemSignal(inmem *InmemSink, sig syscall.Signal, w io.Writer) *InmemSignal {
 	i := &InmemSignal{
 		signal: sig,

@@ -8,3 +8,4 @@ const maxAllocSize = 0xFFFFFFF
 
 // Are unaligned load/stores broken on this arch?
 var brokenUnaligned = false
+

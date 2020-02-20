@@ -11,9 +11,8 @@ import (
 )
 
 const (
-	// We force flush the statsite metrics after this period of
-	// inactivity. Prevents stats from getting stuck in a buffer
-	// forever.
+	// We force flush the statsite metrics after this period of inactivity. 
+	// Prevents stats from getting stuck in a buffer forever.
 	flushInterval = 100 * time.Millisecond
 )
 
@@ -30,7 +29,7 @@ type StatsiteSink struct {
 	metricQueue chan string
 }
 
-// NewStatsiteSink is used to create a new StatsiteSink
+// NewStatsiteSink is used to create a new StatsiteSink 
 func NewStatsiteSink(addr string) (*StatsiteSink, error) {
 	s := &StatsiteSink{
 		addr:        addr,

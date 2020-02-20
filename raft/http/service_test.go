@@ -12,6 +12,7 @@ import (
 )
 
 // Test_NewServer tests that a server can perform all basic operations.
+
 func Test_NewServer(t *testing.T) {
 	store := newTestStore()
 	s := &testServer{New(":0", store)}

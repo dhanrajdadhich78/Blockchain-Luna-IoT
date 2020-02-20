@@ -31,6 +31,7 @@ Here is an example of using the package:
 ```go
 func SlowMethod() {
     // Profiling the runtime of a method
+    
     defer metrics.MeasureSince([]string{"SlowMethod"}, time.Now())
 }
 
